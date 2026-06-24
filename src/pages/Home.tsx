@@ -59,7 +59,7 @@ export default function Home() {
         ))}
       </div>
 
-      <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
         {filteredRelatives.map(relative => (
           <Link key={relative.id} to={`/detail/${relative.id}`}>
             <AvatarCard relative={relative} />
@@ -67,10 +67,12 @@ export default function Home() {
         ))}
         <Link
           to="/add"
-          className="flex flex-col items-center justify-center p-4 bg-white rounded-2xl border-2 border-dashed border-gray-200 hover:border-[#E8734A] transition-colors aspect-square"
+          className="flex flex-col items-center justify-center p-4 hover:scale-105 transition-transform"
         >
-          <Plus size={24} className="text-gray-400 mb-1" />
-          <span className="text-xs text-gray-500">添加亲友</span>
+          <div className="w-24 h-24 rounded-full border-4 border-dashed border-gray-300 hover:border-[#E8734A] flex items-center justify-center mb-2 transition-colors">
+            <Plus size={32} className="text-gray-400" />
+          </div>
+          <span className="text-sm text-gray-500 font-medium">添加亲友</span>
         </Link>
       </div>
 
