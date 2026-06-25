@@ -88,20 +88,79 @@ export default function ImageUploader({ onImageCropped, currentImage }: ImageUpl
       if (!ctx) return;
 
       if (cropShape === 'chibi') {
-        const outSize = 240;
-        canvas.width = outSize;
-        canvas.height = outSize;
-        ctx.clearRect(0, 0, outSize, outSize);
+        // 萌系Q版大头 - 180x200 比例（与 AvatarPreview 一致）
+        const W = 180;
+        const H = 200;
+        canvas.width = W;
+        canvas.height = H;
+        ctx.clearRect(0, 0, W, H);
 
-        const headR = 72;
-        const headCx = outSize / 2;
-        const headCy = headR + 8;
+        // ── 身体（先画，在头下面）──
+        const skinColor = '#F5CBA7';
+        const clothColor = '#E8734A';
+        const bodyTop = 122;
+
+        // 脖子
+        ctx.fillStyle = skinColor;
+        ctx.beginPath();
+        ctx.roundRect(82, bodyTop - 4, 16, 10, 4);
+        ctx.fill();
+
+        // 身体主体
+        ctx.fillStyle = clothColor;
+        ctx.beginPath();
+        ctx.moveTo(58, bodyTop + 8);
+        ctx.quadraticCurveTo(58, bodyTop - 2, 90, bodyTop - 2);
+        ctx.quadraticCurveTo(122, bodyTop - 2, 122, bodyTop + 8);
+        ctx.lineTo(126, bodyTop + 60);
+        ctx.quadraticCurveTo(126, bodyTop + 68, 90, bodyTop + 68);
+        ctx.quadraticCurveTo(54, bodyTop + 68, 54, bodyTop + 60);
+        ctx.closePath();
+        ctx.fill();
+
+        // 袖子
+        ctx.beginPath();
+        ctx.ellipse(54, bodyTop + 14, 10, 8, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.ellipse(126, bodyTop + 14, 10, 8, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 圆手
+        ctx.fillStyle = skinColor;
+        ctx.beginPath();
+        ctx.arc(46, bodyTop + 18, 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(134, bodyTop + 18, 6, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 领口
+        ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(78, bodyTop + 4);
+        ctx.quadraticCurveTo(90, bodyTop + 14, 102, bodyTop + 4);
+        ctx.stroke();
+
+        // 小脚丫
+        ctx.fillStyle = clothColor;
+        ctx.beginPath();
+        ctx.ellipse(78, bodyTop + 70, 12, 6, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.ellipse(102, bodyTop + 70, 12, 6, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // ── 头像圆形裁剪 ──
+        const headR = 52;
+        const headCx = W / 2;
+        const headCy = 72;
 
         ctx.save();
         ctx.beginPath();
         ctx.arc(headCx, headCy, headR, 0, Math.PI * 2);
         ctx.clip();
-
         ctx.translate(headCx + position.x, headCy + position.y);
         ctx.rotate((rotation * Math.PI) / 180);
         ctx.scale(scale, scale);
@@ -109,48 +168,6 @@ export default function ImageUploader({ onImageCropped, currentImage }: ImageUpl
         const drawH = (img.height / img.width) * drawW;
         ctx.drawImage(img, -drawW / 2, -drawH / 2, drawW, drawH);
         ctx.restore();
-
-        const bodyTop = headCy + headR - 12;
-        const bodyCx = headCx;
-
-        ctx.fillStyle = '#FFE4D0';
-        ctx.beginPath();
-        ctx.moveTo(bodyCx - 30, bodyTop + 8);
-        ctx.quadraticCurveTo(bodyCx - 36, bodyTop + 40, bodyCx - 28, bodyTop + 62);
-        ctx.lineTo(bodyCx + 28, bodyTop + 62);
-        ctx.quadraticCurveTo(bodyCx + 36, bodyTop + 40, bodyCx + 30, bodyTop + 8);
-        ctx.quadraticCurveTo(bodyCx, bodyTop - 4, bodyCx - 30, bodyTop + 8);
-        ctx.fill();
-
-        ctx.fillStyle = '#E8734A';
-        ctx.beginPath();
-        ctx.moveTo(bodyCx - 28, bodyTop + 18);
-        ctx.quadraticCurveTo(bodyCx - 34, bodyTop + 40, bodyCx - 26, bodyTop + 62);
-        ctx.lineTo(bodyCx + 26, bodyTop + 62);
-        ctx.quadraticCurveTo(bodyCx + 34, bodyTop + 40, bodyCx + 28, bodyTop + 18);
-        ctx.quadraticCurveTo(bodyCx, bodyTop + 10, bodyCx - 28, bodyTop + 18);
-        ctx.fill();
-
-        ctx.strokeStyle = 'rgba(255,255,255,0.6)';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(bodyCx - 10, bodyTop + 16);
-        ctx.quadraticCurveTo(bodyCx, bodyTop + 24, bodyCx + 10, bodyTop + 16);
-        ctx.stroke();
-
-        ctx.fillStyle = '#FFE4D0';
-        ctx.beginPath();
-        ctx.ellipse(bodyCx - 34, bodyTop + 38, 8, 6, -0.3, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.ellipse(bodyCx + 34, bodyTop + 38, 8, 6, 0.3, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.strokeStyle = 'rgba(255,255,255,0.4)';
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.arc(headCx, headCy, headR, 0, Math.PI * 2);
-        ctx.stroke();
 
       } else {
         const size = 200;
@@ -229,8 +246,8 @@ export default function ImageUploader({ onImageCropped, currentImage }: ImageUpl
           {/* 预览区域 */}
           <div
             ref={previewRef}
-            className={`relative mx-auto mb-4 overflow-hidden border-2 border-[#E8734A] touch-none select-none ${
-              cropShape === 'chibi' ? 'w-40 h-48 rounded-[40%]' : 'w-40 h-40 rounded-full'
+            className={`relative mx-auto mb-4 overflow-hidden border-4 border-[#E8734A] touch-none select-none ${
+              cropShape === 'chibi' ? 'w-40 h-44 rounded-3xl' : 'w-44 h-44 rounded-full'
             }`}
             onPointerDown={handlePointerDown}
             onPointerMove={handlePointerMove}

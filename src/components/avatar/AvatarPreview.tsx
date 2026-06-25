@@ -5,345 +5,526 @@ interface AvatarPreviewProps {
   size?: number;
 }
 
+/*
+ * 萌系游戏捏脸风格
+ * ─────────────────
+ * 设计原则：蛋仔派对 + 动物森友会 + 经典SD比例
+ * - 大头小身（头占60%+）
+ * - 五官集中在脸部下半区（大额头=萌）
+ * - 每个五官元素不超过3个SVG节点
+ * - 腮红是最核心的萌点
+ * - 扁平色块，不用opacity做层次
+ */
+
 // ── 脸型 ──────────────────────────────────────────
+const HEAD_CX = 90;
+const HEAD_CY = 72;
+const HEAD_R = 52;
+
 const FACE_SHAPES = [
-  // 圆脸
+  // 1 圆脸
   (c: string) => (
-    <>
-      <circle cx="60" cy="58" r="36" fill={c} />
-      <ellipse cx="60" cy="60" rx="36" ry="34" fill={c} />
-    </>
+    <circle cx={HEAD_CX} cy={HEAD_CY} r={HEAD_R} fill={c} />
   ),
-  // 鹅蛋脸
-  (c: string) => <ellipse cx="60" cy="58" rx="32" ry="37" fill={c} />,
-  // 方圆脸
-  (c: string) => <rect x="28" y="26" width="64" height="66" rx="22" fill={c} />,
-  // 倒三角
-  (c: string) => <path d="M30 40 Q30 22 60 22 Q90 22 90 40 L82 82 Q60 96 38 82Z" fill={c} />,
-  // 胖圆脸
-  (c: string) => <circle cx="60" cy="58" r="38" fill={c} />,
-  // 瓜子脸
-  (c: string) => <path d="M60 20 C88 20 94 48 90 62 C86 78 68 92 60 92 C52 92 34 78 30 62 C26 48 32 20 60 20Z" fill={c} />
+  // 2 鸡蛋脸（上宽下窄）
+  (c: string) => (
+    <path d={`M${HEAD_CX} ${HEAD_CY - HEAD_R}
+      C${HEAD_CX + 58} ${HEAD_CY - HEAD_R} ${HEAD_CX + 56} ${HEAD_CY + 40} ${HEAD_CX} ${HEAD_CY + HEAD_R}
+      C${HEAD_CX - 56} ${HEAD_CY + 40} ${HEAD_CX - 58} ${HEAD_CY - HEAD_R} ${HEAD_CX} ${HEAD_CY - HEAD_R}Z`}
+      fill={c} />
+  ),
+  // 3 肉嘟嘟（宽圆）
+  (c: string) => (
+    <ellipse cx={HEAD_CX} cy={HEAD_CY} rx={HEAD_R + 4} ry={HEAD_R - 2} fill={c} />
+  ),
+  // 4 馒头脸（扁圆）
+  (c: string) => (
+    <ellipse cx={HEAD_CX} cy={HEAD_CY} rx={HEAD_R - 2} ry={HEAD_R - 5} fill={c} />
+  ),
+  // 5 小方脸（超圆角矩形）
+  (c: string) => (
+    <rect x={HEAD_CX - HEAD_R} y={HEAD_CY - HEAD_R + 2}
+      width={HEAD_R * 2} height={HEAD_R * 2 - 2} rx={HEAD_R * 0.45} fill={c} />
+  ),
+  // 6 瓜子脸（尖下巴）
+  (c: string) => (
+    <path d={`M${HEAD_CX} ${HEAD_CY - HEAD_R}
+      C${HEAD_CX + 54} ${HEAD_CY - HEAD_R} ${HEAD_CX + 50} ${HEAD_CY + 20} ${HEAD_CX} ${HEAD_CY + HEAD_R + 2}
+      C${HEAD_CX - 50} ${HEAD_CY + 20} ${HEAD_CX - 54} ${HEAD_CY - HEAD_R} ${HEAD_CX} ${HEAD_CY - HEAD_R}Z`}
+      fill={c} />
+  )
 ];
 
 // ── 发型 ──────────────────────────────────────────
+// 简洁的色块剪影，1-3个path构成
 const HAIRSTYLES = [
-  // 1 短碎发
+  // 1 短发
   (c: string) => (
-    <>
-      <path d="M26 52 C26 22 94 22 94 52 L92 38 C90 18 30 18 28 38Z" fill={c} />
-      <path d="M30 38 Q35 26 48 22 Q38 28 32 40Z" fill={c} opacity="0.7" />
-      <path d="M75 35 Q70 24 55 20 Q68 26 74 38Z" fill={c} opacity="0.7" />
-    </>
+    <path d={`M${HEAD_CX - HEAD_R + 4} ${HEAD_CY + 2}
+      C${HEAD_CX - HEAD_R + 4} ${HEAD_CY - 48} ${HEAD_CX + HEAD_R - 4} ${HEAD_CY - 48} ${HEAD_CX + HEAD_R - 4} ${HEAD_CY + 2}
+      L${HEAD_CX + HEAD_R - 8} ${HEAD_CY - 30}
+      Q${HEAD_CX} ${HEAD_CY - 54} ${HEAD_CX - HEAD_R + 8} ${HEAD_CY - 30}Z`}
+      fill={c} />
   ),
   // 2 长直发
   (c: string) => (
     <>
-      <path d="M24 55 C24 20 96 20 96 55 L96 85 Q94 88 90 85 L90 55 C90 30 30 30 30 55 L30 85 Q26 88 24 85Z" fill={c} />
-      <path d="M35 22 Q60 12 85 22 L82 30 Q60 18 38 30Z" fill={c} opacity="0.5" />
+      <path d={`M${HEAD_CX - HEAD_R - 2} ${HEAD_CY + 10}
+        C${HEAD_CX - HEAD_R - 2} ${HEAD_CY - 52} ${HEAD_CX + HEAD_R + 2} ${HEAD_CY - 52} ${HEAD_CX + HEAD_R + 2} ${HEAD_CY + 10}
+        L${HEAD_CX + HEAD_R + 2} ${HEAD_CY + 58}
+        L${HEAD_CX + HEAD_R - 6} ${HEAD_CY + 52}
+        L${HEAD_CX + HEAD_R - 6} ${HEAD_CY + 8}
+        C${HEAD_CX + HEAD_R - 6} ${HEAD_CY - 38} ${HEAD_CX - HEAD_R + 6} ${HEAD_CY - 38} ${HEAD_CX - HEAD_R + 6} ${HEAD_CY + 8}
+        L${HEAD_CX - HEAD_R + 6} ${HEAD_CY + 52}
+        L${HEAD_CX - HEAD_R - 2} ${HEAD_CY + 58}Z`}
+        fill={c} />
     </>
   ),
-  // 3 齐刘海短发
+  // 3 齐刘海
   (c: string) => (
     <>
-      <path d="M28 52 C28 22 92 22 92 52 L90 36 C88 16 32 16 30 36Z" fill={c} />
-      <rect x="30" y="32" width="60" height="14" rx="4" fill={c} />
-      <path d="M28 52 L30 70 Q32 72 34 70 L34 52Z" fill={c} />
-      <path d="M86 52 L88 70 Q90 72 92 70 L92 52Z" fill={c} />
+      <path d={`M${HEAD_CX - HEAD_R + 2} ${HEAD_CY + 4}
+        C${HEAD_CX - HEAD_R + 2} ${HEAD_CY - 50} ${HEAD_CX + HEAD_R - 2} ${HEAD_CY - 50} ${HEAD_CX + HEAD_R - 2} ${HEAD_CY + 4}
+        L${HEAD_CX + HEAD_R - 2} ${HEAD_CY - 18}
+        L${HEAD_CX - HEAD_R + 2} ${HEAD_CY - 18}Z`}
+        fill={c} />
+      <path d={`M${HEAD_CX - HEAD_R + 2} ${HEAD_CY + 4}
+        L${HEAD_CX - HEAD_R + 6} ${HEAD_CY + 30}
+        L${HEAD_CX - HEAD_R + 14} ${HEAD_CY + 26}
+        L${HEAD_CX - HEAD_R + 10} ${HEAD_CY + 4}Z`}
+        fill={c} />
+      <path d={`M${HEAD_CX + HEAD_R - 2} ${HEAD_CY + 4}
+        L${HEAD_CX + HEAD_R - 6} ${HEAD_CY + 30}
+        L${HEAD_CX + HEAD_R - 14} ${HEAD_CY + 26}
+        L${HEAD_CX + HEAD_R - 10} ${HEAD_CY + 4}Z`}
+        fill={c} />
     </>
   ),
   // 4 双丸子头
   (c: string) => (
     <>
-      <path d="M28 52 C28 26 92 26 92 52" fill={c} />
-      <circle cx="30" cy="30" r="14" fill={c} />
-      <circle cx="90" cy="30" r="14" fill={c} />
-      <circle cx="30" cy="30" r="9" fill={c} opacity="0.6" />
-      <circle cx="90" cy="30" r="9" fill={c} opacity="0.6" />
+      <path d={`M${HEAD_CX - HEAD_R + 6} ${HEAD_CY + 2}
+        C${HEAD_CX - HEAD_R + 6} ${HEAD_CY - 40} ${HEAD_CX + HEAD_R - 6} ${HEAD_CY - 40} ${HEAD_CX + HEAD_R - 6} ${HEAD_CY + 2}Z`}
+        fill={c} />
+      <circle cx={HEAD_CX - HEAD_R + 8} cy={HEAD_CY - 38} r={16} fill={c} />
+      <circle cx={HEAD_CX + HEAD_R - 8} cy={HEAD_CY - 38} r={16} fill={c} />
     </>
   ),
-  // 5 中分长发
+  // 5 双马尾
   (c: string) => (
     <>
-      <path d="M22 55 C22 18 98 18 98 55 L98 88 Q96 92 92 88 L92 52 C92 28 58 22 60 52 L60 42 C62 22 28 28 28 52 L28 88 Q24 92 22 88Z" fill={c} />
+      <path d={`M${HEAD_CX - HEAD_R + 4} ${HEAD_CY}
+        C${HEAD_CX - HEAD_R + 4} ${HEAD_CY - 46} ${HEAD_CX + HEAD_R - 4} ${HEAD_CY - 46} ${HEAD_CX + HEAD_R - 4} ${HEAD_CY}Z`}
+        fill={c} />
+      <path d={`M${HEAD_CX - HEAD_R + 6} ${HEAD_CY - 8}
+        Q${HEAD_CX - HEAD_R - 16} ${HEAD_CY + 20} ${HEAD_CX - HEAD_R + 2} ${HEAD_CY + 52}`}
+        stroke={c} strokeWidth={10} strokeLinecap="round" fill="none" />
+      <path d={`M${HEAD_CX + HEAD_R - 6} ${HEAD_CY - 8}
+        Q${HEAD_CX + HEAD_R + 16} ${HEAD_CY + 20} ${HEAD_CX + HEAD_R - 2} ${HEAD_CY + 52}`}
+        stroke={c} strokeWidth={10} strokeLinecap="round" fill="none" />
     </>
   ),
-  // 6 锅盖头
+  // 6 丸子头（单个发髻）
   (c: string) => (
     <>
-      <path d="M26 54 Q26 16 60 16 Q94 16 94 54 L94 48 Q94 14 60 14 Q26 14 26 48Z" fill={c} />
-      <rect x="26" y="36" width="68" height="20" rx="4" fill={c} />
+      <path d={`M${HEAD_CX - HEAD_R + 4} ${HEAD_CY + 2}
+        C${HEAD_CX - HEAD_R + 4} ${HEAD_CY - 46} ${HEAD_CX + HEAD_R - 4} ${HEAD_CY - 46} ${HEAD_CX + HEAD_R - 4} ${HEAD_CY + 2}Z`}
+        fill={c} />
+      <circle cx={HEAD_CX} cy={HEAD_CY - HEAD_R - 4} r={14} fill={c} />
     </>
   ),
-  // 7 偏分短发
+  // 7 斜刘海
   (c: string) => (
     <>
-      <path d="M28 52 C28 22 92 22 92 52 L90 36 C88 16 32 16 30 36Z" fill={c} />
-      <path d="M30 36 Q40 18 65 22 Q42 24 34 40Z" fill={c} opacity="0.7" />
+      <path d={`M${HEAD_CX - HEAD_R + 2} ${HEAD_CY + 6}
+        C${HEAD_CX - HEAD_R + 2} ${HEAD_CY - 50} ${HEAD_CX + HEAD_R - 2} ${HEAD_CY - 50} ${HEAD_CX + HEAD_R - 2} ${HEAD_CY + 6}
+        L${HEAD_CX + HEAD_R - 2} ${HEAD_CY - 10}
+        L${HEAD_CX - 10} ${HEAD_CY - 6}
+        L${HEAD_CX - HEAD_R + 12} ${HEAD_CY - 26}
+        L${HEAD_CX - HEAD_R + 2} ${HEAD_CY - 14}Z`}
+        fill={c} />
     </>
   ),
   // 8 高马尾
   (c: string) => (
     <>
-      <path d="M28 52 C28 24 92 24 92 52" fill={c} />
-      <ellipse cx="72" cy="14" rx="10" ry="8" fill={c} />
-      <path d="M62 18 Q58 28 62 38" stroke={c} strokeWidth="6" fill="none" strokeLinecap="round" />
-      <path d="M72 6 L68 -4 Q72 -8 76 -4 L72 6Z" fill={c} />
+      <path d={`M${HEAD_CX - HEAD_R + 6} ${HEAD_CY + 2}
+        C${HEAD_CX - HEAD_R + 6} ${HEAD_CY - 44} ${HEAD_CX + HEAD_R - 6} ${HEAD_CY - 44} ${HEAD_CX + HEAD_R - 6} ${HEAD_CY + 2}Z`}
+        fill={c} />
+      <path d={`M${HEAD_CX + 8} ${HEAD_CY - 42}
+        Q${HEAD_CX + 20} ${HEAD_CY - 56} ${HEAD_CX + 30} ${HEAD_CY - 42}
+        Q${HEAD_CX + 24} ${HEAD_CY - 28} ${HEAD_CX + 14} ${HEAD_CY - 32}`}
+        fill={c} />
+      <path d={`M${HEAD_CX + 16} ${HEAD_CY - 44}
+        Q${HEAD_CX + 8} ${HEAD_CY - 60} ${HEAD_CX + 4} ${HEAD_CY - 44}`}
+        fill={c} />
     </>
   ),
-  // 9 波浪卷发
+  // 9 爆炸头
   (c: string) => (
     <>
-      <path d="M22 55 C22 20 98 20 98 55" fill={c} />
-      <path d="M22 55 Q18 65 22 75 Q26 85 22 92" stroke={c} strokeWidth="8" fill="none" strokeLinecap="round" />
-      <path d="M98 55 Q102 65 98 75 Q94 85 98 92" stroke={c} strokeWidth="8" fill="none" strokeLinecap="round" />
-      <path d="M30 52 Q26 62 30 70" stroke={c} strokeWidth="5" fill="none" strokeLinecap="round" />
-      <path d="M90 52 Q94 62 90 70" stroke={c} strokeWidth="5" fill="none" strokeLinecap="round" />
+      <circle cx={HEAD_CX - 30} cy={HEAD_CY - 22} r={22} fill={c} />
+      <circle cx={HEAD_CX + 30} cy={HEAD_CY - 22} r={22} fill={c} />
+      <circle cx={HEAD_CX} cy={HEAD_CY - 36} r={24} fill={c} />
+      <circle cx={HEAD_CX - 16} cy={HEAD_CY - 32} r={20} fill={c} />
+      <circle cx={HEAD_CX + 16} cy={HEAD_CY - 32} r={20} fill={c} />
     </>
   ),
   // 10 呆毛短发
   (c: string) => (
     <>
-      <path d="M28 52 C28 24 92 24 92 52 L90 38 C88 20 32 20 30 38Z" fill={c} />
-      <path d="M55 22 Q52 8 60 4 Q58 12 62 18Z" fill={c} />
+      <path d={`M${HEAD_CX - HEAD_R + 4} ${HEAD_CY + 2}
+        C${HEAD_CX - HEAD_R + 4} ${HEAD_CY - 48} ${HEAD_CX + HEAD_R - 4} ${HEAD_CY - 48} ${HEAD_CX + HEAD_R - 4} ${HEAD_CY + 2}
+        L${HEAD_CX + HEAD_R - 8} ${HEAD_CY - 30}
+        Q${HEAD_CX} ${HEAD_CY - 54} ${HEAD_CX - HEAD_R + 8} ${HEAD_CY - 30}Z`}
+        fill={c} />
+      <path d={`M${HEAD_CX - 4} ${HEAD_CY - 48}
+        Q${HEAD_CX - 12} ${HEAD_CY - 68} ${HEAD_CX + 2} ${HEAD_CY - 72}
+        Q${HEAD_CX + 6} ${HEAD_CY - 62} ${HEAD_CX + 6} ${HEAD_CY - 46}`}
+        fill={c} />
     </>
   ),
-  // 11 侧编发
+  // 11 波波头
   (c: string) => (
     <>
-      <path d="M24 55 C24 20 96 20 96 55 L96 50 C96 24 24 24 24 50Z" fill={c} />
-      <path d="M88 50 L92 72 L88 72 L84 52Z" fill={c} />
-      <circle cx="90" cy="76" r="5" fill={c} />
-      <path d="M90 72 L90 85 Q88 92 84 88" stroke={c} strokeWidth="4" fill="none" strokeLinecap="round" />
+      <path d={`M${HEAD_CX - HEAD_R - 2} ${HEAD_CY + 14}
+        C${HEAD_CX - HEAD_R - 2} ${HEAD_CY - 50} ${HEAD_CX + HEAD_R + 2} ${HEAD_CY - 50} ${HEAD_CX + HEAD_R + 2} ${HEAD_CY + 14}
+        C${HEAD_CX + HEAD_R + 2} ${HEAD_CY + 32} ${HEAD_CX + 10} ${HEAD_CY + 36} ${HEAD_CX} ${HEAD_CY + 32}
+        C${HEAD_CX - 10} ${HEAD_CY + 36} ${HEAD_CX - HEAD_R - 2} ${HEAD_CY + 32} ${HEAD_CX - HEAD_R - 2} ${HEAD_CY + 14}Z`}
+        fill={c} />
     </>
   ),
-  // 12 中短卷发
+  // 12 中分长发
   (c: string) => (
     <>
-      <path d="M24 55 C24 20 96 20 96 55 L96 68 Q92 72 88 68 L88 50 C88 28 32 28 32 50 L32 68 Q28 72 24 68Z" fill={c} />
-      <path d="M32 60 Q28 66 32 72" stroke={c} strokeWidth="4" fill="none" />
-      <path d="M88 60 Q92 66 88 72" stroke={c} strokeWidth="4" fill="none" />
+      <path d={`M${HEAD_CX - HEAD_R - 2} ${HEAD_CY + 12}
+        C${HEAD_CX - HEAD_R - 2} ${HEAD_CY - 50} ${HEAD_CX + HEAD_R + 2} ${HEAD_CY - 50} ${HEAD_CX + HEAD_R + 2} ${HEAD_CY + 12}
+        L${HEAD_CX + HEAD_R + 2} ${HEAD_CY + 56}
+        L${HEAD_CX + HEAD_R - 6} ${HEAD_CY + 50}
+        L${HEAD_CX + HEAD_R - 6} ${HEAD_CY + 8}
+        C${HEAD_CX + HEAD_R - 6} ${HEAD_CY - 36} ${HEAD_CX + 8} ${HEAD_CY - 40} ${HEAD_CX + 4} ${HEAD_CY - 16}
+        C${HEAD_CX} ${HEAD_CY - 40} ${HEAD_CX - HEAD_R + 6} ${HEAD_CY - 36} ${HEAD_CX - HEAD_R + 6} ${HEAD_CY + 8}
+        L${HEAD_CX - HEAD_R + 6} ${HEAD_CY + 50}
+        L${HEAD_CX - HEAD_R - 2} ${HEAD_CY + 56}Z`}
+        fill={c} />
     </>
   )
 ];
 
 // ── 眼睛 ──────────────────────────────────────────
+// 极简：白底 + 瞳孔 + 高光，最多3层
+const EYE_L_X = 68;
+const EYE_R_X = 112;
+const EYE_Y = 84;
+
 const EYE_STYLES = [
-  // 1 圆眼 - 大而亮
+  // 1 大圆眼（经典萌系）
   () => (
     <>
-      <circle cx="47" cy="56" r="7" fill="white" />
-      <circle cx="73" cy="56" r="7" fill="white" />
-      <circle cx="48" cy="57" r="5" fill="#2D2A26" />
-      <circle cx="74" cy="57" r="5" fill="#2D2A26" />
-      <circle cx="50" cy="55" r="2.2" fill="white" />
-      <circle cx="76" cy="55" r="2.2" fill="white" />
-      <circle cx="47" cy="58" r="1" fill="white" opacity="0.6" />
-      <circle cx="73" cy="58" r="1" fill="white" opacity="0.6" />
+      <circle cx={EYE_L_X} cy={EYE_Y} r={9} fill="#2D2A26" />
+      <circle cx={EYE_R_X} cy={EYE_Y} r={9} fill="#2D2A26" />
+      <circle cx={EYE_L_X + 3} cy={EYE_Y - 3} r={3.5} fill="white" />
+      <circle cx={EYE_R_X + 3} cy={EYE_Y - 3} r={3.5} fill="white" />
     </>
   ),
-  // 2 椭圆大眼
+  // 2 弯弯笑眼（^_^）
   () => (
     <>
-      <ellipse cx="47" cy="56" rx="8" ry="7" fill="white" />
-      <ellipse cx="73" cy="56" rx="8" ry="7" fill="white" />
-      <ellipse cx="48" cy="57" rx="5.5" ry="5" fill="#2D2A26" />
-      <ellipse cx="74" cy="57" rx="5.5" ry="5" fill="#2D2A26" />
-      <circle cx="50" cy="54" r="2.5" fill="white" />
-      <circle cx="76" cy="54" r="2.5" fill="white" />
+      <path d={`M${EYE_L_X - 8} ${EYE_Y + 2} Q${EYE_L_X} ${EYE_Y - 8} ${EYE_L_X + 8} ${EYE_Y + 2}`}
+        stroke="#2D2A26" strokeWidth={3} fill="none" strokeLinecap="round" />
+      <path d={`M${EYE_R_X - 8} ${EYE_Y + 2} Q${EYE_R_X} ${EYE_Y - 8} ${EYE_R_X + 8} ${EYE_Y + 2}`}
+        stroke="#2D2A26" strokeWidth={3} fill="none" strokeLinecap="round" />
     </>
   ),
-  // 3 弯弯笑眼
+  // 3 豆豆眼（动物森友会风）
   () => (
     <>
-      <path d="M40 57 Q47 50 54 57" stroke="#2D2A26" strokeWidth="2.8" fill="none" strokeLinecap="round" />
-      <path d="M66 57 Q73 50 80 57" stroke="#2D2A26" strokeWidth="2.8" fill="none" strokeLinecap="round" />
+      <circle cx={EYE_L_X} cy={EYE_Y} r={4.5} fill="#2D2A26" />
+      <circle cx={EYE_R_X} cy={EYE_Y} r={4.5} fill="#2D2A26" />
     </>
   ),
   // 4 星星眼
   () => (
     <>
-      <circle cx="47" cy="56" r="7.5" fill="white" />
-      <circle cx="73" cy="56" r="7.5" fill="white" />
-      <circle cx="48" cy="57" r="5" fill="#2D2A26" />
-      <circle cx="74" cy="57" r="5" fill="#2D2A26" />
-      <path d="M50 54 L51.5 52.5 L53 54 L51.5 55.5Z" fill="white" />
-      <path d="M76 54 L77.5 52.5 L79 54 L77.5 55.5Z" fill="white" />
-      <circle cx="46" cy="58" r="1.2" fill="white" opacity="0.7" />
-      <circle cx="72" cy="58" r="1.2" fill="white" opacity="0.7" />
+      <circle cx={EYE_L_X} cy={EYE_Y} r={9} fill="#2D2A26" />
+      <circle cx={EYE_R_X} cy={EYE_Y} r={9} fill="#2D2A26" />
+      <path d={`M${EYE_L_X} ${EYE_Y - 4} L${EYE_L_X + 2} ${EYE_Y - 1} L${EYE_L_X + 5} ${EYE_Y - 1} L${EYE_L_X + 3} ${EYE_Y + 1.5} L${EYE_L_X + 4} ${EYE_Y + 4.5} L${EYE_L_X} ${EYE_Y + 3} L${EYE_L_X - 4} ${EYE_Y + 4.5} L${EYE_L_X - 3} ${EYE_Y + 1.5} L${EYE_L_X - 5} ${EYE_Y - 1} L${EYE_L_X - 2} ${EYE_Y - 1}Z`}
+        fill="white" />
+      <path d={`M${EYE_R_X} ${EYE_Y - 4} L${EYE_R_X + 2} ${EYE_Y - 1} L${EYE_R_X + 5} ${EYE_Y - 1} L${EYE_R_X + 3} ${EYE_Y + 1.5} L${EYE_R_X + 4} ${EYE_Y + 4.5} L${EYE_R_X} ${EYE_Y + 3} L${EYE_R_X - 4} ${EYE_Y + 4.5} L${EYE_R_X - 3} ${EYE_Y + 1.5} L${EYE_R_X - 5} ${EYE_Y - 1} L${EYE_R_X - 2} ${EYE_Y - 1}Z`}
+        fill="white" />
     </>
   ),
-  // 5 方眼
+  // 5 下垂眼（无辜感）
   () => (
     <>
-      <rect x="40" y="50" width="14" height="12" rx="3" fill="white" />
-      <rect x="66" y="50" width="14" height="12" rx="3" fill="white" />
-      <rect x="43" y="52" width="8" height="8" rx="2" fill="#2D2A26" />
-      <rect x="69" y="52" width="8" height="8" rx="2" fill="#2D2A26" />
-      <circle cx="47" cy="54" r="2" fill="white" />
-      <circle cx="73" cy="54" r="2" fill="white" />
+      <ellipse cx={EYE_L_X} cy={EYE_Y + 1} rx={7} ry={8} fill="#2D2A26" />
+      <ellipse cx={EYE_R_X} cy={EYE_Y + 1} rx={7} ry={8} fill="#2D2A26" />
+      <circle cx={EYE_L_X + 2} cy={EYE_Y - 1} r={3} fill="white" />
+      <circle cx={EYE_R_X + 2} cy={EYE_Y - 1} r={3} fill="white" />
     </>
   ),
-  // 6 眉毛粗眼
+  // 6 半眯眼（慵懒）
   () => (
     <>
-      <path d="M39 48 L55 46" stroke="#2D2A26" strokeWidth="2.5" strokeLinecap="round" />
-      <path d="M65 46 L81 48" stroke="#2D2A26" strokeWidth="2.5" strokeLinecap="round" />
-      <circle cx="47" cy="56" r="5.5" fill="white" />
-      <circle cx="73" cy="56" r="5.5" fill="white" />
-      <circle cx="48" cy="57" r="4" fill="#2D2A26" />
-      <circle cx="74" cy="57" r="4" fill="#2D2A26" />
-      <circle cx="50" cy="55" r="1.8" fill="white" />
-      <circle cx="76" cy="55" r="1.8" fill="white" />
+      <path d={`M${EYE_L_X - 8} ${EYE_Y} Q${EYE_L_X} ${EYE_Y + 5} ${EYE_L_X + 8} ${EYE_Y}`}
+        stroke="#2D2A26" strokeWidth={3.5} fill="none" strokeLinecap="round" />
+      <path d={`M${EYE_R_X - 8} ${EYE_Y} Q${EYE_R_X} ${EYE_Y + 5} ${EYE_R_X + 8} ${EYE_Y}`}
+        stroke="#2D2A26" strokeWidth={3.5} fill="none" strokeLinecap="round" />
     </>
   ),
-  // 7 半眯眼
+  // 7 大椭圆眼
   () => (
     <>
-      <ellipse cx="47" cy="56" rx="6" ry="4" fill="white" />
-      <ellipse cx="73" cy="56" rx="6" ry="4" fill="white" />
-      <path d="M41 54 L53 52" stroke="#2D2A26" strokeWidth="2" strokeLinecap="round" />
-      <path d="M67 52 L79 54" stroke="#2D2A26" strokeWidth="2" strokeLinecap="round" />
-      <ellipse cx="47" cy="57" rx="4" ry="3" fill="#2D2A26" />
-      <ellipse cx="73" cy="57" rx="4" ry="3" fill="#2D2A26" />
-      <circle cx="49" cy="56" r="1.5" fill="white" />
-      <circle cx="75" cy="56" r="1.5" fill="white" />
+      <ellipse cx={EYE_L_X} cy={EYE_Y} rx={8} ry={10} fill="#2D2A26" />
+      <ellipse cx={EYE_R_X} cy={EYE_Y} rx={8} ry={10} fill="#2D2A26" />
+      <circle cx={EYE_L_X + 2} cy={EYE_Y - 3} r={4} fill="white" />
+      <circle cx={EYE_R_X + 2} cy={EYE_Y - 3} r={4} fill="white" />
     </>
   ),
-  // 8 下垂眼
+  // 8 泪汪汪
   () => (
     <>
-      <circle cx="47" cy="57" r="6" fill="white" />
-      <circle cx="73" cy="57" r="6" fill="white" />
-      <circle cx="48" cy="58" r="4.5" fill="#2D2A26" />
-      <circle cx="74" cy="58" r="4.5" fill="#2D2A26" />
-      <circle cx="50" cy="56" r="2" fill="white" />
-      <circle cx="76" cy="56" r="2" fill="white" />
-      <path d="M41 53 Q47 51 53 54" stroke="#2D2A26" strokeWidth="1.5" fill="none" />
-      <path d="M67 54 Q73 51 79 53" stroke="#2D2A26" strokeWidth="1.5" fill="none" />
+      <circle cx={EYE_L_X} cy={EYE_Y} r={9} fill="#2D2A26" />
+      <circle cx={EYE_R_X} cy={EYE_Y} r={9} fill="#2D2A26" />
+      <circle cx={EYE_L_X + 2} cy={EYE_Y - 3} r={4} fill="white" />
+      <circle cx={EYE_R_X + 2} cy={EYE_Y - 3} r={4} fill="white" />
+      <circle cx={EYE_L_X - 2} cy={EYE_Y + 2} r={2} fill="white" opacity="0.6" />
+      <circle cx={EYE_R_X - 2} cy={EYE_Y + 2} r={2} fill="white" opacity="0.6" />
     </>
   )
 ];
 
 // ── 嘴巴 ──────────────────────────────────────────
+// 极小，位于脸部下方
+const MOUTH_Y = 104;
+
 const MOUTH_STYLES = [
   // 1 微笑
-  () => <path d="M50 74 Q60 82 70 74" stroke="#D4605A" strokeWidth="2.2" fill="none" strokeLinecap="round" />,
-  // 2 大笑
+  () => (
+    <path d={`M82 ${MOUTH_Y} Q90 ${MOUTH_Y + 7} 98 ${MOUTH_Y}`}
+      stroke="#D4605A" strokeWidth={2.2} fill="none" strokeLinecap="round" />
+  ),
+  // 2 大笑（张嘴）
+  () => (
+    <path d={`M83 ${MOUTH_Y - 1} Q90 ${MOUTH_Y + 10} 97 ${MOUTH_Y - 1}Z`}
+      fill="#D4605A" />
+  ),
+  // 3 ω嘴（猫嘴，超萌）
   () => (
     <>
-      <path d="M48 74 Q60 86 72 74" fill="#D4605A" opacity="0.9" />
-      <path d="M52 78 L68 78" stroke="white" strokeWidth="1" opacity="0.5" />
+      <path d={`M83 ${MOUTH_Y} Q86.5 ${MOUTH_Y + 5} 90 ${MOUTH_Y}`}
+        stroke="#D4605A" strokeWidth={2} fill="none" strokeLinecap="round" />
+      <path d={`M90 ${MOUTH_Y} Q93.5 ${MOUTH_Y + 5} 97 ${MOUTH_Y}`}
+        stroke="#D4605A" strokeWidth={2} fill="none" strokeLinecap="round" />
     </>
   ),
-  // 3 圆嘴
-  () => <ellipse cx="60" cy="76" rx="4" ry="4.5" fill="#D4605A" />,
-  // 4 波浪嘴
-  () => <path d="M48 75 Q54 72 60 75 Q66 78 72 75" stroke="#D4605A" strokeWidth="2" fill="none" strokeLinecap="round" />,
-  // 5 猫嘴
+  // 4 小圆嘴（惊讶）
+  () => (
+    <ellipse cx={90} cy={MOUTH_Y + 2} rx={4} ry={4.5} fill="#D4605A" />
+  ),
+  // 5 吐舌
   () => (
     <>
-      <path d="M50 74 Q55 70 60 74" stroke="#D4605A" strokeWidth="2" fill="none" strokeLinecap="round" />
-      <path d="M60 74 Q65 70 70 74" stroke="#D4605A" strokeWidth="2" fill="none" strokeLinecap="round" />
-      <circle cx="60" cy="73" r="1" fill="#D4605A" />
+      <path d={`M83 ${MOUTH_Y} Q90 ${MOUTH_Y + 7} 97 ${MOUTH_Y}`}
+        stroke="#D4605A" strokeWidth={2} fill="none" strokeLinecap="round" />
+      <ellipse cx={90} cy={MOUTH_Y + 5} rx={4} ry={3} fill="#FF8888" />
     </>
   ),
-  // 6 嘟嘴
+  // 6 一字嘴（淡定）
   () => (
-    <>
-      <ellipse cx="60" cy="75" rx="5" ry="4" fill="#D4605A" opacity="0.8" />
-      <ellipse cx="60" cy="74" rx="3" ry="2" fill="#E8888A" opacity="0.5" />
-    </>
+    <path d={`M85 ${MOUTH_Y + 2} L95 ${MOUTH_Y + 2}`}
+      stroke="#D4605A" strokeWidth={2.2} strokeLinecap="round" />
   )
 ];
 
-// ── 服饰 ──────────────────────────────────────────
+// ── 腮红 ──────────────────────────────────────────
+const BLUSH_Y = 96;
+const BLUSH_L = 56;
+const BLUSH_R = 124;
+
+function CheekBlush() {
+  return (
+    <>
+      <ellipse cx={BLUSH_L} cy={BLUSH_Y} rx={10} ry={6} fill="#FF8A80" />
+      <ellipse cx={BLUSH_R} cy={BLUSH_Y} rx={10} ry={6} fill="#FF8A80" />
+    </>
+  );
+}
+
+// ── 身体 + 服饰 ──────────────────────────────────
+const BODY_TOP = 122;
+
 const CLOTHING_STYLES = [
   // 1 T恤
   (c: string) => (
     <>
-      <path d="M32 115 L38 100 L60 104 L82 100 L88 115Z" fill={c} />
-      <path d="M48 100 L60 108 L72 100" fill={c} opacity="0.7" />
+      {/* 脖子 */}
+      <rect x={82} y={BODY_TOP - 4} width={16} height={10} rx={4} fill="#F5CBA7" />
+      {/* 身体 */}
+      <path d={`M58 ${BODY_TOP + 8} Q58 ${BODY_TOP - 2} 90 ${BODY_TOP - 2} Q122 ${BODY_TOP - 2} 122 ${BODY_TOP + 8} L126 ${BODY_TOP + 60} Q126 ${BODY_TOP + 68} 90 ${BODY_TOP + 68} Q54 ${BODY_TOP + 68} 54 ${BODY_TOP + 60}Z`}
+        fill={c} />
+      {/* 袖子 */}
+      <ellipse cx={54} cy={BODY_TOP + 14} rx={10} ry={8} fill={c} />
+      <ellipse cx={126} cy={BODY_TOP + 14} rx={10} ry={8} fill={c} />
+      {/* 手 */}
+      <circle cx={46} cy={BODY_TOP + 18} r={6} fill="#F5CBA7" />
+      <circle cx={134} cy={BODY_TOP + 18} r={6} fill="#F5CBA7" />
+      {/* 领口 */}
+      <path d={`M78 ${BODY_TOP + 4} Q90 ${BODY_TOP + 14} 102 ${BODY_TOP + 4}`}
+        stroke="white" strokeWidth={1.5} fill="none" opacity="0.6" />
     </>
   ),
   // 2 衬衫
   (c: string) => (
     <>
-      <path d="M30 115 L38 98 L60 102 L82 98 L90 115Z" fill={c} />
-      <rect x="56" y="100" width="8" height="10" rx="1.5" fill="white" opacity="0.8" />
-      <path d="M52 100 L60 106 L68 100" stroke="white" strokeWidth="1" fill="none" opacity="0.5" />
+      <rect x={82} y={BODY_TOP - 4} width={16} height={10} rx={4} fill="#F5CBA7" />
+      <path d={`M56 ${BODY_TOP + 10} Q56 ${BODY_TOP - 4} 90 ${BODY_TOP - 4} Q124 ${BODY_TOP - 4} 124 ${BODY_TOP + 10} L128 ${BODY_TOP + 62} Q128 ${BODY_TOP + 68} 90 ${BODY_TOP + 68} Q52 ${BODY_TOP + 68} 52 ${BODY_TOP + 62}Z`}
+        fill={c} />
+      <ellipse cx={52} cy={BODY_TOP + 16} rx={10} ry={8} fill={c} />
+      <ellipse cx={128} cy={BODY_TOP + 16} rx={10} ry={8} fill={c} />
+      <circle cx={44} cy={BODY_TOP + 20} r={6} fill="#F5CBA7" />
+      <circle cx={136} cy={BODY_TOP + 20} r={6} fill="#F5CBA7" />
+      {/* 纽扣 */}
+      <circle cx={90} cy={BODY_TOP + 18} r={1.5} fill="white" opacity="0.7" />
+      <circle cx={90} cy={BODY_TOP + 30} r={1.5} fill="white" opacity="0.7" />
+      <circle cx={90} cy={BODY_TOP + 42} r={1.5} fill="white" opacity="0.7" />
     </>
   ),
   // 3 卫衣
   (c: string) => (
     <>
-      <path d="M28 115 L36 96 L60 100 L84 96 L92 115Z" fill={c} />
-      <ellipse cx="60" cy="100" rx="10" ry="5" fill={c} opacity="0.7" />
-      <rect x="38" y="106" width="12" height="6" rx="2" fill={c} opacity="0.6" />
-      <rect x="70" y="106" width="12" height="6" rx="2" fill={c} opacity="0.6" />
+      <rect x={82} y={BODY_TOP - 4} width={16} height={10} rx={4} fill="#F5CBA7" />
+      <path d={`M54 ${BODY_TOP + 12} Q54 ${BODY_TOP - 6} 90 ${BODY_TOP - 6} Q126 ${BODY_TOP - 6} 126 ${BODY_TOP + 12} L130 ${BODY_TOP + 60} Q130 ${BODY_TOP + 68} 90 ${BODY_TOP + 68} Q50 ${BODY_TOP + 68} 50 ${BODY_TOP + 60}Z`}
+        fill={c} />
+      <ellipse cx={50} cy={BODY_TOP + 18} rx={12} ry={9} fill={c} />
+      <ellipse cx={130} cy={BODY_TOP + 18} rx={12} ry={9} fill={c} />
+      <circle cx={40} cy={BODY_TOP + 22} r={6} fill="#F5CBA7" />
+      <circle cx={140} cy={BODY_TOP + 22} r={6} fill="#F5CBA7" />
+      {/* 口袋 */}
+      <rect x={72} y={BODY_TOP + 38} width={36} height={14} rx={4} fill={c} stroke="white" strokeWidth="1" opacity="0.4" />
     </>
   ),
   // 4 西装
   (c: string) => (
     <>
-      <path d="M30 115 L38 96 L60 100 L82 96 L90 115Z" fill={c} />
-      <path d="M52 96 L60 110 L68 96" stroke="white" strokeWidth="1.5" fill="none" />
-      <circle cx="60" cy="106" r="1.5" fill="white" />
+      <rect x={82} y={BODY_TOP - 4} width={16} height={10} rx={4} fill="#F5CBA7" />
+      <path d={`M54 ${BODY_TOP + 10} Q54 ${BODY_TOP - 4} 90 ${BODY_TOP - 4} Q126 ${BODY_TOP - 4} 126 ${BODY_TOP + 10} L130 ${BODY_TOP + 62} Q130 ${BODY_TOP + 68} 90 ${BODY_TOP + 68} Q50 ${BODY_TOP + 68} 50 ${BODY_TOP + 62}Z`}
+        fill={c} />
+      <ellipse cx={50} cy={BODY_TOP + 16} rx={10} ry={8} fill={c} />
+      <ellipse cx={130} cy={BODY_TOP + 16} rx={10} ry={8} fill={c} />
+      <circle cx={42} cy={BODY_TOP + 20} r={6} fill="#F5CBA7" />
+      <circle cx={138} cy={BODY_TOP + 20} r={6} fill="#F5CBA7" />
+      {/* V领 */}
+      <path d={`M76 ${BODY_TOP + 2} L90 ${BODY_TOP + 22} L104 ${BODY_TOP + 2}`}
+        stroke="white" strokeWidth={1.5} fill="none" />
+      <path d={`M80 ${BODY_TOP + 2} L90 ${BODY_TOP + 18} L100 ${BODY_TOP + 2}`}
+        fill="white" opacity="0.15" />
     </>
   ),
-  // 5 背心裙
+  // 5 连衣裙
   (c: string) => (
     <>
-      <path d="M34 115 L40 98 L60 102 L80 98 L86 115Z" fill={c} />
-      <path d="M44 98 L48 92" stroke={c} strokeWidth="3" strokeLinecap="round" />
-      <path d="M76 98 L72 92" stroke={c} strokeWidth="3" strokeLinecap="round" />
+      <rect x={82} y={BODY_TOP - 4} width={16} height={10} rx={4} fill="#F5CBA7" />
+      <path d={`M62 ${BODY_TOP + 8} Q62 ${BODY_TOP - 4} 90 ${BODY_TOP - 4} Q118 ${BODY_TOP - 4} 118 ${BODY_TOP + 8} L132 ${BODY_TOP + 68} Q132 ${BODY_TOP + 72} 90 ${BODY_TOP + 72} Q48 ${BODY_TOP + 72} 48 ${BODY_TOP + 68}Z`}
+        fill={c} />
+      <ellipse cx={54} cy={BODY_TOP + 14} rx={8} ry={7} fill={c} />
+      <ellipse cx={126} cy={BODY_TOP + 14} rx={8} ry={7} fill={c} />
+      <circle cx={48} cy={BODY_TOP + 18} r={5} fill="#F5CBA7" />
+      <circle cx={132} cy={BODY_TOP + 18} r={5} fill="#F5CBA7" />
+      {/* 蝴蝶结 */}
+      <path d={`M84 ${BODY_TOP + 4} L90 ${BODY_TOP + 8} L96 ${BODY_TOP + 4} L90 ${BODY_TOP + 2}Z`}
+        fill="white" opacity="0.5" />
     </>
   ),
   // 6 运动衫
   (c: string) => (
     <>
-      <path d="M30 115 L38 98 L60 102 L82 98 L90 115Z" fill={c} />
-      <path d="M40 108 L80 108" stroke="white" strokeWidth="2" opacity="0.4" />
-      <path d="M46 112 L74 112" stroke="white" strokeWidth="1.5" opacity="0.3" />
+      <rect x={82} y={BODY_TOP - 4} width={16} height={10} rx={4} fill="#F5CBA7" />
+      <path d={`M52 ${BODY_TOP + 14} Q52 ${BODY_TOP - 6} 90 ${BODY_TOP - 6} Q128 ${BODY_TOP - 6} 128 ${BODY_TOP + 14} L132 ${BODY_TOP + 60} Q132 ${BODY_TOP + 68} 90 ${BODY_TOP + 68} Q48 ${BODY_TOP + 68} 48 ${BODY_TOP + 60}Z`}
+        fill={c} />
+      <ellipse cx={48} cy={BODY_TOP + 20} rx={12} ry={9} fill={c} />
+      <ellipse cx={132} cy={BODY_TOP + 20} rx={12} ry={9} fill={c} />
+      <circle cx={38} cy={BODY_TOP + 24} r={6} fill="#F5CBA7" />
+      <circle cx={142} cy={BODY_TOP + 24} r={6} fill="#F5CBA7" />
+      {/* 条纹 */}
+      <line x1={70} y1={BODY_TOP + 38} x2={110} y2={BODY_TOP + 38}
+        stroke="white" strokeWidth="2" opacity="0.4" />
     </>
   ),
   // 7 格子衫
   (c: string) => (
     <>
-      <path d="M30 115 L38 98 L60 102 L82 98 L90 115Z" fill={c} />
-      {[42, 52, 62, 72].map((x, i) => (
-        <line key={`v${i}`} x1={x} y1="100" x2={x} y2="115" stroke="white" strokeWidth="0.5" opacity="0.3" />
-      ))}
-      {[104, 108, 112].map((y, i) => (
-        <line key={`h${i}`} x1="36" y1={y} x2="84" y2={y} stroke="white" strokeWidth="0.5" opacity="0.3" />
-      ))}
+      <rect x={82} y={BODY_TOP - 4} width={16} height={10} rx={4} fill="#F5CBA7" />
+      <path d={`M56 ${BODY_TOP + 10} Q56 ${BODY_TOP - 4} 90 ${BODY_TOP - 4} Q124 ${BODY_TOP - 4} 124 ${BODY_TOP + 10} L128 ${BODY_TOP + 62} Q128 ${BODY_TOP + 68} 90 ${BODY_TOP + 68} Q52 ${BODY_TOP + 68} 52 ${BODY_TOP + 62}Z`}
+        fill={c} />
+      <ellipse cx={52} cy={BODY_TOP + 16} rx={10} ry={8} fill={c} />
+      <ellipse cx={128} cy={BODY_TOP + 16} rx={10} ry={8} fill={c} />
+      <circle cx={44} cy={BODY_TOP + 20} r={6} fill="#F5CBA7" />
+      <circle cx={136} cy={BODY_TOP + 20} r={6} fill="#F5CBA7" />
+      {/* 格纹 */}
+      <line x1={72} y1={BODY_TOP + 10} x2={72} y2={BODY_TOP + 64} stroke="white" strokeWidth="0.8" />
+      <line x1={90} y1={BODY_TOP + 10} x2={90} y2={BODY_TOP + 64} stroke="white" strokeWidth="0.8" />
+      <line x1={108} y1={BODY_TOP + 10} x2={108} y2={BODY_TOP + 64} stroke="white" strokeWidth="0.8" />
+      <line x1={56} y1={BODY_TOP + 28} x2={124} y2={BODY_TOP + 28} stroke="white" strokeWidth="0.8" />
+      <line x1={54} y1={BODY_TOP + 44} x2={126} y2={BODY_TOP + 44} stroke="white" strokeWidth="0.8" />
     </>
   ),
-  // 8 外套
+  // 8 毛衣
   (c: string) => (
     <>
-      <path d="M26 115 L34 94 L60 98 L86 94 L94 115Z" fill={c} />
-      <path d="M34 94 L40 115" stroke={c} strokeWidth="1" opacity="0.5" />
-      <path d="M86 94 L80 115" stroke={c} strokeWidth="1" opacity="0.5" />
-      <circle cx="52" cy="104" r="1.5" fill="white" opacity="0.6" />
-      <circle cx="68" cy="104" r="1.5" fill="white" opacity="0.6" />
+      <rect x={82} y={BODY_TOP - 4} width={16} height={10} rx={4} fill="#F5CBA7" />
+      <path d={`M54 ${BODY_TOP + 12} Q54 ${BODY_TOP - 6} 90 ${BODY_TOP - 6} Q126 ${BODY_TOP - 6} 126 ${BODY_TOP + 12} L128 ${BODY_TOP + 62} Q128 ${BODY_TOP + 68} 90 ${BODY_TOP + 68} Q52 ${BODY_TOP + 68} 52 ${BODY_TOP + 62}Z`}
+        fill={c} />
+      <ellipse cx={50} cy={BODY_TOP + 18} rx={11} ry={9} fill={c} />
+      <ellipse cx={130} cy={BODY_TOP + 18} rx={11} ry={9} fill={c} />
+      <circle cx={41} cy={BODY_TOP + 22} r={6} fill="#F5CBA7" />
+      <circle cx={139} cy={BODY_TOP + 22} r={6} fill="#F5CBA7" />
+      {/* 麻花纹 */}
+      <path d={`M86 ${BODY_TOP + 12} Q88 ${BODY_TOP + 20} 86 ${BODY_TOP + 28} Q84 ${BODY_TOP + 36} 86 ${BODY_TOP + 44}`}
+        stroke="white" strokeWidth="1.5" fill="none" opacity="0.3" />
+      <path d={`M94 ${BODY_TOP + 12} Q92 ${BODY_TOP + 20} 94 ${BODY_TOP + 28} Q96 ${BODY_TOP + 36} 94 ${BODY_TOP + 44}`}
+        stroke="white" strokeWidth="1.5" fill="none" opacity="0.3" />
     </>
   ),
-  // 9 连帽衫
+  // 9 和服
   (c: string) => (
     <>
-      <path d="M28 115 L36 96 L60 100 L84 96 L92 115Z" fill={c} />
-      <path d="M48 96 Q54 88 60 96 Q66 88 72 96" fill={c} opacity="0.8" />
-      <path d="M55 100 L55 110" stroke="white" strokeWidth="1" opacity="0.4" />
-      <path d="M65 100 L65 110" stroke="white" strokeWidth="1" opacity="0.4" />
+      <rect x={82} y={BODY_TOP - 4} width={16} height={10} rx={4} fill="#F5CBA7" />
+      <path d={`M58 ${BODY_TOP + 8} Q58 ${BODY_TOP - 4} 90 ${BODY_TOP - 4} Q122 ${BODY_TOP - 4} 122 ${BODY_TOP + 8} L136 ${BODY_TOP + 68} Q136 ${BODY_TOP + 72} 90 ${BODY_TOP + 72} Q44 ${BODY_TOP + 72} 44 ${BODY_TOP + 68}Z`}
+        fill={c} />
+      <ellipse cx={52} cy={BODY_TOP + 14} rx={9} ry={7} fill={c} />
+      <ellipse cx={128} cy={BODY_TOP + 14} rx={9} ry={7} fill={c} />
+      <circle cx={45} cy={BODY_TOP + 18} r={5} fill="#F5CBA7" />
+      <circle cx={135} cy={BODY_TOP + 18} r={5} fill="#F5CBA7" />
+      {/* 交领 */}
+      <path d={`M82 ${BODY_TOP + 2} L90 ${BODY_TOP + 32}`}
+        stroke="white" strokeWidth="2" opacity="0.5" />
+      <path d={`M98 ${BODY_TOP + 2} L90 ${BODY_TOP + 32}`}
+        stroke="white" strokeWidth="2" opacity="0.5" />
+      {/* 腰带 */}
+      <rect x={56} y={BODY_TOP + 34} width={68} height={8} rx={2} fill="white" opacity="0.3" />
     </>
   ),
-  // 10 裙子
+  // 10 背带裤
   (c: string) => (
     <>
-      <path d="M40 100 L60 104 L80 100 L88 115 L32 115Z" fill={c} />
-      <path d="M40 100 L60 104 L80 100" stroke={c} strokeWidth="1" opacity="0.6" />
-      <ellipse cx="60" cy="100" rx="18" ry="4" fill={c} opacity="0.5" />
+      <rect x={82} y={BODY_TOP - 4} width={16} height={10} rx={4} fill="#F5CBA7" />
+      {/* 内搭 */}
+      <path d={`M58 ${BODY_TOP + 6} Q58 ${BODY_TOP - 2} 90 ${BODY_TOP - 2} Q122 ${BODY_TOP - 2} 122 ${BODY_TOP + 6} L126 ${BODY_TOP + 60} Q126 ${BODY_TOP + 66} 90 ${BODY_TOP + 66} Q54 ${BODY_TOP + 66} 54 ${BODY_TOP + 60}Z`}
+        fill="#FFE8D0" />
+      {/* 背带 */}
+      <rect x={70} y={BODY_TOP + 4} width={6} height={44} rx={2} fill={c} />
+      <rect x={104} y={BODY_TOP + 4} width={6} height={44} rx={2} fill={c} />
+      {/* 裤身 */}
+      <path d={`M56 ${BODY_TOP + 34} L124 ${BODY_TOP + 34} L128 ${BODY_TOP + 66} Q128 ${BODY_TOP + 70} 90 ${BODY_TOP + 70} Q52 ${BODY_TOP + 70} 52 ${BODY_TOP + 66}Z`}
+        fill={c} />
+      <ellipse cx={54} cy={BODY_TOP + 12} rx={8} ry={7} fill="#FFE8D0" />
+      <ellipse cx={126} cy={BODY_TOP + 12} rx={8} ry={7} fill="#FFE8D0" />
+      <circle cx={48} cy={BODY_TOP + 16} r={5} fill="#F5CBA7" />
+      <circle cx={132} cy={BODY_TOP + 16} r={5} fill="#F5CBA7" />
+      {/* 口袋 */}
+      <rect x={68} y={BODY_TOP + 46} width={16} height={12} rx={3} fill={c} stroke="white" strokeWidth="0.8" opacity="0.4" />
+      <rect x={96} y={BODY_TOP + 46} width={16} height={12} rx={3} fill={c} stroke="white" strokeWidth="0.8" opacity="0.4" />
     </>
   )
 ];
@@ -354,72 +535,76 @@ const ACCESSORIES = [
   () => null,
   // 2 皇冠
   () => (
-    <>
-      <path d="M42 24 L46 14 L52 20 L60 10 L68 20 L74 14 L78 24Z" fill="#FFD700" />
-      <circle cx="52" cy="20" r="1.5" fill="#FF4444" />
-      <circle cx="60" cy="15" r="2" fill="#4488FF" />
-      <circle cx="68" cy="20" r="1.5" fill="#44CC44" />
-    </>
+    <path d={`M66 28 L72 14 L80 24 L90 8 L100 24 L108 14 L114 28Z`}
+      fill="#FFD700" stroke="#E6B800" strokeWidth="1" />
   ),
-  // 3 眼镜
+  // 3 圆框眼镜
   () => (
     <>
-      <circle cx="47" cy="56" r="10" fill="none" stroke="#2D2A26" strokeWidth="1.8" />
-      <circle cx="73" cy="56" r="10" fill="none" stroke="#2D2A26" strokeWidth="1.8" />
-      <path d="M57 56 L63 56" stroke="#2D2A26" strokeWidth="1.8" />
-      <path d="M37 56 L30 52" stroke="#2D2A26" strokeWidth="1.5" />
-      <path d="M83 56 L90 52" stroke="#2D2A26" strokeWidth="1.5" />
+      <circle cx={EYE_L_X} cy={EYE_Y} r={13} fill="none" stroke="#6B5B4D" strokeWidth="2" />
+      <circle cx={EYE_R_X} cy={EYE_Y} r={13} fill="none" stroke="#6B5B4D" strokeWidth="2" />
+      <line x1={EYE_L_X + 13} y1={EYE_Y} x2={EYE_R_X - 13} y2={EYE_Y}
+        stroke="#6B5B4D" strokeWidth="2" />
+      <line x1={EYE_L_X - 13} y1={EYE_Y - 2} x2={EYE_L_X - 18} y2={EYE_Y - 6}
+        stroke="#6B5B4D" strokeWidth="2" strokeLinecap="round" />
+      <line x1={EYE_R_X + 13} y1={EYE_Y - 2} x2={EYE_R_X + 18} y2={EYE_Y - 6}
+        stroke="#6B5B4D" strokeWidth="2" strokeLinecap="round" />
     </>
   ),
-  // 4 蝴蝶结头饰
+  // 4 蝴蝶结（头顶）
   () => (
     <>
-      <path d="M80 35 Q92 26 88 38 Q92 50 80 42 Q76 38 80 35Z" fill="#FF69B4" />
-      <path d="M80 35 Q68 26 72 38 Q68 50 80 42 Q84 38 80 35Z" fill="#FF69B4" />
-      <circle cx="80" cy="38" r="3" fill="#FF1493" />
+      <ellipse cx={HEAD_CX - 18} cy={HEAD_CY - HEAD_R + 6} rx={14} ry={10} fill="#FF69B4" />
+      <ellipse cx={HEAD_CX + 18} cy={HEAD_CY - HEAD_R + 6} rx={14} ry={10} fill="#FF69B4" />
+      <circle cx={HEAD_CX} cy={HEAD_CY - HEAD_R + 6} r={5} fill="#FF1493" />
     </>
   ),
-  // 5 帽子
+  // 5 渔夫帽
   () => (
     <>
-      <ellipse cx="60" cy="28" rx="38" ry="6" fill="#4A90D9" />
-      <path d="M38 28 Q38 10 60 8 Q82 10 82 28Z" fill="#4A90D9" />
-      <rect x="38" y="26" width="44" height="4" rx="1" fill="#3A7BC8" />
+      <ellipse cx={HEAD_CX} cy={HEAD_CY - HEAD_R + 12} rx={HEAD_R + 6} ry={8} fill="#4A90D9" />
+      <path d={`M${HEAD_CX - 28} ${HEAD_CY - HEAD_R + 12}
+        Q${HEAD_CX - 28} ${HEAD_CY - HEAD_R - 20} ${HEAD_CX} ${HEAD_CY - HEAD_R - 20}
+        Q${HEAD_CX + 28} ${HEAD_CY - HEAD_R - 20} ${HEAD_CX + 28} ${HEAD_CY - HEAD_R + 12}Z`}
+        fill="#4A90D9" />
     </>
   ),
-  // 6 耳环
+  // 6 发箍
   () => (
     <>
-      <circle cx="24" cy="60" r="3.5" fill="#FFD700" />
-      <circle cx="24" cy="60" r="2" fill="#FF4444" />
-      <circle cx="96" cy="60" r="3.5" fill="#FFD700" />
-      <circle cx="96" cy="60" r="2" fill="#FF4444" />
+      <path d={`M${HEAD_CX - HEAD_R + 6} ${HEAD_CY - 18}
+        Q${HEAD_CX} ${HEAD_CY - HEAD_R - 6} ${HEAD_CX + HEAD_R - 6} ${HEAD_CY - 18}`}
+        stroke="#E8734A" strokeWidth={4} fill="none" strokeLinecap="round" />
     </>
   ),
-  // 7 发带
+  // 7 耳机
   () => (
     <>
-      <path d="M28 36 Q60 24 92 36" stroke="#E8734A" strokeWidth="4" fill="none" strokeLinecap="round" />
-      <circle cx="82" cy="32" r="4" fill="#E8734A" />
+      <path d={`M${HEAD_CX - HEAD_R + 2} ${HEAD_CY - 6}
+        Q${HEAD_CX - HEAD_R + 2} ${HEAD_CY - HEAD_R - 12} ${HEAD_CX} ${HEAD_CY - HEAD_R - 12}
+        Q${HEAD_CX + HEAD_R - 2} ${HEAD_CY - HEAD_R - 12} ${HEAD_CX + HEAD_R - 2} ${HEAD_CY - 6}`}
+        stroke="#3D3D3D" strokeWidth={4} fill="none" />
+      <rect x={HEAD_CX - HEAD_R - 4} y={HEAD_CY - 12} width={10} height={16} rx={4} fill="#3D3D3D" />
+      <rect x={HEAD_CX + HEAD_R - 6} y={HEAD_CY - 12} width={10} height={16} rx={4} fill="#3D3D3D" />
     </>
   ),
-  // 8 口罩
+  // 8 星星贴纸
   () => (
     <>
-      <path d="M40 68 Q48 64 60 64 Q72 64 80 68 L78 82 Q60 86 42 82Z" fill="white" stroke="#DDD" strokeWidth="1" />
-      <path d="M44 72 L76 72" stroke="#EEE" strokeWidth="0.5" />
-      <path d="M44 76 L76 76" stroke="#EEE" strokeWidth="0.5" />
-      <path d="M44 80 L76 80" stroke="#EEE" strokeWidth="0.5" />
+      <path d={`M118 72 L120 66 L122 72 L128 72 L123 76 L125 82 L120 78 L115 82 L117 76 L112 72Z`}
+        fill="#FFD700" />
+      <path d={`M52 58 L53.5 54 L55 58 L59 58 L56 60.5 L57 64 L53.5 62 L50 64 L51 60.5 L48 58Z`}
+        fill="#FFD700" />
     </>
   )
 ];
 
-// ── 腮红 ──────────────────────────────────────────
-function CheekBlush() {
+// ── 脚 ──────────────────────────────────────────
+function Feet({ color }: { color: string }) {
   return (
     <>
-      <ellipse cx="36" cy="66" rx="6" ry="3.5" fill="#FF8888" opacity="0.25" />
-      <ellipse cx="84" cy="66" rx="6" ry="3.5" fill="#FF8888" opacity="0.25" />
+      <ellipse cx={78} cy={BODY_TOP + 70} rx={12} ry={6} fill={color} />
+      <ellipse cx={102} cy={BODY_TOP + 70} rx={12} ry={6} fill={color} />
     </>
   );
 }
@@ -429,18 +614,21 @@ export default function AvatarPreview({ avatar, size = 100 }: AvatarPreviewProps
 
   return (
     <svg
-      viewBox="0 0 120 120"
+      viewBox="0 0 180 200"
       width={size}
-      height={size}
-      style={{ borderRadius: '50%', background: 'linear-gradient(135deg, #FFF5EE 0%, #FDE8D8 50%, #F5E6D3 100%)' }}
+      height={size * (200 / 180)}
+      style={{ borderRadius: '50%', background: '#FFF8F2' }}
     >
-      {/* 头部阴影 */}
-      <ellipse cx="62" cy="92" rx="22" ry="4" fill="#000" opacity="0.06" />
+      {/* 服饰（身体层） */}
+      {CLOTHING_STYLES[clothing % CLOTHING_STYLES.length](clothingColor)}
+
+      {/* 脚 */}
+      <Feet color={clothingColor} />
 
       {/* 脸型 */}
       {FACE_SHAPES[faceShape % FACE_SHAPES.length](skinColor)}
 
-      {/* 发型（后层） */}
+      {/* 发型 */}
       {HAIRSTYLES[hairstyle % HAIRSTYLES.length](hairColor)}
 
       {/* 腮红 */}
@@ -451,9 +639,6 @@ export default function AvatarPreview({ avatar, size = 100 }: AvatarPreviewProps
 
       {/* 嘴巴 */}
       {MOUTH_STYLES[mouthStyle % MOUTH_STYLES.length]()}
-
-      {/* 服饰 */}
-      {CLOTHING_STYLES[clothing % CLOTHING_STYLES.length](clothingColor)}
 
       {/* 配饰 */}
       {ACCESSORIES[accessory % ACCESSORIES.length]?.()}

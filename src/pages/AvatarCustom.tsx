@@ -118,13 +118,14 @@ export default function AvatarCustom() {
           {/* 预览区域 */}
           <div className="lg:w-56 shrink-0">
             <div className="flex justify-center py-5">
-              <div className="rounded-full p-1 border-2 border-[#E8734A]">
+              <div className="rounded-3xl overflow-hidden border-2 border-[#E8734A]"
+                style={{ boxShadow: '0 6px 24px rgba(232,115,74,0.15)' }}>
                 {mode === 'upload' && avatarImage ? (
-                  <div className="w-36 h-36 rounded-full overflow-hidden">
+                  <div className="w-40 h-44 overflow-hidden">
                     <img src={avatarImage} alt="头像" className="w-full h-full object-cover" />
                   </div>
                 ) : (
-                  <AvatarPreview avatar={avatar} size={144} />
+                  <AvatarPreview avatar={avatar} size={160} />
                 )}
               </div>
             </div>
@@ -238,13 +239,14 @@ export default function AvatarCustom() {
                           <button
                             key={i}
                             onClick={() => updateAvatarField(activeCategory as keyof AvatarConfig, i)}
-                            className={`relative aspect-square rounded-xl flex items-center justify-center transition-colors ${
+                            className={`relative rounded-xl flex items-center justify-center transition-colors overflow-hidden ${
                               isSelected
                                 ? 'bg-orange-50 border-2 border-[#E8734A]'
                                 : 'bg-gray-50 border border-transparent hover:border-gray-200'
                             }`}
+                            style={{ aspectRatio: '9 / 10' }}
                           >
-                            <AvatarPreview avatar={previewAvatar} size={48} />
+                            <AvatarPreview avatar={previewAvatar} size={56} />
                             {isSelected && (
                               <div className="absolute -top-1 -right-1 w-4 h-4 bg-[#E8734A] rounded-full flex items-center justify-center">
                                 <svg width="8" height="8" viewBox="0 0 10 10" fill="none">
