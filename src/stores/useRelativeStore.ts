@@ -1,9 +1,10 @@
 import { create } from 'zustand';
-import { Relative, AvatarConfig, ChatStyle, DEFAULT_AVATAR } from '../types';
+import { Relative, AvatarConfig, ChatStyle, ChatMessage, DEFAULT_AVATAR } from '../types';
 import { storageService } from '../services/storageService';
 
 interface RelativeStore {
   relatives: Relative[];
+  chatMessages: Record<string, ChatMessage[]>;
   loadRelatives: () => void;
   addRelative: (data: Omit<Relative, 'id' | 'createdAt' | 'updatedAt' | 'avatar'> & { avatar?: Partial<AvatarConfig> }) => string;
   updateRelative: (id: string, data: Partial<Relative>) => void;
@@ -11,10 +12,14 @@ interface RelativeStore {
   getRelative: (id: string) => Relative | undefined;
   updateAvatar: (id: string, avatar: Partial<AvatarConfig>, avatarImage?: string) => void;
   updateChatStyle: (id: string, chatStyle: ChatStyle) => void;
+  loadChatMessages: (relativeId: string) => void;
+  addChatMessage: (relativeId: string, message: ChatMessage) => void;
+  clearChatMessages: (relativeId: string) => void;
 }
 
 export const useRelativeStore = create<RelativeStore>((set, get) => ({
   relatives: [],
+  chatMessages: {},
 
   loadRelatives: () => {
     const relatives = storageService.getRelatives();
@@ -74,5 +79,28 @@ export const useRelativeStore = create<RelativeStore>((set, get) => ({
     );
     set({ relatives });
     storageService.saveRelatives(relatives);
+  },
+
+  loadChatMessages: (relativeId) => {
+    const messages = storageService.getChatMessages(relativeId);
+    set(state => ({
+      chatMessages: { ...state.chatMessages, [relativeId]: messages }
+    }));
+  },
+
+  addChatMessage: (relativeId, message) => {
+    const currentMessages = get().chatMessages[relativeId] || [];
+    const updatedMessages = [...currentMessages, message];
+    set(state => ({
+      chatMessages: { ...state.chatMessages, [relativeId]: updatedMessages }
+    }));
+    storageService.saveChatMessages(relativeId, updatedMessages);
+  },
+
+  clearChatMessages: (relativeId) => {
+    set(state => ({
+      chatMessages: { ...state.chatMessages, [relativeId]: [] }
+    }));
+    storageService.saveChatMessages(relativeId, []);
   }
 }));

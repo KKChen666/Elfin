@@ -1,0 +1,70 @@
+{
+  "project": {
+    "name": "Q版头像定制",
+    "operation": "create",
+    "designRead": "移动端 / 亲友管理App / 可爱Q萌风格 / 任务驱动型页面 / Q版小人头像定制",
+    "designDials": {
+      "layoutVariance": 2,
+      "motionIntensity": 3,
+      "visualDensity": 2
+    },
+    "styleDefinitionBrief": "Q版小人头像定制，暖橙色系，圆润可爱风格，柔和阴影，亲切友好的视觉体验"
+  },
+  "designSource": {
+    "operatingMode": "free-explore",
+    "styleConstraints": {
+      "radiusMax": 24,
+      "staticShadowAlphaMax": 0.05
+    }
+  },
+  "pages": [
+    {
+      "nodeId": "page-customize",
+      "htmlSrc": "pages/customize.html",
+      "title": "素材捏脸",
+      "pageIndex": 1,
+      "pageType": "task-driven",
+      "visualNorthStar": "Q版小人捏脸定制，用户可以通过选择脸型、发型、眼睛、嘴巴、服饰、配饰等素材来自定义Q版小人头像",
+      "compositionPattern": "垂直堆叠：预览区 + 分类选择 + 素材网格",
+      "continuityAnchors": [
+        "暖橙色主色调",
+        "圆润边角设计",
+        "柔和阴影效果",
+        "Q版可爱风格"
+      ]
+    },
+    {
+      "nodeId": "page-upload",
+      "htmlSrc": "pages/upload.html",
+      "title": "上传照片",
+      "pageIndex": 2,
+      "pageType": "task-driven",
+      "visualNorthStar": "上传照片自动裁剪大头，支持拖拽调整位置、缩放、旋转，一键生成Q版头像",
+      "compositionPattern": "垂直堆叠：预览区 + 上传区域 + 调整控件",
+      "continuityAnchors": [
+        "暖橙色主色调",
+        "圆润边角设计",
+        "柔和阴影效果",
+        "Q版可爱风格"
+      ]
+    }
+  ],
+  "assets": [],
+  "wiringPlan": [
+    {
+      "sourcePageId": "page-customize",
+      "domId": "tab-upload",
+      "targetPageId": "page-upload",
+      "type": "hidden",
+      "label": "切换到上传照片模式"
+    },
+    {
+      "sourcePageId": "page-upload",
+      "domId": "tab-customize",
+      "targetPageId": "page-customize",
+      "type": "hidden",
+      "label": "切换到素材捏脸模式"
+    }
+  ],
+  "hiddenInteractionPlan": []
+}

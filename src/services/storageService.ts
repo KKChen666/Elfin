@@ -1,7 +1,8 @@
-import { Relative, Reminder } from '../types';
+import { Relative, Reminder, ChatMessage } from '../types';
 
 const RELATIVES_KEY = 'companion_app_relatives';
 const REMINDERS_KEY = 'companion_app_reminders';
+const CHAT_MESSAGES_KEY_PREFIX = 'companion_app_chat_';
 
 export const storageService = {
   getRelatives(): Relative[] {
@@ -40,5 +41,16 @@ export const storageService = {
 
   saveReminders(reminders: Reminder[]): void {
     localStorage.setItem(REMINDERS_KEY, JSON.stringify(reminders));
+  },
+
+  getChatMessages(relativeId: string): ChatMessage[] {
+    const key = CHAT_MESSAGES_KEY_PREFIX + relativeId;
+    const data = localStorage.getItem(key);
+    return data ? JSON.parse(data) : [];
+  },
+
+  saveChatMessages(relativeId: string, messages: ChatMessage[]): void {
+    const key = CHAT_MESSAGES_KEY_PREFIX + relativeId;
+    localStorage.setItem(key, JSON.stringify(messages));
   }
 };

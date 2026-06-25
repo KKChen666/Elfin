@@ -59,74 +59,79 @@ export default function Calendar() {
   };
 
   return (
-    <div className="p-4">
-      <header className="mb-6">
-        <h1 className="text-2xl font-bold text-[#2D2A26] font-['Outfit']">节日日历</h1>
-        <p className="text-sm text-gray-500 mt-1">查看亲友生日和节日</p>
+    <div className="p-4 md:p-6 lg:p-8">
+      <header className="mb-5 md:mb-6">
+        <h1 className="text-xl md:text-2xl font-bold text-[#2D2A26]">节日日历</h1>
+        <p className="text-sm text-gray-400 mt-0.5">查看亲友生日和节日</p>
       </header>
 
-      <div className="bg-white rounded-2xl p-4 shadow-sm mb-4">
-        <div className="flex items-center justify-between mb-4">
-          <button onClick={prevMonth} className="p-2 hover:bg-gray-100 rounded-lg">
-            <ChevronLeft size={20} />
-          </button>
-          <h2 className="text-lg font-semibold">{currentYear}年 {MONTHS[currentMonth]}</h2>
-          <button onClick={nextMonth} className="p-2 hover:bg-gray-100 rounded-lg">
-            <ChevronRight size={20} />
-          </button>
+      <div className="lg:flex lg:gap-6">
+        <div className="bg-white rounded-xl p-4 border border-gray-50 mb-4 lg:mb-0 lg:flex-1">
+          <div className="flex items-center justify-between mb-4">
+            <button onClick={prevMonth} className="p-2 hover:bg-gray-50 rounded-lg transition-colors">
+              <ChevronLeft size={20} />
+            </button>
+            <h2 className="text-base font-semibold">{currentYear}年 {MONTHS[currentMonth]}</h2>
+            <button onClick={nextMonth} className="p-2 hover:bg-gray-50 rounded-lg transition-colors">
+              <ChevronRight size={20} />
+            </button>
+          </div>
+
+          <div className="grid grid-cols-7 gap-1 mb-2">
+            {['日', '一', '二', '三', '四', '五', '六'].map(day => (
+              <div key={day} className="text-center text-xs text-gray-400 py-1">{day}</div>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-7 gap-1">
+            {Array.from({ length: firstDay }, (_, i) => (
+              <div key={`empty-${i}`} />
+            ))}
+            {Array.from({ length: daysInMonth }, (_, i) => {
+              const day = i + 1;
+              const events = getEventsForDay(day);
+              const isToday = new Date().getDate() === day && new Date().getMonth() === currentMonth && new Date().getFullYear() === currentYear;
+
+              return (
+                <div
+                  key={day}
+                  className={`aspect-square p-1 rounded-lg text-center ${
+                    isToday ? 'bg-[#E8734A] text-white' : events.length > 0 ? 'bg-orange-50' : ''
+                  }`}
+                >
+                  <div className={`text-xs md:text-sm font-medium ${isToday ? 'text-white' : 'text-gray-600'}`}>{day}</div>
+                  {events.length > 0 && (
+                    <div className="text-[10px] truncate leading-tight">{events[0]}</div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
 
-        <div className="grid grid-cols-7 gap-1 mb-2">
-          {['日', '一', '二', '三', '四', '五', '六'].map(day => (
-            <div key={day} className="text-center text-xs text-gray-500 py-1">{day}</div>
-          ))}
-        </div>
-
-        <div className="grid grid-cols-7 gap-1">
-          {Array.from({ length: firstDay }, (_, i) => (
-            <div key={`empty-${i}`} />
-          ))}
+        <div className="bg-white rounded-xl p-4 border border-gray-50 lg:w-64 xl:w-72 shrink-0">
+          <h3 className="font-semibold text-sm mb-3">本月事件</h3>
           {Array.from({ length: daysInMonth }, (_, i) => {
             const day = i + 1;
             const events = getEventsForDay(day);
-            const isToday = new Date().getDate() === day && new Date().getMonth() === currentMonth && new Date().getFullYear() === currentYear;
-
+            if (events.length === 0) return null;
             return (
-              <div
-                key={day}
-                className={`aspect-square p-1 rounded-lg text-center ${
-                  isToday ? 'bg-[#E8734A] text-white' : events.length > 0 ? 'bg-orange-50' : ''
-                }`}
-              >
-                <div className={`text-sm font-medium ${isToday ? 'text-white' : 'text-gray-700'}`}>{day}</div>
-                {events.length > 0 && (
-                  <div className="text-xs truncate">{events[0]}</div>
-                )}
+              <div key={day} className="flex items-center gap-3 py-2 border-b border-gray-50 last:border-0">
+                <div className="w-8 h-8 rounded-lg bg-orange-50 flex items-center justify-center text-[#E8734A] text-xs font-semibold shrink-0">
+                  {day}
+                </div>
+                <div>
+                  {events.map((event, idx) => (
+                    <div key={idx} className="text-sm">{event}</div>
+                  ))}
+                </div>
               </div>
             );
           })}
+          {Array.from({ length: daysInMonth }, (_, i) => getEventsForDay(i + 1)).every(e => e.length === 0) && (
+            <p className="text-xs text-gray-400">本月暂无事件</p>
+          )}
         </div>
-      </div>
-
-      <div className="bg-white rounded-2xl p-4 shadow-sm">
-        <h3 className="font-semibold mb-3">本月事件</h3>
-        {Array.from({ length: daysInMonth }, (_, i) => {
-          const day = i + 1;
-          const events = getEventsForDay(day);
-          if (events.length === 0) return null;
-          return (
-            <div key={day} className="flex items-center gap-3 py-2 border-b border-gray-100 last:border-0">
-              <div className="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center text-[#E8734A] font-semibold">
-                {day}
-              </div>
-              <div>
-                {events.map((event, idx) => (
-                  <div key={idx} className="text-sm">{event}</div>
-                ))}
-              </div>
-            </div>
-          );
-        })}
       </div>
     </div>
   );

@@ -1,0 +1,1077 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>定制头像 - Q版小人</title>
+    <style id="theme-vars">
+/* Q版小人 - 可爱Q萌风格 Brand CSS */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&display=swap');
+
+:root {
+  /* Brand Primary - 暖橙色系 */
+  --color-primary: #FF7B54;
+  --color-primary-light: #FFB088;
+  --color-primary-dark: #E85D3A;
+  --color-primary-50: #FFF5F0;
+  --color-primary-100: #FFE8DB;
+  --color-primary-200: #FFD0B5;
+  --color-primary-300: #FFB088;
+  --color-primary-400: #FF9466;
+  --color-primary-500: #FF7B54;
+  --color-primary-600: #E85D3A;
+  --color-primary-700: #CC4A2B;
+  --color-primary-800: #A63D23;
+  --color-primary-900: #802F1B;
+
+  /* Neutral Colors */
+  --color-gray-50: #FAFAF7;
+  --color-gray-100: #F5F3EF;
+  --color-gray-200: #E8E5E0;
+  --color-gray-300: #D4D0CA;
+  --color-gray-400: #A8A29E;
+  --color-gray-500: #78716C;
+  --color-gray-600: #57534E;
+  --color-gray-700: #44403C;
+  --color-gray-800: #292524;
+  --color-gray-900: #1C1917;
+
+  /* Status Colors */
+  --color-success: #4ADE80;
+  --color-warning: #FBBF24;
+  --color-error: #F87171;
+  --color-info: #60A5FA;
+
+  /* Background */
+  --color-bg-primary: #FFF8F5;
+  --color-bg-secondary: #FFFFFF;
+  --color-bg-tertiary: #FDF2EC;
+
+  /* Typography */
+  --font-family-primary: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --font-size-xs: 10px;
+  --font-size-sm: 12px;
+  --font-size-base: 14px;
+  --font-size-md: 16px;
+  --font-size-lg: 18px;
+  --font-size-xl: 20px;
+  --font-size-2xl: 24px;
+  --font-size-3xl: 30px;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --line-height-tight: 1.25;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.75;
+
+  /* Spacing */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+
+  /* Border Radius - Q版圆润风格 */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-2xl: 24px;
+  --radius-full: 9999px;
+
+  /* Shadows - 柔和阴影 */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.03);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.08);
+  --shadow-xl: 0 12px 32px rgba(0, 0, 0, 0.1);
+  --shadow-primary: 0 4px 16px rgba(255, 123, 84, 0.25);
+
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition-normal: 250ms ease;
+  --transition-slow: 350ms ease;
+}
+
+/* Base Styles */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-family-primary);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-normal);
+  color: var(--color-gray-800);
+  background-color: var(--color-bg-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Q版特色组件样式 */
+.q-card {
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+  padding: var(--space-4);
+}
+
+.q-button-primary {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  color: white;
+  border: none;
+  border-radius: var(--radius-full);
+  padding: var(--space-3) var(--space-6);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-base);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  box-shadow: var(--shadow-primary);
+}
+
+.q-button-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 123, 84, 0.35);
+}
+
+.q-button-primary:active {
+  transform: translateY(0);
+}
+
+.q-button-secondary {
+  background: var(--color-bg-secondary);
+  color: var(--color-primary);
+  border: 2px solid var(--color-primary);
+  border-radius: var(--radius-full);
+  padding: var(--space-3) var(--space-6);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-base);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+}
+
+.q-button-secondary:hover {
+  background: var(--color-primary-50);
+}
+
+.q-tab {
+  display: flex;
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-full);
+  padding: var(--space-1);
+  box-shadow: var(--shadow-sm);
+}
+
+.q-tab-item {
+  flex: 1;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-full);
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-500);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-align: center;
+}
+
+.q-tab-item.active {
+  background: var(--color-primary);
+  color: white;
+  box-shadow: var(--shadow-primary);
+}
+
+.q-avatar {
+  border-radius: var(--radius-full);
+  border: 4px solid var(--color-primary);
+  box-shadow: var(--shadow-lg);
+}
+
+.q-category-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.q-category-pill.active {
+  background: var(--color-primary);
+  color: white;
+}
+
+.q-category-pill:not(.active) {
+  background: var(--color-bg-secondary);
+  color: var(--color-gray-600);
+  border: 1px solid var(--color-gray-200);
+}
+
+.q-option-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-2);
+}
+
+.q-option-item {
+  aspect-ratio: 1;
+  border-radius: var(--radius-lg);
+  border: 2px solid var(--color-gray-200);
+  background: var(--color-bg-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.q-option-item:hover {
+  border-color: var(--color-primary-light);
+}
+
+.q-option-item.selected {
+  border-color: var(--color-primary);
+  background: var(--color-primary-50);
+  box-shadow: 0 0 0 3px rgba(255, 123, 84, 0.15);
+}
+
+.q-color-swatch {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-full);
+  border: 3px solid transparent;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.q-color-swatch:hover {
+  transform: scale(1.1);
+}
+
+.q-color-swatch.selected {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px white, 0 0 0 4px var(--color-primary);
+}
+
+.q-upload-zone {
+  border: 2px dashed var(--color-gray-300);
+  border-radius: var(--radius-xl);
+  padding: var(--space-8);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  background: var(--color-bg-tertiary);
+}
+
+.q-upload-zone:hover {
+  border-color: var(--color-primary);
+  background: var(--color-primary-50);
+}
+
+.q-upload-zone.dragging {
+  border-color: var(--color-primary);
+  background: var(--color-primary-100);
+  transform: scale(1.02);
+}
+
+.q-slider {
+  width: 100%;
+  height: 4px;
+  border-radius: var(--radius-full);
+  background: var(--color-gray-200);
+  outline: none;
+  -webkit-appearance: none;
+}
+
+.q-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: var(--radius-full);
+  background: var(--color-primary);
+  cursor: pointer;
+  box-shadow: var(--shadow-md);
+}
+
+/* Utilities */
+.text-primary { color: var(--color-primary); }
+.text-gray-400 { color: var(--color-gray-400); }
+.text-gray-500 { color: var(--color-gray-500); }
+.text-gray-600 { color: var(--color-gray-600); }
+.bg-primary { background-color: var(--color-primary); }
+.bg-primary-50 { background-color: var(--color-primary-50); }
+.bg-white { background-color: white; }
+.rounded-full { border-radius: var(--radius-full); }
+.shadow-md { box-shadow: var(--shadow-md); }
+.shadow-lg { box-shadow: var(--shadow-lg); }
+
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3.1/dist/index.global.js"></script>
+    <script src="https://unpkg.com/lucide@1.8.0/dist/umd/lucide.min.js"></script>
+    <style type="text/tailwindcss">
+  @theme inline {
+    --color-primary: var(--color-primary);
+  }
+  @layer base {
+    body { background: var(--color-bg-primary); color: var(--color-foreground); }
+    td, th { @apply break-words; word-break: break-all; word-break: auto-phrase; }
+    th { @apply whitespace-nowrap; }
+  }
+    </style>
+    <style>
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      [data-icon] {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        -webkit-mask-size: contain;
+        mask-size: contain;
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        -webkit-mask-position: center;
+        mask-position: center;
+        background-color: currentColor;
+      }
+    </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="flex items-center justify-between px-4 pt-3 pb-2" style="padding-top: env(safe-area-inset-top, 12px);">
+    <button id="btn-back" class="flex items-center justify-center w-9 h-9 rounded-full" style="background: var(--color-bg-secondary); box-shadow: var(--shadow-sm); border:none; cursor:pointer;">
+      <i data-lucide="chevron-left" style="width:20px;height:20px;color:var(--color-gray-700);"></i>
+    </button>
+    <h1 style="font-size:var(--font-size-lg);font-weight:var(--font-weight-semibold);color:var(--color-gray-800);">定制头像</h1>
+    <button id="btn-shuffle" class="flex items-center justify-center w-9 h-9 rounded-full" style="background: var(--color-bg-secondary); box-shadow: var(--shadow-sm); border:none; cursor:pointer;">
+      <i data-lucide="shuffle" style="width:18px;height:18px;color:var(--color-primary);"></i>
+    </button>
+  </header>
+
+  <!-- Tab Bar -->
+  <div class="px-4 pb-3">
+    <div class="q-tab">
+      <button class="q-tab-item" data-dom-id="tab-upload">上传照片</button>
+      <button class="q-tab-item active" data-dom-id="tab-customize">素材捏脸</button>
+    </div>
+  </div>
+
+  <!-- Avatar Preview Area -->
+  <div class="flex flex-col items-center justify-center py-4 px-4 relative">
+    <!-- Decorative sparkles -->
+    <div class="absolute" style="top:14px;left:26%; pointer-events:none;">
+      <svg width="18" height="18" viewBox="0 0 16 16" class="sparkle-1">
+        <path d="M8 0L9.5 6.5L16 8L9.5 9.5L8 16L6.5 9.5L0 8L6.5 6.5Z" fill="var(--color-primary-300)" opacity="0.6"/>
+      </svg>
+    </div>
+    <div class="absolute" style="top:28px;right:20%; pointer-events:none;">
+      <svg width="14" height="14" viewBox="0 0 16 16" class="sparkle-2">
+        <path d="M8 0L9.5 6.5L16 8L9.5 9.5L8 16L6.5 9.5L0 8L6.5 6.5Z" fill="var(--color-primary-200)" opacity="0.5"/>
+      </svg>
+    </div>
+    <div class="absolute" style="bottom:28px;left:22%; pointer-events:none;">
+      <svg width="12" height="12" viewBox="0 0 16 16" class="sparkle-3">
+        <path d="M8 0L9.5 6.5L16 8L9.5 9.5L8 16L6.5 9.5L0 8L6.5 6.5Z" fill="var(--color-primary-400)" opacity="0.4"/>
+      </svg>
+    </div>
+
+    <!-- Avatar Container -->
+    <div class="avatar-float" style="width:180px;height:180px;border-radius:50%;overflow:hidden;border:4px solid var(--color-primary);box-shadow:var(--shadow-lg);filter:drop-shadow(0 8px 20px rgba(255,123,84,0.2));background:white;">
+      <svg id="avatar-preview" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;display:block;">
+        <!-- Render order: bottom to top -->
+        <g id="av-clothing"></g>
+        <g id="av-face"></g>
+        <g id="av-hair"></g>
+        <g id="av-eyes"></g>
+        <g id="av-mouth"></g>
+        <g id="av-accessory"></g>
+      </svg>
+    </div>
+
+    <p class="mt-3" style="font-size:var(--font-size-sm);color:var(--color-gray-400);">点击各部位可单独编辑</p>
+  </div>
+
+  <!-- Category Pills -->
+  <div class="px-4 py-2">
+    <div id="category-bar" class="flex gap-2 overflow-x-auto no-scrollbar pb-1" style="scroll-snap-type:x mandatory;">
+      <button class="q-category-pill active" data-category="face" onclick="onCategoryClick('face')">
+        <span style="font-size:14px;line-height:1;">&#128170;</span> 脸型
+      </button>
+      <button class="q-category-pill" data-category="hair" onclick="onCategoryClick('hair')">
+        <span style="font-size:14px;line-height:1;">&#128136;</span> 发型
+      </button>
+      <button class="q-category-pill" data-category="eyes" onclick="onCategoryClick('eyes')">
+        <span style="font-size:14px;line-height:1;">&#128064;</span> 眼睛
+      </button>
+      <button class="q-category-pill" data-category="mouth" onclick="onCategoryClick('mouth')">
+        <span style="font-size:14px;line-height:1;">&#128522;</span> 嘴巴
+      </button>
+      <button class="q-category-pill" data-category="clothing" onclick="onCategoryClick('clothing')">
+        <span style="font-size:14px;line-height:1;">&#128085;</span> 服饰
+      </button>
+      <button class="q-category-pill" data-category="accessory" onclick="onCategoryClick('accessory')">
+        <span style="font-size:14px;line-height:1;">&#128081;</span> 配饰
+      </button>
+    </div>
+  </div>
+
+  <!-- Color Picker Section -->
+  <div class="px-4 py-1">
+    <div id="color-picker-section" class="q-card">
+      <!-- Dynamically rendered by JS -->
+    </div>
+  </div>
+
+  <!-- Material Grid Section -->
+  <div class="px-4 py-2">
+    <div class="q-card">
+      <div class="flex items-center justify-between mb-3">
+        <span id="grid-title" style="font-size:var(--font-size-sm);font-weight:var(--font-weight-semibold);color:var(--color-gray-700);">脸型款式</span>
+        <span id="grid-count" style="font-size:var(--font-size-xs);color:var(--color-gray-400);">6款可选</span>
+      </div>
+      <div id="option-grid" class="q-option-grid">
+        <!-- Dynamically rendered by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Spacer -->
+  <div style="height:16px;"></div>
+
+  <!-- Save Button -->
+  <div class="px-4 pb-6">
+    <button id="btn-save" class="q-button-primary w-full flex items-center justify-center gap-2" data-dom-id="save-avatar" style="padding:14px 0;font-size:var(--font-size-md);border:none;">
+      <i data-lucide="check" style="width:20px;height:20px;"></i>
+      保存头像
+    </button>
+  </div>
+
+  <!-- Bottom safe area -->
+  <div style="height:env(safe-area-inset-bottom, 0px);"></div>
+
+  <script>
+  // ============================================================
+  // Initialize Lucide icons
+  // ============================================================
+  lucide.createIcons();
+
+  // ============================================================
+  // State
+  // ============================================================
+  const state = {
+    face: 0,
+    hair: 0,
+    eyes: 0,
+    mouth: 0,
+    clothing: 0,
+    accessory: 0,
+    skinColor: '#FFCCAA',
+    hairColor: '#5C3D2E',
+    clothingColor: '#FF7B54',
+    activeCategory: 'face'
+  };
+
+  // ============================================================
+  // Color Palettes
+  // ============================================================
+  const skinColors  = ['#FFCCAA','#F5C8A0','#E8B890','#D4A078','#C08060','#A06040'];
+  const hairColors  = ['#3D2314','#5C3D2E','#8B6914','#D4A017','#1A1A1A','#C0392B'];
+  const clothingColors = ['#FF7B54','#5B8C6E','#7B68EE','#4A90D9','#E8C94A','#E74C3C'];
+
+  // ============================================================
+  // Category Configuration
+  // ============================================================
+  const categoryConfig = {
+    face:     { title: '脸型款式', count: '6款可选', colorKey: 'skin' },
+    hair:     { title: '发型款式', count: '6款可选', colorKey: 'hair' },
+    eyes:     { title: '眼睛款式', count: '6款可选', colorKey: null },
+    mouth:    { title: '嘴巴款式', count: '6款可选', colorKey: null },
+    clothing: { title: '服饰款式', count: '6款可选', colorKey: 'clothing' },
+    accessory:{ title: '配饰款式', count: '6款可选', colorKey: null }
+  };
+
+  const categoryOrder = ['face','hair','eyes','mouth','clothing','accessory'];
+
+  // ============================================================
+  // Helper: Replace color placeholders
+  // ============================================================
+  function applyColors(svg, skin, hair, clothing) {
+    return svg
+      .replace(/##SKIN##/g, skin || state.skinColor)
+      .replace(/##HAIR##/g, hair || state.hairColor)
+      .replace(/##CLOTHING##/g, clothing || state.clothingColor);
+  }
+
+  // ============================================================
+  // SVG Part Definitions (viewBox 0 0 200 200)
+  // ============================================================
+
+  // --- Face Shapes (6) ---
+  const faceShapes = [
+    // 0: Round oval
+    '<ellipse cx="100" cy="90" rx="50" ry="52" fill="##SKIN##"/>',
+    // 1: Wide round
+    '<ellipse cx="100" cy="92" rx="55" ry="48" fill="##SKIN##"/>',
+    // 2: Slim oval
+    '<ellipse cx="100" cy="90" rx="42" ry="55" fill="##SKIN##"/>',
+    // 3: Square-round
+    '<rect x="52" y="42" width="96" height="96" rx="30" fill="##SKIN##"/>',
+    // 4: Heart shape
+    '<path d="M100 140 Q55 115 48 78 Q44 52 65 42 Q85 35 100 52 Q115 35 135 42 Q156 52 152 78 Q145 115 100 140Z" fill="##SKIN##"/>',
+    // 5: V-shape
+    '<path d="M55 50 Q55 42 100 38 Q145 42 145 50 Q148 80 130 105 Q115 130 100 135 Q85 130 70 105 Q52 80 55 50Z" fill="##SKIN##"/>'
+  ];
+
+  // Face blush and nose (static, added on top of face shape)
+  const faceDetails =
+    '<ellipse cx="68" cy="100" rx="10" ry="6" fill="#FFB090" opacity="0.45"/>' +
+    '<ellipse cx="132" cy="100" rx="10" ry="6" fill="#FFB090" opacity="0.45"/>' +
+    '<ellipse cx="100" cy="102" rx="2.5" ry="2" fill="#E8A090"/>';
+
+  // --- Hairstyles (6) ---
+  const hairStyles = [
+    // 0: Short spiky
+    '<ellipse cx="100" cy="62" rx="56" ry="38" fill="##HAIR##"/>' +
+    '<path d="M46 72 Q52 35 100 26 Q148 35 154 72 Q150 50 135 45 Q125 55 115 38 Q105 48 100 32 Q95 48 85 38 Q75 55 65 45 Q50 50 46 72Z" fill="##HAIR##"/>' +
+    '<ellipse cx="120" cy="48" rx="10" ry="5" fill="##HAIR##" opacity="0.5" transform="rotate(-15 120 48)"/>' +
+    '<path d="M46 72 Q42 88 46 108" stroke="##HAIR##" stroke-width="12" fill="none" stroke-linecap="round"/>' +
+    '<path d="M154 72 Q158 88 154 108" stroke="##HAIR##" stroke-width="12" fill="none" stroke-linecap="round"/>',
+
+    // 1: Long flowing
+    '<ellipse cx="100" cy="62" rx="56" ry="40" fill="##HAIR##"/>' +
+    '<path d="M46 72 Q52 35 100 28 Q148 35 154 72 Q150 52 132 48 Q118 58 100 42 Q82 58 68 48 Q50 52 46 72Z" fill="##HAIR##"/>' +
+    '<path d="M46 72 Q36 105 34 135 Q33 152 42 160" stroke="##HAIR##" stroke-width="20" fill="none" stroke-linecap="round"/>' +
+    '<path d="M154 72 Q164 105 166 135 Q167 152 158 160" stroke="##HAIR##" stroke-width="20" fill="none" stroke-linecap="round"/>' +
+    '<path d="M50 72 Q42 100 40 130" stroke="##HAIR##" stroke-width="14" fill="none" stroke-linecap="round"/>' +
+    '<path d="M150 72 Q158 100 160 130" stroke="##HAIR##" stroke-width="14" fill="none" stroke-linecap="round"/>',
+
+    // 2: Ponytail
+    '<ellipse cx="100" cy="62" rx="54" ry="38" fill="##HAIR##"/>' +
+    '<path d="M48 72 Q55 35 100 28 Q145 35 152 72 Q148 52 130 48 Q115 58 100 44 Q85 58 70 48 Q52 52 48 72Z" fill="##HAIR##"/>' +
+    '<path d="M48 72 Q44 88 48 108" stroke="##HAIR##" stroke-width="10" fill="none" stroke-linecap="round"/>' +
+    '<path d="M152 72 Q156 88 152 108" stroke="##HAIR##" stroke-width="10" fill="none" stroke-linecap="round"/>' +
+    '<path d="M118 56 Q142 48 152 35 Q162 22 158 12 Q152 5 146 14 Q138 28 128 46" fill="##HAIR##"/>' +
+    '<path d="M152 35 Q165 24 170 12" stroke="##HAIR##" stroke-width="8" fill="none" stroke-linecap="round"/>',
+
+    // 3: Curly
+    '<ellipse cx="100" cy="62" rx="58" ry="40" fill="##HAIR##"/>' +
+    '<circle cx="50" cy="56" r="16" fill="##HAIR##"/>' +
+    '<circle cx="80" cy="36" r="14" fill="##HAIR##"/>' +
+    '<circle cx="120" cy="36" r="14" fill="##HAIR##"/>' +
+    '<circle cx="150" cy="56" r="16" fill="##HAIR##"/>' +
+    '<circle cx="58" cy="82" r="12" fill="##HAIR##"/>' +
+    '<circle cx="142" cy="82" r="12" fill="##HAIR##"/>' +
+    '<path d="M48 72 Q55 35 100 28 Q145 35 152 72 Q148 52 130 48 Q115 56 100 42 Q85 56 70 48 Q52 52 48 72Z" fill="##HAIR##"/>',
+
+    // 4: Buzz / flat
+    '<ellipse cx="100" cy="58" rx="54" ry="34" fill="##HAIR##"/>' +
+    '<path d="M48 68 Q52 42 100 34 Q148 42 152 68 Q148 55 130 52 Q115 58 100 46 Q85 58 70 52 Q52 55 48 68Z" fill="##HAIR##"/>',
+
+    // 5: Pigtails
+    '<ellipse cx="100" cy="62" rx="52" ry="38" fill="##HAIR##"/>' +
+    '<path d="M50 72 Q55 38 100 30 Q145 38 150 72 Q146 54 130 50 Q115 58 100 45 Q85 58 70 50 Q54 54 50 72Z" fill="##HAIR##"/>' +
+    '<circle cx="36" cy="54" r="18" fill="##HAIR##"/>' +
+    '<circle cx="164" cy="54" r="18" fill="##HAIR##"/>' +
+    '<path d="M36 72 Q32 88 36 102" stroke="##HAIR##" stroke-width="8" fill="none" stroke-linecap="round"/>' +
+    '<path d="M164 72 Q168 88 164 102" stroke="##HAIR##" stroke-width="8" fill="none" stroke-linecap="round"/>'
+  ];
+
+  // --- Eye Styles (6) ---
+  const eyeStyles = [
+    // 0: Normal round eyes
+    '<ellipse cx="80" cy="92" rx="12" ry="13" fill="white"/>' +
+    '<ellipse cx="80" cy="93" rx="8" ry="9" fill="#2D1B14"/>' +
+    '<circle cx="78" cy="90" r="4" fill="white"/>' +
+    '<circle cx="83" cy="96" r="2" fill="white" opacity="0.6"/>' +
+    '<ellipse cx="120" cy="92" rx="12" ry="13" fill="white"/>' +
+    '<ellipse cx="120" cy="93" rx="8" ry="9" fill="#2D1B14"/>' +
+    '<circle cx="118" cy="90" r="4" fill="white"/>' +
+    '<circle cx="123" cy="96" r="2" fill="white" opacity="0.6"/>' +
+    '<path d="M68 76 Q80 70 92 76" stroke="#5C3D2E" stroke-width="2.5" fill="none" stroke-linecap="round"/>' +
+    '<path d="M108 76 Q120 70 132 76" stroke="#5C3D2E" stroke-width="2.5" fill="none" stroke-linecap="round"/>',
+
+    // 1: Big sparkly eyes
+    '<ellipse cx="80" cy="92" rx="14" ry="15" fill="white"/>' +
+    '<ellipse cx="80" cy="93" rx="10" ry="11" fill="#2D1B14"/>' +
+    '<circle cx="77" cy="88" r="5" fill="white"/>' +
+    '<circle cx="85" cy="96" r="3" fill="white" opacity="0.7"/>' +
+    '<circle cx="81" cy="99" r="1.5" fill="white" opacity="0.5"/>' +
+    '<ellipse cx="120" cy="92" rx="14" ry="15" fill="white"/>' +
+    '<ellipse cx="120" cy="93" rx="10" ry="11" fill="#2D1B14"/>' +
+    '<circle cx="117" cy="88" r="5" fill="white"/>' +
+    '<circle cx="125" cy="96" r="3" fill="white" opacity="0.7"/>' +
+    '<circle cx="121" cy="99" r="1.5" fill="white" opacity="0.5"/>' +
+    '<path d="M66 74 Q80 67 94 74" stroke="#5C3D2E" stroke-width="2.5" fill="none" stroke-linecap="round"/>' +
+    '<path d="M106 74 Q120 67 134 74" stroke="#5C3D2E" stroke-width="2.5" fill="none" stroke-linecap="round"/>',
+
+    // 2: Cat-like narrowed eyes
+    '<ellipse cx="80" cy="92" rx="14" ry="7" fill="white"/>' +
+    '<ellipse cx="80" cy="92" rx="10" ry="5" fill="#2D1B14"/>' +
+    '<ellipse cx="80" cy="92" rx="3" ry="2" fill="white" opacity="0.8"/>' +
+    '<ellipse cx="120" cy="92" rx="14" ry="7" fill="white"/>' +
+    '<ellipse cx="120" cy="92" rx="10" ry="5" fill="#2D1B14"/>' +
+    '<ellipse cx="120" cy="92" rx="3" ry="2" fill="white" opacity="0.8"/>' +
+    '<path d="M68 82 Q80 78 92 82" stroke="#5C3D2E" stroke-width="2" fill="none" stroke-linecap="round"/>' +
+    '<path d="M108 82 Q120 78 132 82" stroke="#5C3D2E" stroke-width="2" fill="none" stroke-linecap="round"/>',
+
+    // 3: Sleepy / half-closed eyes
+    '<path d="M68 92 Q80 85 92 92" stroke="#2D1B14" stroke-width="3.5" fill="none" stroke-linecap="round"/>' +
+    '<path d="M108 92 Q120 85 132 92" stroke="#2D1B14" stroke-width="3.5" fill="none" stroke-linecap="round"/>' +
+    '<path d="M70 95 Q80 98 90 95" stroke="#2D1B14" stroke-width="1.2" fill="none" stroke-linecap="round"/>' +
+    '<path d="M110 95 Q120 98 130 95" stroke="#2D1B14" stroke-width="1.2" fill="none" stroke-linecap="round"/>' +
+    '<path d="M70 80 Q80 76 90 80" stroke="#5C3D2E" stroke-width="2" fill="none" stroke-linecap="round"/>' +
+    '<path d="M110 80 Q120 76 130 80" stroke="#5C3D2E" stroke-width="2" fill="none" stroke-linecap="round"/>',
+
+    // 4: Star eyes
+    '<ellipse cx="80" cy="92" rx="13" ry="14" fill="white"/>' +
+    '<polygon points="80,82 83,89 90,89 84,93 86,100 80,96 74,100 76,93 70,89 77,89" fill="#FFD700" stroke="#FFC000" stroke-width="0.5"/>' +
+    '<ellipse cx="120" cy="92" rx="13" ry="14" fill="white"/>' +
+    '<polygon points="120,82 123,89 130,89 124,93 126,100 120,96 114,100 116,93 110,89 117,89" fill="#FFD700" stroke="#FFC000" stroke-width="0.5"/>' +
+    '<path d="M68 76 Q80 70 92 76" stroke="#5C3D2E" stroke-width="2.5" fill="none" stroke-linecap="round"/>' +
+    '<path d="M108 76 Q120 70 132 76" stroke="#5C3D2E" stroke-width="2.5" fill="none" stroke-linecap="round"/>',
+
+    // 5: Winking
+    '<ellipse cx="80" cy="92" rx="12" ry="13" fill="white"/>' +
+    '<ellipse cx="80" cy="93" rx="8" ry="9" fill="#2D1B14"/>' +
+    '<circle cx="78" cy="90" r="4" fill="white"/>' +
+    '<circle cx="83" cy="96" r="2" fill="white" opacity="0.6"/>' +
+    '<path d="M108 92 Q120 85 132 92" stroke="#2D1B14" stroke-width="3.5" fill="none" stroke-linecap="round"/>' +
+    '<path d="M68 76 Q80 70 92 76" stroke="#5C3D2E" stroke-width="2.5" fill="none" stroke-linecap="round"/>' +
+    '<path d="M108 78 Q120 73 132 78" stroke="#5C3D2E" stroke-width="2.5" fill="none" stroke-linecap="round"/>'
+  ];
+
+  // --- Mouth Styles (6) ---
+  const mouthStyles = [
+    // 0: Simple smile
+    '<path d="M92 112 Q100 120 108 112" stroke="#C97060" stroke-width="2.5" fill="none" stroke-linecap="round"/>',
+
+    // 1: Open happy mouth
+    '<ellipse cx="100" cy="114" rx="10" ry="8" fill="#C97060"/>' +
+    '<ellipse cx="100" cy="116" rx="8" ry="5" fill="#E88080"/>',
+
+    // 2: Cat mouth (w-shape)
+    '<path d="M88 112 Q94 118 100 112 Q106 118 112 112" stroke="#C97060" stroke-width="2.5" fill="none" stroke-linecap="round"/>',
+
+    // 3: Pouty lips
+    '<ellipse cx="100" cy="114" rx="5" ry="6" fill="#E88080" stroke="#C97060" stroke-width="1.5"/>',
+
+    // 4: Tongue out
+    '<path d="M90 110 Q100 120 110 110" stroke="#C97060" stroke-width="2.5" fill="none" stroke-linecap="round"/>' +
+    '<ellipse cx="100" cy="118" rx="6" ry="5" fill="#E88080"/>' +
+    '<line x1="100" y1="113" x2="100" y2="120" stroke="#C97060" stroke-width="1"/>',
+
+    // 5: Grin (wide smile with teeth)
+    '<path d="M86 110 Q100 125 114 110" fill="white" stroke="#C97060" stroke-width="2"/>' +
+    '<line x1="93" y1="112" x2="93" y2="116" stroke="#C97060" stroke-width="0.8"/>' +
+    '<line x1="100" y1="112" x2="100" y2="117" stroke="#C97060" stroke-width="0.8"/>' +
+    '<line x1="107" y1="112" x2="107" y2="116" stroke="#C97060" stroke-width="0.8"/>'
+  ];
+
+  // --- Clothing Styles (6) ---
+  // Each includes body base + clothing details + neck/arms (skin)
+  const clothingStyles = [
+    // 0: T-shirt
+    '<ellipse cx="100" cy="168" rx="42" ry="28" fill="##CLOTHING##"/>' +
+    '<ellipse cx="100" cy="168" rx="38" ry="25" fill="##CLOTHING##" opacity="0.85"/>' +
+    '<path d="M85 148 Q100 156 115 148" stroke="white" stroke-width="2" fill="none" stroke-linecap="round"/>' +
+    '<ellipse cx="62" cy="164" rx="12" ry="10" fill="##SKIN##" transform="rotate(-15 62 164)"/>' +
+    '<ellipse cx="138" cy="164" rx="12" ry="10" fill="##SKIN##" transform="rotate(15 138 164)"/>' +
+    '<rect x="90" y="128" width="20" height="18" rx="8" fill="##SKIN##"/>',
+
+    // 1: Hoodie
+    '<ellipse cx="100" cy="168" rx="44" ry="30" fill="##CLOTHING##"/>' +
+    '<path d="M58 155 Q60 138 100 133 Q140 138 142 155" fill="##CLOTHING##"/>' +
+    '<path d="M76 148 Q100 158 124 148" stroke="##CLOTHING##" stroke-width="3.5" fill="none" stroke-linecap="round" opacity="0.6"/>' +
+    '<path d="M80 160 L80 175 Q100 183 120 175 L120 160" stroke="##CLOTHING##" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.5"/>' +
+    '<ellipse cx="62" cy="164" rx="12" ry="10" fill="##SKIN##" transform="rotate(-15 62 164)"/>' +
+    '<ellipse cx="138" cy="164" rx="12" ry="10" fill="##SKIN##" transform="rotate(15 138 164)"/>' +
+    '<rect x="90" y="128" width="20" height="18" rx="8" fill="##SKIN##"/>',
+
+    // 2: Dress
+    '<path d="M62 148 Q62 135 100 132 Q138 135 138 148 L152 195 Q100 205 48 195Z" fill="##CLOTHING##"/>' +
+    '<path d="M80 148 Q100 156 120 148" stroke="white" stroke-width="2" fill="none" stroke-linecap="round"/>' +
+    '<ellipse cx="62" cy="158" rx="10" ry="8" fill="##SKIN##" transform="rotate(-20 62 158)"/>' +
+    '<ellipse cx="138" cy="158" rx="10" ry="8" fill="##SKIN##" transform="rotate(20 138 158)"/>' +
+    '<rect x="90" y="128" width="20" height="18" rx="8" fill="##SKIN##"/>',
+
+    // 3: Formal shirt
+    '<ellipse cx="100" cy="168" rx="42" ry="28" fill="##CLOTHING##"/>' +
+    '<path d="M86 148 L100 158 L114 148" fill="white" stroke="##CLOTHING##" stroke-width="1" opacity="0.9"/>' +
+    '<circle cx="100" cy="160" r="2" fill="##CLOTHING##" opacity="0.5"/>' +
+    '<circle cx="100" cy="170" r="2" fill="##CLOTHING##" opacity="0.5"/>' +
+    '<ellipse cx="62" cy="164" rx="12" ry="10" fill="##SKIN##" transform="rotate(-15 62 164)"/>' +
+    '<ellipse cx="138" cy="164" rx="12" ry="10" fill="##SKIN##" transform="rotate(15 138 164)"/>' +
+    '<rect x="90" y="128" width="20" height="18" rx="8" fill="##SKIN##"/>',
+
+    // 4: Sailor collar
+    '<ellipse cx="100" cy="168" rx="42" ry="28" fill="##CLOTHING##"/>' +
+    '<path d="M70 148 L100 175 L130 148 L140 140 L100 162 L60 140Z" fill="#4A6FA5"/>' +
+    '<path d="M72 150 L100 173 L128 150" stroke="white" stroke-width="1.5" fill="none"/>' +
+    '<line x1="82" y1="155" x2="95" y2="165" stroke="white" stroke-width="1.2"/>' +
+    '<line x1="118" y1="155" x2="105" y2="165" stroke="white" stroke-width="1.2"/>' +
+    '<ellipse cx="62" cy="164" rx="12" ry="10" fill="##SKIN##" transform="rotate(-15 62 164)"/>' +
+    '<ellipse cx="138" cy="164" rx="12" ry="10" fill="##SKIN##" transform="rotate(15 138 164)"/>' +
+    '<rect x="90" y="128" width="20" height="18" rx="8" fill="##SKIN##"/>',
+
+    // 5: Tank top
+    '<ellipse cx="100" cy="168" rx="38" ry="28" fill="##CLOTHING##"/>' +
+    '<path d="M74 148 Q100 156 126 148" stroke="white" stroke-width="2" fill="none" stroke-linecap="round"/>' +
+    '<ellipse cx="60" cy="158" rx="10" ry="8" fill="##SKIN##" transform="rotate(-15 60 158)"/>' +
+    '<ellipse cx="140" cy="158" rx="10" ry="8" fill="##SKIN##" transform="rotate(15 140 158)"/>' +
+    '<rect x="90" y="128" width="20" height="18" rx="8" fill="##SKIN##"/>'
+  ];
+
+  // --- Accessories (6) ---
+  const accessoryStyles = [
+    // 0: None
+    '',
+
+    // 1: Golden crown
+    '<g transform="translate(100,36)">' +
+      '<polygon points="-14,8 -10,-4 -4,2 0,-8 4,2 10,-4 14,8" fill="#FFD700" stroke="#F0C000" stroke-width="1"/>' +
+      '<circle cx="-10" cy="-3" r="2.2" fill="#FF6B6B"/>' +
+      '<circle cx="0" cy="-7" r="2.2" fill="#4FC3F7"/>' +
+      '<circle cx="10" cy="-3" r="2.2" fill="#FF6B6B"/>' +
+    '</g>',
+
+    // 2: Round glasses
+    '<circle cx="80" cy="92" r="16" fill="none" stroke="#5C3D2E" stroke-width="2.5"/>' +
+    '<circle cx="120" cy="92" r="16" fill="none" stroke="#5C3D2E" stroke-width="2.5"/>' +
+    '<path d="M96 90 Q100 86 104 90" stroke="#5C3D2E" stroke-width="2" fill="none"/>' +
+    '<line x1="64" y1="88" x2="52" y2="84" stroke="#5C3D2E" stroke-width="2" stroke-linecap="round"/>' +
+    '<line x1="136" y1="88" x2="148" y2="84" stroke="#5C3D2E" stroke-width="2" stroke-linecap="round"/>',
+
+    // 3: Headband
+    '<path d="M44 72 Q44 30 100 26 Q156 30 156 72" fill="none" stroke="#FF6B6B" stroke-width="6" stroke-linecap="round"/>' +
+    '<circle cx="128" cy="40" r="5" fill="#FF6B6B"/>' +
+    '<circle cx="128" cy="40" r="2.5" fill="#FFB0B0"/>',
+
+    // 4: Hair bow
+    '<g transform="translate(140,52)">' +
+      '<path d="M0,0 Q-20,-14 -8,-2 Q-20,14 0,0Z" fill="#FF6B6B"/>' +
+      '<path d="M0,0 Q20,-14 8,-2 Q20,14 0,0Z" fill="#FF6B6B"/>' +
+      '<circle cx="0" cy="0" r="3.5" fill="#E85D3A"/>' +
+    '</g>',
+
+    // 5: Star earrings
+    '<polygon points="50,105 52.5,111 58,111 53.5,114.5 55,120 50,117 45,120 46.5,114.5 42,111 47.5,111" fill="#FFD700" stroke="#F0C000" stroke-width="0.5"/>' +
+    '<polygon points="150,105 152.5,111 158,111 153.5,114.5 155,120 150,117 145,120 146.5,114.5 142,111 147.5,111" fill="#FFD700" stroke="#F0C000" stroke-width="0.5"/>'
+  ];
+
+  // ============================================================
+  // Thumbnail label text
+  // ============================================================
+  const faceLabels     = ['圆形','宽圆','椭圆','方圆','心形','V形'];
+  const hairLabels     = ['短刺','长发','马尾','卷发','平头','双马尾'];
+  const eyeLabels      = ['普通','大眼','猫眼','眯眼','星星','眨眼'];
+  const mouthLabels    = ['微笑','开口','猫嘴','嘟嘴','吐舌','咧嘴'];
+  const clothingLabels = ['T恤','卫衣','连衣裙','衬衫','水手服','背心'];
+  const accessoryLabels= ['无','皇冠','眼镜','发箍','蝴蝶结','耳环'];
+
+  const labelMap = {
+    face: faceLabels,
+    hair: hairLabels,
+    eyes: eyeLabels,
+    mouth: mouthLabels,
+    clothing: clothingLabels,
+    accessory: accessoryLabels
+  };
+
+  // ============================================================
+  // Render: Preview SVG
+  // ============================================================
+  function renderPreview() {
+    // Clothing (bottom layer)
+    document.getElementById('av-clothing').innerHTML = applyColors(clothingStyles[state.clothing]);
+    // Face
+    document.getElementById('av-face').innerHTML = applyColors(faceShapes[state.face]) + faceDetails;
+    // Hair
+    document.getElementById('av-hair').innerHTML = applyColors(hairStyles[state.hair]);
+    // Eyes
+    document.getElementById('av-eyes').innerHTML = eyeStyles[state.eyes];
+    // Mouth
+    document.getElementById('av-mouth').innerHTML = mouthStyles[state.mouth];
+    // Accessory
+    document.getElementById('av-accessory').innerHTML = accessoryStyles[state.accessory];
+  }
+
+  // ============================================================
+  // Render: Grid Thumbnails
+  // ============================================================
+  function getThumbnailSVG(category, index) {
+    let inner = '';
+    switch (category) {
+      case 'face':
+        inner = applyColors(faceShapes[index]) +
+          '<ellipse cx="68" cy="100" rx="10" ry="6" fill="#FFB090" opacity="0.4"/>' +
+          '<ellipse cx="132" cy="100" rx="10" ry="6" fill="#FFB090" opacity="0.4"/>';
+        break;
+      case 'hair':
+        inner = '<ellipse cx="100" cy="95" rx="44" ry="46" fill="' + state.skinColor + '"/>' +
+          applyColors(hairStyles[index]);
+        break;
+      case 'eyes':
+        inner = eyeStyles[index];
+        break;
+      case 'mouth':
+        inner = mouthStyles[index];
+        break;
+      case 'clothing':
+        inner = applyColors(clothingStyles[index]);
+        break;
+      case 'accessory':
+        if (index === 0) {
+          inner = '<line x1="75" y1="75" x2="125" y2="125" stroke="#D4D0CA" stroke-width="3" stroke-linecap="round"/>' +
+                  '<line x1="125" y1="75" x2="75" y2="125" stroke="#D4D0CA" stroke-width="3" stroke-linecap="round"/>';
+        } else {
+          inner = '<ellipse cx="100" cy="95" rx="44" ry="46" fill="' + state.skinColor + '" opacity="0.25"/>' +
+            accessoryStyles[index];
+        }
+        break;
+    }
+    return '<svg viewBox="0 0 200 200" width="56" height="56" xmlns="http://www.w3.org/2000/svg">' + inner + '</svg>';
+  }
+
+  function renderGrid() {
+    const cat = state.activeCategory;
+    const config = categoryConfig[cat];
+    const labels = labelMap[cat];
+    const selectedIndex = state[cat];
+    let count = 0;
+    switch (cat) {
+      case 'face': count = faceShapes.length; break;
+      case 'hair': count = hairStyles.length; break;
+      case 'eyes': count = eyeStyles.length; break;
+      case 'mouth': count = mouthStyles.length; break;
+      case 'clothing': count = clothingStyles.length; break;
+      case 'accessory': count = accessoryStyles.length; break;
+    }
+
+    document.getElementById('grid-title').textContent = config.title;
+    document.getElementById('grid-count').textContent = count + '款可选';
+
+    const grid = document.getElementById('option-grid');
+    let html = '';
+    for (let i = 0; i < count; i++) {
+      const isSelected = (i === selectedIndex);
+      const selClass = isSelected ? ' selected' : '';
+      const badge = isSelected
+        ? '<div class="check-badge"><svg width="10" height="10" viewBox="0 0 16 16"><path d="M4 8L7 11L12 5" stroke="white" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>'
+        : '';
+      html += '<div class="q-option-item' + selClass + '" data-index="' + i + '" onclick="onOptionClick(' + i + ')">' +
+        getThumbnailSVG(cat, i) +
+        badge +
+        '<span class="option-label">' + (labels[i] || '') + '</span>' +
+        '</div>';
+    }
+    grid.innerHTML = html;
+  }
+
+  // ============================================================
+  // Render: Color Picker
+  // ============================================================
+  function renderColorPicker() {
+    const container = document.getElementById('color-picker-section');
+    const cat = state.activeCategory;
+    const colorKey = categoryConfig[cat].colorKey;
+
+    if (!colorKey) {
+      // No color picker needed
+      container.innerHTML =
+        '<div class="flex items-center justify-center py-2" style="color:var(--color-gray-400);font-size:var(--font-size-sm);">' +
+          '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px;flex-shrink:0;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>' +
+          '当前类别无需选色' +
+        '</div>';
+      return;
+    }
+
+    let colors, currentColor, colorNames;
+    if (colorKey === 'skin') {
+      colors = skinColors;
+      currentColor = state.skinColor;
+      colorNames = ['浅肤色','暖肤色','自然色','小麦色','古铜色','深棕色'];
+    } else if (colorKey === 'hair') {
+      colors = hairColors;
+      currentColor = state.hairColor;
+      colorNames = ['深棕','巧克力','金棕','金色','纯黑','红色'];
+    } else {
+      colors = clothingColors;
+      currentColor = state.clothingColor;
+      colorNames = ['橙色','绿色','紫色','蓝色','黄色','红色'];
+    }
+
+    let html = '<div class="flex items-center gap-2 mb-2">' +
+      '<span style="font-size:var(--font-size-sm);font-weight:var(--font-weight-semibold);color:var(--color-gray-700);">' +
+      (colorKey === 'skin' ? '肤色选择' : colorKey === 'hair' ? '发色选择' : '服饰配色') +
+      '</span>' +
+      '<span style="font-size:var(--font-size-xs);color:var(--color-gray-400);">轻触切换</span>' +
+      '</div>' +
+      '<div class="flex items-center gap-3 flex-wrap">';
+
+    for (let i = 0; i < colors.length; i++) {
+      const sel = (colors[i] === currentColor) ? ' selected' : '';
+      html += '<button class="q-color-swatch' + sel + '" style="background:' + colors[i] + ';" title="' + colorNames[i] + '" onclick="onColorClick(\'' + colorKey + '\',\'' + colors[i] + '\')"></button>';
+    }
+
+    html += '</div>';
+    container.innerHTML = html;
+  }
+
+  // ============================================================
+  // Event Handlers
+  // ============================================================
+
+  // Category click
+  function onCategoryClick(category) {
+    if (state.activeCategory === category) return;
+    state.activeCategory = category;
+
+    // Update pills
+    document.querySelectorAll('.q-category-pill').forEach(function(pill) {
+      if (pill.dataset.category === category) {
+        pill.classList.add('active');
+        pill.classList.add('bounce-in');
+        setTimeout(function() { pill.classList.remove('bounce-in'); }, 400);
+      } else {
+        pill.classList.remove('active');
+      }
+    });
+
+    // Update grid and color picker
+    renderGrid();
+    renderColorPicker();
+  }
+
+  // Option click (select a part)
+  function onOptionClick(index) {
+    state[state.activeCategory] = index;
+
+    // Update preview
+    renderPreview();
+
+    // Update grid selection visuals
+    renderGrid();
+
+    // Add bounce animation to the clicked item
+    var items = document.querySelectorAll('.q-option-item');
+    if (items[index]) {
+      items[index].classList.add('bounce-in');
+      setTimeout(function() { items[index].classList.remove('bounce-in'); }, 400);
+    }
+  }
+
+  // Color click
+  function onColorClick(colorKey, color) {
+    if (colorKey === 'skin') {
+      state.skinColor = color;
+    } else if (colorKey === 'hair') {
+      state.hairColor = color;
+    } else if (colorKey === 'clothing') {
+      state.clothingColor = color;
+    }
+
+    // Re-render affected parts
+    if (colorKey === 'skin') {
+      // Skin affects face and clothing (neck/arms)
+      renderPreview();
+    } else if (colorKey === 'hair') {
+      renderPreview();
+    } else if (colorKey === 'clothing') {
+      renderPreview();
+    }
+
+    // Update color picker selection ring
+    renderColorPicker();
+
+    // Update grid thumbnails (they use current colors)
+    renderGrid();
+  }
+
+  // Shuffle (randomize all)
+  function onShuffle() {
+    state.face = Math.floor(Math.random() * faceShapes.length);
+    state.hair = Math.floor(Math.random() * hairStyles.length);
+    state.eyes = Math.floor(Math.random() * eyeStyles.length);
+    state.mouth = Math.floor(Math.random() * mouthStyles.length);
+    state.clothing = Math.floor(Math.random() * clothingStyles.length);
+    state.accessory = Math.floor(Math.random() * accessoryStyles.length);
+
+    state.skinColor = skinColors[Math.floor(Math.random() * skinColors.length)];
+    state.hairColor = hairColors[Math.floor(Math.random() * hairColors.length)];
+    state.clothingColor = clothingColors[Math.floor(Math.random() * clothingColors.length)];
+
+    renderPreview();
+    renderGrid();
+    renderColorPicker();
+  }
+
+  // Save button
+  function onSave() {
+    var btn = document.getElementById('btn-save');
+    if (!btn) return;
+    btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;"><path d="M20 6L9 17l-5-5"/></svg> 保存成功!';
+    btn.style.background = 'var(--color-success)';
+    btn.style.boxShadow = '0 4px 16px rgba(74,222,128,0.35)';
+    setTimeout(function() {
+      btn.innerHTML = '<i data-lucide="check" style="width:20px;height:20px;"></i> 保存头像';
+      btn.style.background = '';
+      btn.style.boxShadow = '';
+      lucide.createIcons();
+    }, 1500);
+  }
+
+  // ============================================================
+  // Tab switching
+  // ============================================================
+  var tabUpload = document.querySelector('[data-dom-id="tab-upload"]');
+  var tabCustomize = document.querySelector('[data-dom-id="tab-customize"]');
+  if (tabUpload) {
+    tabUpload.addEventListener('click', function() {
+      tabUpload.classList.add('active');
+      if (tabCustomize) tabCustomize.classList.remove('active');
+    });
+  }
+  if (tabCustomize) {
+    tabCustomize.addEventListener('click', function() {
+      tabCustomize.classList.add('active');
+      if (tabUpload) tabUpload.classList.remove('active');
+    });
+  }
+
+  // ============================================================
+  // Save button binding
+  // ============================================================
+  var saveBtn = document.getElementById('btn-save');
+  if (saveBtn) {
+    saveBtn.addEventListener('click', onSave);
+  }
+
+  // ============================================================
+  // Shuffle button binding
+  // ============================================================
+  var shuffleBtn = document.getElementById('btn-shuffle');
+  if (shuffleBtn) {
+    shuffleBtn.addEventListener('click', onShuffle);
+  }
+
+  // ============================================================
+  // Initial render
+  // ============================================================
+  renderPreview();
+  renderGrid();
+  renderColorPicker();
+  </script>
+</body>
+</html>

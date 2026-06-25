@@ -7,6 +7,7 @@ import EditRelative from './pages/EditRelative';
 import Detail from './pages/Detail';
 import AvatarCustom from './pages/AvatarCustom';
 import ChatImport from './pages/ChatImport';
+import Chat from './pages/Chat';
 import Reminders from './pages/Reminders';
 import Calendar from './pages/Calendar';
 import Stats from './pages/Stats';
@@ -29,6 +30,7 @@ export default function App() {
           <Route path="/detail/:id" element={<Detail />} />
           <Route path="/avatar/:id" element={<AvatarCustom />} />
           <Route path="/import/:id" element={<ChatImport />} />
+          <Route path="/chat/:id" element={<Chat />} />
           <Route path="/reminders" element={<Reminders />} />
           <Route path="/calendar" element={<Calendar />} />
           <Route path="/stats" element={<Stats />} />

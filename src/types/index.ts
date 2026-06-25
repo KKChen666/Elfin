@@ -113,6 +113,7 @@ export interface AvatarConfig {
 }
 
 export interface ChatStyle {
+  // 基础特征
   highFrequencyWords: string[];
   commonEmojis: string[];
   sentencePatterns: string[];
@@ -120,6 +121,32 @@ export interface ChatStyle {
   avgMessageLength: number;
   personality: '话多型' | '惜字如金型' | '均衡型';
   styleKeywords: string[];
+  
+  // 高级特征（借鉴 OpenHuman 记忆树概念）
+  languageStyle: 'formal' | 'casual' | 'mixed';  // 语言风格
+  sentiment: 'positive' | 'neutral' | 'negative' | 'mixed';  // 情感倾向
+  topicPreferences: string[];  // 话题偏好
+  activeHours: number[];  // 活跃时间段 (0-23)
+  responseLengthPattern: 'short' | 'medium' | 'long' | 'variable';  // 回复长度模式
+  greetingPatterns: string[];  // 问候语习惯
+  farewellPatterns: string[];  // 告别语习惯
+  questionPatterns: string[];  // 提问习惯
+  agreementPatterns: string[];  // 肯定表达习惯
+  hesitationPatterns: string[];  // 犹豫表达习惯
+  laughterPatterns: string[];  // 笑声习惯
+  punctuationStyle: {
+    useExclamation: boolean;  // 是否常用感叹号
+    useQuestion: boolean;  // 是否常用问号
+    useEllipsis: boolean;  // 是否常用省略号
+    useTilde: boolean;  // 是否常用波浪号
+  };
+}
+
+export interface ChatMessage {
+  id: string;
+  content: string;
+  sender: 'user' | 'avatar';
+  timestamp: string;
 }
 
 export interface Relative {

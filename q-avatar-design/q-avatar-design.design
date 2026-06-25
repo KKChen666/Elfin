@@ -1,0 +1,54 @@
+{
+  "data": [
+    {
+      "id": "page-customize",
+      "title": "素材捏脸",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1782398102000,
+      "canvasData": {
+        "x": 820,
+        "y": 0,
+        "group": 0
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/customize.html",
+        "interactions": [
+          {
+            "domId": "tab-upload",
+            "targetPageId": "page-upload",
+            "transitionLabel": "切换到上传照片模式"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-upload",
+      "title": "上传照片",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1782398102000,
+      "canvasData": {
+        "x": 200,
+        "y": 0,
+        "group": 0
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/upload.html",
+        "interactions": [
+          {
+            "domId": "tab-customize",
+            "targetPageId": "page-customize",
+            "transitionLabel": "切换到素材捏脸模式"
+          }
+        ]
+      }
+    }
+  ],
+  "config": {
+    "autoLayout": true,
+    "deviceType": "desktop",
+    "projectName": "Q版头像定制",
+    "designLibrary": null
+  }
+}
