@@ -9,7 +9,7 @@ interface RelativeStore {
   updateRelative: (id: string, data: Partial<Relative>) => void;
   deleteRelative: (id: string) => void;
   getRelative: (id: string) => Relative | undefined;
-  updateAvatar: (id: string, avatar: Partial<AvatarConfig>) => void;
+  updateAvatar: (id: string, avatar: Partial<AvatarConfig>, avatarImage?: string) => void;
   updateChatStyle: (id: string, chatStyle: ChatStyle) => void;
 }
 
@@ -55,9 +55,14 @@ export const useRelativeStore = create<RelativeStore>((set, get) => ({
     return get().relatives.find(r => r.id === id);
   },
 
-  updateAvatar: (id, avatar) => {
+  updateAvatar: (id, avatar, avatarImage) => {
     const relatives = get().relatives.map(r =>
-      r.id === id ? { ...r, avatar: { ...r.avatar, ...avatar }, updatedAt: new Date().toISOString() } : r
+      r.id === id ? { 
+        ...r, 
+        avatar: { ...r.avatar, ...avatar }, 
+        ...(avatarImage !== undefined ? { avatarImage } : {}),
+        updatedAt: new Date().toISOString() 
+      } : r
     );
     set({ relatives });
     storageService.saveRelatives(relatives);

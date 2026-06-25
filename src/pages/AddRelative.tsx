@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { useRelativeStore } from '../stores/useRelativeStore';
-import { RELATION_CATEGORIES } from '../types';
+import { RELATION_CATEGORIES, AvatarConfig } from '../types';
 import AvatarPreview from '../components/avatar/AvatarPreview';
 import ImageUploader from '../components/avatar/ImageUploader';
 import { DEFAULT_AVATAR } from '../types';
@@ -15,13 +15,21 @@ const MBTI_TYPES = [
   'ISTP', 'ISFP', 'ESTP', 'ESFP'
 ];
 
+interface LocationState {
+  avatar?: AvatarConfig;
+  avatarImage?: string;
+}
+
 export default function AddRelative() {
   const navigate = useNavigate();
   const location = useLocation();
   const { addRelative } = useRelativeStore();
+  const state = location.state as LocationState | null;
+  
   const [customRelation, setCustomRelation] = useState('');
   const [isCustom, setIsCustom] = useState(false);
-  const [avatarImage, setAvatarImage] = useState<string>('');
+  const [avatarImage, setAvatarImage] = useState<string>(state?.avatarImage || '');
+  const [customAvatar, setCustomAvatar] = useState<AvatarConfig | null>(state?.avatar || null);
   const [form, setForm] = useState({
     name: '',
     birthday: '',
@@ -50,7 +58,8 @@ export default function AddRelative() {
       relation,
       zodiac,
       chineseZodiac,
-      avatarImage
+      avatarImage,
+      ...(customAvatar ? { avatar: customAvatar } : {})
     });
     navigate('/');
   };
@@ -65,18 +74,35 @@ export default function AddRelative() {
       </header>
 
       <div className="flex justify-center mb-6">
-        <div className="flex flex-col items-center gap-2">
-          <div className="flex gap-4">
+        <div className="flex flex-col items-center gap-4">
+          {/* 头像预览 */}
+          <div className="relative">
+            {avatarImage ? (
+              <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-[#E8734A] shadow-lg">
+                <img src={avatarImage} alt="头像" className="w-full h-full object-cover" />
+              </div>
+            ) : customAvatar ? (
+              <AvatarPreview avatar={customAvatar} size={96} />
+            ) : (
+              <AvatarPreview avatar={DEFAULT_AVATAR} size={96} />
+            )}
+          </div>
+          
+          {/* 头像选择方式 */}
+          <div className="flex gap-3">
             <ImageUploader 
-              onImageCropped={setAvatarImage}
+              onImageCropped={(img) => {
+                setAvatarImage(img);
+                setCustomAvatar(null); // 清除自定义头像
+              }}
               currentImage={avatarImage}
             />
             <button
               onClick={() => navigate('/avatar/new')}
-              className="flex flex-col items-center"
+              className="flex flex-col items-center gap-1 px-4 py-2 border border-gray-200 rounded-xl hover:border-[#E8734A] transition-colors"
             >
-              <AvatarPreview avatar={DEFAULT_AVATAR} size={80} />
-              <span className="text-xs text-[#E8734A] mt-2">或定制头像</span>
+              <AvatarPreview avatar={DEFAULT_AVATAR} size={40} />
+              <span className="text-xs text-[#E8734A]">捏脸定制</span>
             </button>
           </div>
         </div>

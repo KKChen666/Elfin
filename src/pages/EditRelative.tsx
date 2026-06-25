@@ -93,18 +93,30 @@ export default function EditRelative() {
       </header>
 
       <div className="flex justify-center mb-6">
-        <div className="flex flex-col items-center gap-2">
-          <div className="flex gap-4">
+        <div className="flex flex-col items-center gap-4">
+          {/* 头像预览 */}
+          <div className="relative">
+            {avatarImage ? (
+              <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-[#E8734A] shadow-lg">
+                <img src={avatarImage} alt="头像" className="w-full h-full object-cover" />
+              </div>
+            ) : (
+              <AvatarPreview avatar={relative.avatar} size={96} />
+            )}
+          </div>
+          
+          {/* 头像选择方式 */}
+          <div className="flex gap-3">
             <ImageUploader 
               onImageCropped={setAvatarImage}
               currentImage={relative.avatarImage}
             />
             <button
               onClick={() => navigate(`/avatar/${id}`)}
-              className="flex flex-col items-center"
+              className="flex flex-col items-center gap-1 px-4 py-2 border border-gray-200 rounded-xl hover:border-[#E8734A] transition-colors"
             >
-              <AvatarPreview avatar={relative.avatar} size={80} />
-              <span className="text-xs text-[#E8734A] mt-2">或修改头像</span>
+              <AvatarPreview avatar={relative.avatar} size={40} />
+              <span className="text-xs text-[#E8734A]">捏脸定制</span>
             </button>
           </div>
         </div>

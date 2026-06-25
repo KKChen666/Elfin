@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Shuffle } from 'lucide-react';
+import { ArrowLeft, Shuffle, Image, Sparkles } from 'lucide-react';
 import { useRelativeStore } from '../stores/useRelativeStore';
 import { AvatarConfig, DEFAULT_AVATAR } from '../types';
 import AvatarPreview from '../components/avatar/AvatarPreview';
+import ImageUploader from '../components/avatar/ImageUploader';
 
 const SKIN_COLORS = ['#FFD5B8', '#F5CBA7', '#E8B896', '#D4A574', '#C69C6D', '#A0785A'];
 const HAIR_COLORS = ['#3D2314', '#5C3A1E', '#8B6914', '#D4A017', '#1A1A1A', '#696969', '#C0392B', '#E67E22'];
@@ -18,13 +19,17 @@ const CATEGORIES = [
   { key: 'accessory', label: '配饰', count: 8 }
 ];
 
+type AvatarMode = 'upload' | 'customize';
+
 export default function AvatarCustom() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { getRelative, updateAvatar, addRelative } = useRelativeStore();
+  const { getRelative, updateAvatar } = useRelativeStore();
   const relative = id !== 'new' ? getRelative(id || '') : null;
 
+  const [mode, setMode] = useState<AvatarMode>('customize');
   const [avatar, setAvatar] = useState<AvatarConfig>(relative?.avatar || DEFAULT_AVATAR);
+  const [avatarImage, setAvatarImage] = useState<string>(relative?.avatarImage || '');
   const [activeCategory, setActiveCategory] = useState('faceShape');
 
   const updateAvatarField = (field: keyof AvatarConfig, value: string | number) => {
@@ -47,10 +52,14 @@ export default function AvatarCustom() {
 
   const handleSave = () => {
     if (id && id !== 'new') {
-      updateAvatar(id, avatar);
+      if (mode === 'upload' && avatarImage) {
+        updateAvatar(id, avatar, avatarImage);
+      } else {
+        updateAvatar(id, avatar);
+      }
       navigate(`/detail/${id}`);
     } else {
-      navigate('/add', { state: { avatar } });
+      navigate('/add', { state: { avatar, avatarImage: mode === 'upload' ? avatarImage : undefined } });
     }
   };
 
@@ -66,71 +75,119 @@ export default function AvatarCustom() {
           <ArrowLeft size={20} />
         </button>
         <h1 className="text-xl font-bold">定制头像</h1>
-        <button onClick={randomize} className="p-2 hover:bg-gray-100 rounded-lg">
+        <button onClick={randomize} className="p-2 hover:bg-gray-100 rounded-lg" title="随机生成">
           <Shuffle size={20} />
         </button>
       </header>
 
+      {/* 模式切换 */}
+      <div className="flex gap-2 mb-4">
+        <button
+          onClick={() => setMode('upload')}
+          className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl transition-colors ${
+            mode === 'upload'
+              ? 'bg-[#E8734A] text-white'
+              : 'bg-white text-gray-600 border border-gray-200'
+          }`}
+        >
+          <Image size={18} />
+          <span className="text-sm font-medium">上传照片</span>
+        </button>
+        <button
+          onClick={() => setMode('customize')}
+          className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl transition-colors ${
+            mode === 'customize'
+              ? 'bg-[#E8734A] text-white'
+              : 'bg-white text-gray-600 border border-gray-200'
+          }`}
+        >
+          <Sparkles size={18} />
+          <span className="text-sm font-medium">素材捏脸</span>
+        </button>
+      </div>
+
+      {/* 预览区域 */}
       <div className="flex justify-center mb-4">
         <div className="bg-white rounded-2xl p-4 shadow-sm">
-          <AvatarPreview avatar={avatar} size={160} />
+          {mode === 'upload' && avatarImage ? (
+            <div className="w-40 h-40 rounded-full overflow-hidden border-4 border-[#E8734A]">
+              <img src={avatarImage} alt="头像" className="w-full h-full object-cover" />
+            </div>
+          ) : (
+            <AvatarPreview avatar={avatar} size={160} />
+          )}
         </div>
       </div>
 
-      <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
-        {CATEGORIES.map(cat => (
-          <button
-            key={cat.key}
-            onClick={() => setActiveCategory(cat.key)}
-            className={`px-3 py-1.5 rounded-full text-sm whitespace-nowrap transition-colors ${
-              activeCategory === cat.key
-                ? 'bg-[#E8734A] text-white'
-                : 'bg-white text-gray-600 border border-gray-200'
-            }`}
-          >
-            {cat.label}
-          </button>
-        ))}
-      </div>
+      {/* 上传模式 */}
+      {mode === 'upload' && (
+        <div className="flex-1 overflow-auto">
+          <ImageUploader
+            onImageCropped={(base64) => setAvatarImage(base64)}
+            currentImage={avatarImage}
+          />
+        </div>
+      )}
 
-      <div className="flex-1 overflow-auto">
-        {colorKey && (
-          <div className="mb-4">
-            <p className="text-sm text-gray-500 mb-2">颜色选择</p>
-            <div className="flex flex-wrap gap-2">
-              {(colorKey === 'skinColor' ? SKIN_COLORS :
-                colorKey === 'hairColor' ? HAIR_COLORS : CLOTHING_COLORS).map(color => (
-                <button
-                  key={color}
-                  onClick={() => updateAvatarField(colorKey, color)}
-                  className={`w-8 h-8 rounded-full border-2 transition-transform ${
-                    avatar[colorKey] === color ? 'border-[#E8734A] scale-110' : 'border-transparent'
-                  }`}
-                  style={{ backgroundColor: color }}
-                />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {currentCategory && (
-          <div className="grid grid-cols-4 gap-2">
-            {Array.from({ length: currentCategory.count }, (_, i) => (
+      {/* 捏脸模式 */}
+      {mode === 'customize' && (
+        <>
+          <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
+            {CATEGORIES.map(cat => (
               <button
-                key={i}
-                onClick={() => updateAvatarField(activeCategory as keyof AvatarConfig, i)}
-                className={`aspect-square rounded-xl border-2 flex items-center justify-center transition-all ${
-                  avatar[activeCategory as keyof AvatarConfig] === i
-                    ? 'border-[#E8734A] bg-orange-50'
-                    : 'border-gray-200 bg-white hover:border-gray-300'
+                key={cat.key}
+                onClick={() => setActiveCategory(cat.key)}
+                className={`px-3 py-1.5 rounded-full text-sm whitespace-nowrap transition-colors ${
+                  activeCategory === cat.key
+                    ? 'bg-[#E8734A] text-white'
+                    : 'bg-white text-gray-600 border border-gray-200'
                 }`}
               >
-                <span className="text-lg font-semibold text-gray-500">{i + 1}</span>
+                {cat.label}
               </button>
             ))}
           </div>
-        )}
-      </div>
+
+          <div className="flex-1 overflow-auto">
+            {colorKey && (
+              <div className="mb-4">
+                <p className="text-sm text-gray-500 mb-2">颜色选择</p>
+                <div className="flex flex-wrap gap-2">
+                  {(colorKey === 'skinColor' ? SKIN_COLORS :
+                    colorKey === 'hairColor' ? HAIR_COLORS : CLOTHING_COLORS).map(color => (
+                    <button
+                      key={color}
+                      onClick={() => updateAvatarField(colorKey, color)}
+                      className={`w-8 h-8 rounded-full border-2 transition-transform ${
+                        avatar[colorKey] === color ? 'border-[#E8734A] scale-110' : 'border-transparent'
+                      }`}
+                      style={{ backgroundColor: color }}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {currentCategory && (
+              <div className="grid grid-cols-4 gap-2">
+                {Array.from({ length: currentCategory.count }, (_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => updateAvatarField(activeCategory as keyof AvatarConfig, i)}
+                    className={`aspect-square rounded-xl border-2 flex items-center justify-center transition-all ${
+                      avatar[activeCategory as keyof AvatarConfig] === i
+                        ? 'border-[#E8734A] bg-orange-50'
+                        : 'border-gray-200 bg-white hover:border-gray-300'
+                    }`}
+                  >
+                    <span className="text-lg font-semibold text-gray-500">{i + 1}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </>
+      )}
 
       <button
         onClick={handleSave}
