@@ -28,6 +28,11 @@ export default function AddRelative() {
 
   const [customRelation, setCustomRelation] = useState('');
   const [isCustom, setIsCustom] = useState(false);
+
+  const handleCustomRelationChange = (value: string) => {
+    setCustomRelation(value);
+    setIsCustom(!!value.trim());
+  };
   const [avatarImage, setAvatarImage] = useState<string>(state?.avatarImage || '');
   const [customAvatar, setCustomAvatar] = useState<AvatarConfig | null>(state?.avatar || null);
   const [form, setForm] = useState({
@@ -179,8 +184,8 @@ export default function AddRelative() {
                 <input
                   type="text"
                   value={customRelation}
-                  onChange={e => { setCustomRelation(e.target.value); setIsCustom(true); }}
-                  onFocus={() => setIsCustom(true)}
+                  onChange={e => handleCustomRelationChange(e.target.value)}
+                  onFocus={() => { if (customRelation.trim()) setIsCustom(true); }}
                   placeholder="输入自定义关系，如：干妈"
                   className={`flex-1 border rounded-lg px-3 py-1.5 text-sm outline-none transition-colors ${
                     isCustom ? 'border-[#E8734A]' : 'border-gray-200 focus:border-[#E8734A]'

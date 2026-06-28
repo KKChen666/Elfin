@@ -76,8 +76,22 @@ export default function Detail() {
         <div className="flex-1">
           <div className="grid grid-cols-2 gap-3 mb-5">
             <div className="bg-white rounded-xl p-4 text-center border border-gray-50">
-              <div className="text-2xl md:text-3xl font-bold text-[#E8734A]">{daysUntilBirthday ?? '-'}</div>
-              <div className="text-xs text-gray-400 mt-1">天后生日</div>
+              {daysUntilBirthday === 0 ? (
+                <>
+                  <div className="text-2xl md:text-3xl font-bold text-[#E8734A]">今天</div>
+                  <div className="text-xs text-[#E8734A] mt-1 font-medium">生日快乐！</div>
+                </>
+              ) : daysUntilBirthday !== null ? (
+                <>
+                  <div className="text-2xl md:text-3xl font-bold text-[#E8734A]">{daysUntilBirthday}</div>
+                  <div className="text-xs text-gray-400 mt-1">天后生日</div>
+                </>
+              ) : (
+                <>
+                  <div className="text-2xl md:text-3xl font-bold text-gray-300">-</div>
+                  <div className="text-xs text-gray-400 mt-1">天后生日</div>
+                </>
+              )}
             </div>
             <div className="bg-white rounded-xl p-4 text-center border border-gray-50">
               <div className="text-2xl md:text-3xl font-bold text-[#5B8C6E]">{formatDate(relative.birthday)}</div>

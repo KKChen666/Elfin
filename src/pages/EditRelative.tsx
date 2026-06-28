@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { useRelativeStore } from '../stores/useRelativeStore';
-import { RELATION_CATEGORIES, RELATION_LABELS } from '../types';
+import { RELATION_CATEGORIES } from '../types';
 import AvatarPreview from '../components/avatar/AvatarPreview';
 import ImageUploader from '../components/avatar/ImageUploader';
 import { getZodiac, getChineseZodiac } from '../utils/dateUtils';
@@ -22,6 +22,12 @@ export default function EditRelative() {
 
   const [customRelation, setCustomRelation] = useState('');
   const [isCustom, setIsCustom] = useState(false);
+
+  // 当自定义输入框内容被清空时，自动回退到预设关系选择
+  const handleCustomRelationChange = (value: string) => {
+    setCustomRelation(value);
+    setIsCustom(!!value.trim());
+  };
   const [avatarImage, setAvatarImage] = useState<string>('');
   const [form, setForm] = useState({
     name: '',
@@ -42,8 +48,9 @@ export default function EditRelative() {
 
   useEffect(() => {
     if (relative) {
-      const isPreset = RELATION_LABELS[relative.relation] !== undefined
-        && RELATION_CATEGORIES.some(c => c.items.some(item => item.key === relative.relation));
+      const isPreset = RELATION_CATEGORIES.some(c =>
+        c.items.some(item => item.key === relative.relation)
+      );
       setIsCustom(!isPreset);
       if (!isPreset) setCustomRelation(relative.relation);
       setForm({
@@ -193,8 +200,8 @@ export default function EditRelative() {
                 <input
                   type="text"
                   value={customRelation}
-                  onChange={e => { setCustomRelation(e.target.value); setIsCustom(true); }}
-                  onFocus={() => setIsCustom(true)}
+                  onChange={e => handleCustomRelationChange(e.target.value)}
+                  onFocus={() => { if (customRelation.trim()) setIsCustom(true); }}
                   placeholder="输入自定义关系，如：干妈"
                   className={`flex-1 border rounded-lg px-3 py-1.5 text-sm outline-none transition-colors ${
                     isCustom ? 'border-[#E8734A]' : 'border-gray-200 focus:border-[#E8734A]'

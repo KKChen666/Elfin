@@ -326,8 +326,6 @@ export default function AvatarCustom() {
           70% { transform: scale(1.04); }
           100% { transform: scale(1); opacity: 1; }
         }
-        .scrollbar-hide::-webkit-scrollbar { display: none; }
-        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
       `}</style>
     </div>
   );
