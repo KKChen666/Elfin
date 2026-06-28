@@ -19,7 +19,10 @@ export default function AvatarCard({ relative }: AvatarCardProps) {
             className="w-full h-full rounded-full object-cover border-2 border-[#E8734A]"
           />
         ) : (
-          <AvatarPreview avatar={relative.avatar} size={80} />
+          <div className="w-full h-full rounded-full overflow-hidden border-2 border-[#FFD1A9]"
+            style={{ boxShadow: '0 3px 10px rgba(232,115,74,0.12)' }}>
+            <AvatarPreview avatar={relative.avatar} size={80} />
+          </div>
         )}
         {relative.zodiac && (
           <div className="absolute -bottom-1 -right-1 bg-[#E8734A] text-white text-[10px] px-1.5 py-0.5 rounded-full">

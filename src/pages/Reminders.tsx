@@ -29,7 +29,9 @@ export default function Reminders() {
               className="block bg-white rounded-xl p-4 border border-gray-50 hover:border-gray-200 transition-colors"
             >
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-orange-50 flex items-center justify-center text-lg shrink-0">
+                <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-lg shrink-0 ${
+                  event.type === 'birthday' ? 'bg-orange-50' : event.type === 'mothers_day' ? 'bg-pink-50' : 'bg-blue-50'
+                }`}>
                   {event.type === 'birthday' ? '🎂' : event.type === 'mothers_day' ? '👩' : '👨'}
                 </div>
                 <div className="flex-1 min-w-0">

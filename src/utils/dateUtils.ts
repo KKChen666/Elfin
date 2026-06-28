@@ -91,10 +91,55 @@ export function getFathersDay(year: number): Date {
   return new Date(year, 5, firstSunday + 14);
 }
 
+export function getEventsForDate(
+  date: Date,
+  relatives: Array<{ id: string; name: string; birthday: string; isLunar: boolean; relation: string }>
+): Array<{ id: string; name: string; label: string; type: 'birthday' | 'mothers_day' | 'fathers_day' }> {
+  const month = date.getMonth();
+  const day = date.getDate();
+  const year = date.getFullYear();
+  const events: Array<{ id: string; name: string; label: string; type: 'birthday' | 'mothers_day' | 'fathers_day' }> = [];
+
+  relatives.forEach(r => {
+    const birthday = new Date(r.birthday);
+    if (birthday.getMonth() === month && birthday.getDate() === day) {
+      events.push({ id: r.id, name: r.name, label: `${r.name}生日`, type: 'birthday' });
+    }
+  });
+
+  const mothersDay = getMothersDay(year);
+  if (mothersDay.getMonth() === month && mothersDay.getDate() === day) {
+    const familyMembers = relatives.filter(r => r.relation === 'mother' || r.relation === 'grandma' || r.relation === 'grandma_maternal');
+    if (familyMembers.length > 0) {
+      familyMembers.forEach(r => {
+        events.push({ id: r.id, name: r.name, label: `${r.name}·母亲节`, type: 'mothers_day' });
+      });
+    } else {
+      events.push({ id: '', name: '', label: '母亲节', type: 'mothers_day' });
+    }
+  }
+
+  const fathersDay = getFathersDay(year);
+  if (fathersDay.getMonth() === month && fathersDay.getDate() === day) {
+    const familyMembers = relatives.filter(r => r.relation === 'father' || r.relation === 'grandpa' || r.relation === 'grandpa_maternal');
+    if (familyMembers.length > 0) {
+      familyMembers.forEach(r => {
+        events.push({ id: r.id, name: r.name, label: `${r.name}·父亲节`, type: 'fathers_day' });
+      });
+    } else {
+      events.push({ id: '', name: '', label: '父亲节', type: 'fathers_day' });
+    }
+  }
+
+  return events;
+}
+
 export function getUpcomingEvents(relatives: Array<{ id: string; name: string; birthday: string; isLunar: boolean; relation: string }>) {
   const events: Array<{ id: string; name: string; date: Date; type: string; daysUntil: number }> = [];
   const today = new Date();
   today.setHours(0, 0, 0, 0);
+
+  const familyRelationKeys = ['mother', 'father', 'grandpa', 'grandma', 'grandpa_maternal', 'grandma_maternal', 'spouse', 'uncle', 'aunt', 'brother', 'sister', 'son', 'daughter', 'cousin'];
 
   relatives.forEach(relative => {
     const days = getDaysUntilBirthday(relative.birthday, relative.isLunar);
@@ -113,27 +158,27 @@ export function getUpcomingEvents(relatives: Array<{ id: string; name: string; b
       });
     }
 
-    if (relative.relation === 'family') {
+    if (familyRelationKeys.includes(relative.relation)) {
       const mothersDay = getMothersDay(today.getFullYear());
       const fathersDay = getFathersDay(today.getFullYear());
 
       const daysToMothers = Math.ceil((mothersDay.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
       const daysToFathers = Math.ceil((fathersDay.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 
-      if (daysToMothers > 0) {
+      if (daysToMothers > 0 && (relative.relation === 'mother' || relative.relation === 'grandma' || relative.relation === 'grandma_maternal')) {
         events.push({
           id: relative.id,
-          name: `${relative.name} - 母亲节`,
+          name: `${relative.name} · 母亲节`,
           date: mothersDay,
           type: 'mothers_day',
           daysUntil: daysToMothers
         });
       }
 
-      if (daysToFathers > 0) {
+      if (daysToFathers > 0 && (relative.relation === 'father' || relative.relation === 'grandpa' || relative.relation === 'grandpa_maternal')) {
         events.push({
           id: relative.id,
-          name: `${relative.name} - 父亲节`,
+          name: `${relative.name} · 父亲节`,
           date: fathersDay,
           type: 'fathers_day',
           daysUntil: daysToFathers

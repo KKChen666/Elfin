@@ -226,17 +226,17 @@ export default function ImageUploader({ onImageCropped, currentImage }: ImageUpl
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
           onClick={() => fileInputRef.current?.click()}
-          className={`w-full max-w-xs aspect-square rounded-2xl border-2 border-dashed cursor-pointer flex flex-col items-center justify-center transition-colors ${
+          className={`w-full aspect-[4/3] max-w-xs mx-auto rounded-2xl border-2 border-dashed cursor-pointer flex flex-col items-center justify-center transition-all duration-200 ${
             isDragging
-              ? 'border-[#E8734A] bg-orange-50'
-              : 'border-gray-200 bg-white hover:border-[#E8734A]'
+              ? 'border-[#E8734A] bg-orange-50 scale-[1.01]'
+              : 'border-gray-200 bg-white active:border-[#E8734A]'
           }`}
         >
-          <div className="w-14 h-14 rounded-xl bg-gray-50 flex items-center justify-center mb-3">
-            <Upload size={24} className={isDragging ? 'text-[#E8734A]' : 'text-gray-400'} />
+          <div className="w-12 h-12 rounded-xl bg-gray-50 flex items-center justify-center mb-2">
+            <Upload size={22} className={isDragging ? 'text-[#E8734A]' : 'text-gray-300'} />
           </div>
-          <p className="text-sm font-medium text-gray-600 mb-1">拖拽或点击上传照片</p>
-          <p className="text-xs text-gray-400">支持 JPG、PNG 格式</p>
+          <p className="text-sm font-medium text-gray-500 mb-0.5">点击或拖拽上传照片</p>
+          <p className="text-[11px] text-gray-300">JPG / PNG</p>
         </div>
       )}
 
@@ -246,8 +246,8 @@ export default function ImageUploader({ onImageCropped, currentImage }: ImageUpl
           {/* 预览区域 */}
           <div
             ref={previewRef}
-            className={`relative mx-auto mb-4 overflow-hidden border-4 border-[#E8734A] touch-none select-none ${
-              cropShape === 'chibi' ? 'w-40 h-44 rounded-3xl' : 'w-44 h-44 rounded-full'
+            className={`relative mx-auto mb-4 overflow-hidden border-2 border-[#E8734A] touch-none select-none ${
+              cropShape === 'chibi' ? 'w-36 h-40 rounded-2xl' : 'w-36 h-36 rounded-full'
             }`}
             onPointerDown={handlePointerDown}
             onPointerMove={handlePointerMove}
@@ -267,7 +267,7 @@ export default function ImageUploader({ onImageCropped, currentImage }: ImageUpl
             <div className="absolute inset-0 shadow-[inset_0_0_20px_rgba(0,0,0,0.06)]" />
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
               <div className={`border-2 border-dashed border-white/30 ${
-                cropShape === 'chibi' ? 'w-24 h-24 rounded-full mt-[-16px]' : 'w-28 h-28 rounded-full'
+                cropShape === 'chibi' ? 'w-20 h-20 rounded-full mt-[-12px]' : 'w-28 h-28 rounded-full'
               }`} />
             </div>
           </div>
@@ -339,18 +339,18 @@ export default function ImageUploader({ onImageCropped, currentImage }: ImageUpl
           </div>
 
           {/* 操作按钮 */}
-          <div className="flex gap-2 mt-4">
+          <div className="flex gap-2 mt-3">
             <button
               type="button"
               onClick={handleRemoveImage}
-              className="flex-1 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-500 text-sm font-medium hover:bg-gray-50 transition-colors"
+              className="flex-1 py-2 bg-white border border-gray-200 rounded-xl text-gray-500 text-xs font-medium active:bg-gray-50 transition-colors"
             >
               取消
             </button>
             <button
               type="button"
               onClick={handleReset}
-              className="py-2.5 px-4 bg-white border border-gray-200 rounded-xl text-gray-500 text-sm font-medium hover:bg-gray-50 transition-colors"
+              className="py-2 px-3 bg-white border border-gray-200 rounded-xl text-gray-500 text-xs font-medium active:bg-gray-50 transition-colors"
             >
               重置
             </button>
@@ -358,7 +358,7 @@ export default function ImageUploader({ onImageCropped, currentImage }: ImageUpl
               type="button"
               onClick={cropImage}
               disabled={isProcessing}
-              className="flex-1 py-2.5 bg-[#E8734A] text-white rounded-xl text-sm font-medium hover:bg-[#D4633A] transition-colors disabled:opacity-50"
+              className="flex-1 py-2 bg-[#E8734A] text-white rounded-xl text-xs font-semibold active:bg-[#D4633A] transition-colors disabled:opacity-50"
             >
               {isProcessing ? '处理中...' : '确认裁剪'}
             </button>
@@ -368,31 +368,30 @@ export default function ImageUploader({ onImageCropped, currentImage }: ImageUpl
 
       {/* 裁剪结果预览 */}
       {croppedImage && (
-        <div className="flex flex-col items-center gap-3 animate-fadeIn">
+        <div className="flex flex-col items-center gap-2">
           <div className="relative">
-            <div className="rounded-xl overflow-hidden border-2 border-[#E8734A]">
-              <img
-                src={croppedImage}
-                alt="Q版头像"
-                className="w-32 h-32 object-cover"
-                style={{ borderRadius: cropShape === 'chibi' ? '10px' : '50%' }}
-              />
+            <div className={`overflow-hidden border-2 border-[#E8734A] ${
+              cropShape === 'chibi' ? 'w-28 h-32 rounded-xl' : 'w-28 h-28 rounded-full'
+            }`}
+              style={{ boxShadow: '0 4px 16px rgba(232,115,74,0.15)' }}
+            >
+              <img src={croppedImage} alt="头像" className="w-full h-full object-cover" />
             </div>
             <button
               type="button"
               onClick={handleRemoveImage}
-              className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white active:scale-90 transition-transform"
+              className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-white active:scale-90 transition-transform"
             >
-              <X size={12} />
+              <X size={10} />
             </button>
           </div>
-          <p className="text-xs text-green-600 font-medium">
-            {cropShape === 'chibi' ? 'Q版大头制作完成' : '头像裁剪完成'}
+          <p className="text-[11px] text-green-600 font-medium">
+            {cropShape === 'chibi' ? 'Q版大头完成' : '头像已裁剪'}
           </p>
           <button
             type="button"
             onClick={() => setCroppedImage(null)}
-            className="text-xs text-[#E8734A] hover:underline"
+            className="text-[11px] text-[#E8734A] active:underline"
           >
             重新调整
           </button>
