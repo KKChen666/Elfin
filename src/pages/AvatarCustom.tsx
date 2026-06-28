@@ -17,32 +17,37 @@ const SKIN_COLORS = [
 const HAIR_COLORS = [
   { color: '#1A1A1A', name: '黑' },
   { color: '#3D2314', name: '深棕' },
-  { color: '#5C3A1E', name: '栗色' },
+  { color: '#C68B59', name: '棕' },
   { color: '#8B6914', name: '金棕' },
-  { color: '#D4A017', name: '金色' },
+  { color: '#D4A017', name: '金' },
   { color: '#C0392B', name: '酒红' },
-  { color: '#E67E22', name: '橘色' },
-  { color: '#696969', name: '银灰' }
+  { color: '#E67E22', name: '橘' },
+  { color: '#696969', name: '灰' },
+  { color: '#D469A0', name: '粉' },
+  { color: '#5B8C6E', name: '绿' }
 ];
 const CLOTHING_COLORS = [
+  { color: '#D44A4A', name: '红' },
   { color: '#E8734A', name: '橙' },
-  { color: '#E74C3C', name: '红' },
-  { color: '#F39C12', name: '黄' },
-  { color: '#5B8C6E', name: '绿' },
   { color: '#4A90D9', name: '蓝' },
+  { color: '#5B8C6E', name: '绿' },
   { color: '#7B68EE', name: '紫' },
-  { color: '#2C3E50', name: '灰' },
-  { color: '#FF69B4', name: '粉' }
+  { color: '#FF69B4', name: '粉' },
+  { color: '#2C3E50', name: '深灰' },
+  { color: '#F39C12', name: '黄' }
 ];
 
 const CATEGORIES = [
-  { key: 'faceShape', label: '脸型', icon: '🫥', count: 6 },
-  { key: 'hairstyle', label: '发型', icon: '💇', count: 12 },
-  { key: 'eyeStyle', label: '眼睛', icon: '👀', count: 8 },
-  { key: 'mouthStyle', label: '嘴巴', icon: '👄', count: 6 },
-  { key: 'clothing', label: '服饰', icon: '👕', count: 10 },
-  { key: 'accessory', label: '配饰', icon: '✨', count: 8 }
+  { key: 'gender', label: '性别', icon: '🧑', count: 2 },
+  { key: 'faceShape', label: '脸型', icon: '🫥', count: 5 },
+  { key: 'hairstyle', label: '发型', icon: '💇', count: 10 },
+  { key: 'eyeStyle', label: '眼睛', icon: '👀', count: 6 },
+  { key: 'mouthStyle', label: '嘴巴', icon: '👄', count: 5 },
+  { key: 'clothing', label: '服饰', icon: '👗', count: 8 },
+  { key: 'accessory', label: '配饰', icon: '✨', count: 6 }
 ];
+
+const GENDER_LABELS = ['👧 女孩', '👦 男孩'];
 
 type AvatarMode = 'upload' | 'customize';
 
@@ -55,7 +60,7 @@ export default function AvatarCustom() {
   const [mode, setMode] = useState<AvatarMode>('customize');
   const [avatar, setAvatar] = useState<AvatarConfig>(relative?.avatar || DEFAULT_AVATAR);
   const [avatarImage, setAvatarImage] = useState<string>(relative?.avatarImage || '');
-  const [activeCategory, setActiveCategory] = useState('faceShape');
+  const [activeCategory, setActiveCategory] = useState('gender');
   const [bounceKey, setBounceKey] = useState(0);
 
   const updateAvatarField = (field: keyof AvatarConfig, value: string | number) => {
@@ -64,13 +69,19 @@ export default function AvatarCustom() {
   };
 
   const randomize = useCallback(() => {
+    const g = Math.floor(Math.random() * 2);
     setAvatar({
-      faceShape: Math.floor(Math.random() * 6),
-      hairstyle: Math.floor(Math.random() * 12),
-      eyeStyle: Math.floor(Math.random() * 8),
-      mouthStyle: Math.floor(Math.random() * 6),
-      clothing: Math.floor(Math.random() * 10),
-      accessory: Math.floor(Math.random() * 8),
+      gender: g,
+      faceShape: Math.floor(Math.random() * 5),
+      hairstyle: g === 0
+        ? 5 + Math.floor(Math.random() * 5)
+        : Math.floor(Math.random() * 5),
+      eyeStyle: Math.floor(Math.random() * 6),
+      mouthStyle: Math.floor(Math.random() * 5),
+      clothing: g === 0
+        ? 4 + Math.floor(Math.random() * 4)
+        : Math.floor(Math.random() * 4),
+      accessory: Math.floor(Math.random() * 6),
       skinColor: SKIN_COLORS[Math.floor(Math.random() * SKIN_COLORS.length)].color,
       hairColor: HAIR_COLORS[Math.floor(Math.random() * HAIR_COLORS.length)].color,
       clothingColor: CLOTHING_COLORS[Math.floor(Math.random() * CLOTHING_COLORS.length)].color
@@ -105,161 +116,186 @@ export default function AvatarCustom() {
     setActiveCategory(CATEGORIES[next].key);
   };
 
+  const isGenderCat = activeCategory === 'gender';
+
   return (
-    <div className="flex flex-col bg-[#FAFAF7] min-h-[100dvh]">
-      {/* ── 顶部 ── */}
-      <header className="sticky top-0 z-20 bg-white/95 backdrop-blur-sm border-b border-gray-100">
-        <div className="flex items-center justify-between px-4 h-11">
-          <button onClick={() => navigate(-1)} className="p-1 -ml-1">
-            <ArrowLeft size={20} className="text-gray-500" />
+    <div className="flex flex-col min-h-[100dvh]" style={{ background: 'linear-gradient(180deg, #FFF5EE 0%, #FFF0E6 100%)' }}>
+      {/* 顶部 */}
+      <header className="sticky top-0 z-20 bg-white/90 backdrop-blur-sm border-b border-[#F5E6D8]">
+        <div className="flex items-center justify-between px-4 h-12">
+          <button onClick={() => navigate(-1)} className="w-8 h-8 flex items-center justify-center rounded-xl active:bg-[#FFF5EE] transition-colors">
+            <ArrowLeft size={18} className="text-[#5C4A3A]" />
           </button>
-          <h1 className="text-[15px] font-bold text-gray-800">
-            {mode === 'upload' ? '照片头像' : '捏脸工坊'}
+          <h1 className="text-[15px] font-bold text-[#3D2E22] flex items-center gap-1.5">
+            {mode === 'upload' ? '📸 照片头像' : '✨ 捏脸工坊'}
           </h1>
-          <button onClick={randomize} className="p-1 -mr-1" title="随机生成">
-            <Dice5 size={20} className="text-[#E8734A]" />
+          <button onClick={randomize} className="w-8 h-8 flex items-center justify-center rounded-xl active:bg-[#FFF5EE] transition-colors" title="随机生成">
+            <Dice5 size={18} className="text-[#E8734A]" />
           </button>
         </div>
       </header>
 
       <div className="flex-1 overflow-auto">
-        {/* ── 预览英雄区 ── */}
-        <div className="flex flex-col items-center pt-5 pb-3 relative overflow-hidden">
-          {/* 柔和光晕 */}
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-64 rounded-full pointer-events-none"
-            style={{ background: 'radial-gradient(circle, rgba(232,115,74,0.08) 0%, transparent 70%)' }} />
+        {/* 预览区 */}
+        <div className="flex flex-col items-center pt-6 pb-4 relative">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-72 h-72 rounded-full pointer-events-none opacity-30"
+            style={{ background: 'radial-gradient(circle, rgba(232,115,74,0.15) 0%, transparent 70%)' }} />
 
-          {/* 预览卡片 */}
-          <div key={bounceKey} className="relative" style={{ animation: 'previewPop 0.25s ease-out' }}>
-            <div className="rounded-full p-[3px] bg-gradient-to-br from-[#FFD1A9] via-[#FFB088] to-[#FFC8A2]"
-              style={{ boxShadow: '0 6px 24px rgba(232,115,74,0.18)' }}>
-              <div className="rounded-full overflow-hidden bg-white">
+          <div key={bounceKey} className="relative" style={{ animation: 'previewPop 0.3s cubic-bezier(0.34,1.56,0.64,1)' }}>
+            <div className="rounded-full p-[3px]"
+              style={{ background: 'linear-gradient(135deg, #FFD1A9, #E8734A, #FFD1A9)', boxShadow: '0 8px 28px rgba(232,115,74,0.22)' }}>
+              <div className="rounded-full overflow-hidden bg-[#FFF5EE]">
                 {mode === 'upload' && avatarImage ? (
-                  <div className="w-32 h-32">
-                    <img src={avatarImage} alt="头像" className="w-full h-full object-cover" />
-                  </div>
+                  <img src={avatarImage} alt="头像" className="w-36 h-36 object-cover" />
                 ) : (
-                  <AvatarPreview avatar={avatar} size={128} />
+                  <AvatarPreview avatar={avatar} size={144} />
                 )}
               </div>
             </div>
           </div>
 
           {/* 模式切换 */}
-          <div className="flex gap-1.5 mt-3 p-0.5 bg-gray-100/80 rounded-full">
-            <button
-              onClick={() => setMode('customize')}
-              className={`flex items-center gap-1 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${
-                mode === 'customize'
-                  ? 'bg-white text-[#E8734A] shadow-sm'
-                  : 'text-gray-400'
-              }`}
-            >
-              <Sparkles size={12} />
-              素材捏脸
+          <div className="flex gap-1 mt-4 p-0.5 rounded-full" style={{ background: 'rgba(245,230,216,0.6)' }}>
+            <button onClick={() => setMode('customize')}
+              className={`flex items-center gap-1 px-4 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 ${
+                mode === 'customize' ? 'bg-white text-[#E8734A] shadow-sm' : 'text-[#C0A898]'
+              }`}>
+              <Sparkles size={12} />捏脸
             </button>
-            <button
-              onClick={() => setMode('upload')}
-              className={`flex items-center gap-1 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${
-                mode === 'upload'
-                  ? 'bg-white text-[#E8734A] shadow-sm'
-                  : 'text-gray-400'
-              }`}
-            >
-              <Image size={12} />
-              上传照片
+            <button onClick={() => setMode('upload')}
+              className={`flex items-center gap-1 px-4 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 ${
+                mode === 'upload' ? 'bg-white text-[#E8734A] shadow-sm' : 'text-[#C0A898]'
+              }`}>
+              <Image size={12} />上传
             </button>
           </div>
         </div>
 
-        {/* ── 上传模式 ── */}
         {mode === 'upload' && (
           <div className="px-4 pb-6">
-            <ImageUploader
-              onImageCropped={(base64) => setAvatarImage(base64)}
-              currentImage={avatarImage}
-            />
+            <ImageUploader onImageCropped={(b64) => setAvatarImage(b64)} currentImage={avatarImage} />
           </div>
         )}
 
-        {/* ── 捏脸模式 ── */}
         {mode === 'customize' && (
           <div className="flex flex-col flex-1">
-            {/* 分类标签 + 左右翻页 */}
-            <div className="flex items-center gap-1 px-3 mb-3">
-              <button onClick={() => goCategory(-1)} className="p-1 shrink-0 text-gray-300 active:text-gray-500">
-                <ChevronLeft size={18} />
+            {/* 分类标签 */}
+            <div className="flex items-center gap-0.5 px-3 mb-3">
+              <button onClick={() => goCategory(-1)} className="w-6 h-6 flex items-center justify-center shrink-0">
+                <ChevronLeft size={16} className="text-[#D0BBA8]" />
               </button>
-              <div className="flex gap-1.5 flex-1 overflow-x-auto scrollbar-hide">
-                {CATEGORIES.map((cat, i) => (
-                  <button
-                    key={cat.key}
-                    onClick={() => setActiveCategory(cat.key)}
-                    className={`flex items-center gap-0.5 px-2.5 py-1.5 rounded-full text-xs shrink-0 transition-all duration-200 ${
+              <div className="flex gap-1.5 flex-1 overflow-x-auto scrollbar-hide px-1">
+                {CATEGORIES.map(cat => (
+                  <button key={cat.key} onClick={() => setActiveCategory(cat.key)}
+                    className={`flex items-center gap-0.5 px-2.5 py-1.5 rounded-full text-[11px] shrink-0 transition-all duration-200 font-medium ${
                       activeCategory === cat.key
-                        ? 'bg-[#E8734A] text-white shadow-sm scale-105'
-                        : 'bg-white text-gray-400 border border-gray-100 active:bg-gray-50'
-                    }`}
-                  >
-                    <span className="text-xs">{cat.icon}</span>
-                    <span className="font-medium">{cat.label}</span>
+                        ? 'bg-[#E8734A] text-white shadow-sm'
+                        : 'bg-white text-[#8B7B6B] border border-[#F0E4D8] active:scale-95'
+                    }`}>
+                    <span>{cat.icon}</span>
+                    <span>{cat.label}</span>
                   </button>
                 ))}
               </div>
-              <button onClick={() => goCategory(1)} className="p-1 shrink-0 text-gray-300 active:text-gray-500">
-                <ChevronRight size={18} />
+              <button onClick={() => goCategory(1)} className="w-6 h-6 flex items-center justify-center shrink-0">
+                <ChevronRight size={16} className="text-[#D0BBA8]" />
               </button>
             </div>
 
-            {/* 颜色条（如果有） */}
+            {/* 颜色选择 */}
             {colorOptions && colorKey && (
               <div className="px-4 mb-3">
-                <div className="flex items-center gap-2 bg-white rounded-xl px-3 py-2.5 border border-gray-50">
-                  <Palette size={13} className="text-gray-300 shrink-0" />
-                  <div className="flex gap-2.5 flex-1 justify-center">
+                <div className="flex items-center gap-2 bg-white rounded-2xl px-3 py-2 border border-[#F5E6D8]"
+                  style={{ boxShadow: '0 1px 6px rgba(232,115,74,0.05)' }}>
+                  <Palette size={12} className="text-[#D0BBA8] shrink-0" />
+                  <div className="flex gap-2 flex-1 justify-center">
                     {colorOptions.map(({ color }) => (
-                      <button
-                        key={color}
-                        onClick={() => updateAvatarField(colorKey, color)}
-                        className={`w-7 h-7 rounded-full shrink-0 transition-all duration-150 ${
-                          avatar[colorKey] === color
-                            ? 'ring-2 ring-[#E8734A] ring-offset-1.5 scale-110'
-                            : 'active:scale-95'
+                      <button key={color} onClick={() => updateAvatarField(colorKey, color)}
+                        className={`w-6 h-6 rounded-full shrink-0 transition-all duration-150 ${
+                          avatar[colorKey] === color ? 'ring-2 ring-[#E8734A] ring-offset-1.5 scale-110' : 'active:scale-90'
                         }`}
                         style={{
                           backgroundColor: color,
-                          boxShadow: avatar[colorKey] === color ? '0 2px 8px rgba(232,115,74,0.3)' : '0 1px 3px rgba(0,0,0,0.12)'
-                        }}
-                      />
+                          boxShadow: avatar[colorKey] === color ? '0 2px 6px rgba(232,115,74,0.3)' : '0 1px 2px rgba(0,0,0,0.1)'
+                        }} />
                     ))}
                   </div>
                 </div>
               </div>
             )}
 
-            {/* 选项网格 */}
-            {currentCategory && (
-              <div className="px-4 pb-4">
-                <div className="grid grid-cols-4 gap-2">
+            {/* 性别选择 */}
+            {isGenderCat && (
+              <div className="px-4 pb-6">
+                <div className="grid grid-cols-2 gap-3">
+                  {[0, 1].map(g => {
+                    const isSelected = avatar.gender === g;
+                    const previewAvatar: AvatarConfig = {
+                      ...avatar,
+                      gender: g,
+                      hairstyle: g === 0 ? Math.max(avatar.hairstyle, 5) : Math.min(avatar.hairstyle, 4),
+                      clothing: g === 0 ? Math.max(avatar.clothing, 4) : Math.min(avatar.clothing, 3)
+                    };
+                    return (
+                      <button key={g} onClick={() => {
+                        updateAvatarField('gender', g);
+                        if (g === 0 && avatar.hairstyle < 5) updateAvatarField('hairstyle', 5);
+                        if (g === 1 && avatar.hairstyle >= 5) updateAvatarField('hairstyle', 0);
+                        if (g === 0 && avatar.clothing < 4) updateAvatarField('clothing', 4);
+                        if (g === 1 && avatar.clothing >= 4) updateAvatarField('clothing', 0);
+                      }}
+                        className="relative rounded-2xl overflow-hidden active:scale-[0.96] transition-all duration-150 py-4"
+                        style={{
+                          background: isSelected ? 'linear-gradient(135deg, #FFE8D8, #FFF0E5)' : 'white',
+                          boxShadow: isSelected
+                            ? '0 0 0 2.5px #E8734A, 0 4px 14px rgba(232,115,74,0.18)'
+                            : '0 1px 4px rgba(232,115,74,0.08)'
+                        }}>
+                        <div className="flex justify-center">
+                          <AvatarPreview avatar={previewAvatar} size={100} />
+                        </div>
+                        <div className={`text-center mt-2 text-sm font-semibold ${isSelected ? 'text-[#E8734A]' : 'text-[#5C4A3A]'}`}>
+                          {GENDER_LABELS[g]}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* 选项网格（非性别） */}
+            {!isGenderCat && currentCategory && (
+              <div className="px-4 pb-6">
+                <div className={`grid gap-2.5 ${
+                  activeCategory === 'hairstyle' || activeCategory === 'clothing'
+                    ? 'grid-cols-3'
+                    : 'grid-cols-3 sm:grid-cols-4'
+                }`}>
                   {Array.from({ length: currentCategory.count }, (_, i) => {
+                    // 过滤性别不匹配的发型和服饰
+                    if (activeCategory === 'hairstyle' && avatar.gender === 0 && i < 5) return null;
+                    if (activeCategory === 'hairstyle' && avatar.gender === 1 && i >= 5) return null;
+                    if (activeCategory === 'clothing' && avatar.gender === 0 && i < 4) return null;
+                    if (activeCategory === 'clothing' && avatar.gender === 1 && i >= 4) return null;
+
                     const previewAvatar: AvatarConfig = { ...avatar, [activeCategory]: i };
                     const isSelected = avatar[activeCategory as keyof AvatarConfig] === i;
                     return (
-                      <button
-                        key={i}
-                        onClick={() => updateAvatarField(activeCategory as keyof AvatarConfig, i)}
-                        className="relative rounded-2xl overflow-hidden transition-all duration-150 active:scale-95"
+                      <button key={i} onClick={() => updateAvatarField(activeCategory as keyof AvatarConfig, i)}
+                        className="relative rounded-2xl overflow-hidden active:scale-[0.96] transition-all duration-150"
                         style={{
                           aspectRatio: '1',
-                          background: isSelected ? 'linear-gradient(135deg, #FFF5EE, #FDE8D8)' : '#F5F2EF',
-                          boxShadow: isSelected ? '0 0 0 2px #E8734A, 0 4px 12px rgba(232,115,74,0.15)' : '0 1px 2px rgba(0,0,0,0.04)'
-                        }}
-                      >
+                          background: isSelected ? 'linear-gradient(135deg, #FFE8D8, #FFF0E5)' : 'white',
+                          boxShadow: isSelected
+                            ? '0 0 0 2.5px #E8734A, 0 4px 14px rgba(232,115,74,0.18)'
+                            : '0 1px 4px rgba(232,115,74,0.08)'
+                        }}>
                         <div className="flex items-center justify-center w-full h-full">
-                          <AvatarPreview avatar={previewAvatar} size={52} />
+                          <AvatarPreview avatar={previewAvatar} size={72} />
                         </div>
                         {isSelected && (
-                          <div className="absolute top-1 right-1 w-4 h-4 bg-[#E8734A] rounded-full flex items-center justify-center">
+                          <div className="absolute top-1 right-1 w-4 h-4 bg-[#E8734A] rounded-full flex items-center justify-center shadow-sm">
                             <svg width="8" height="8" viewBox="0 0 10 10" fill="none">
                               <path d="M2 5L4.5 7.5L8 3" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                             </svg>
@@ -275,21 +311,19 @@ export default function AvatarCustom() {
         )}
       </div>
 
-      {/* ── 底部保存 ── */}
-      <div className="sticky bottom-0 px-4 py-2.5 bg-white/95 backdrop-blur-sm border-t border-gray-100">
-        <button
-          onClick={handleSave}
-          className="w-full py-3 bg-[#E8734A] text-white rounded-xl font-semibold text-sm active:scale-[0.98] transition-transform shadow-sm"
-          style={{ boxShadow: '0 4px 14px rgba(232,115,74,0.25)' }}
-        >
+      {/* 底部保存 */}
+      <div className="sticky bottom-0 px-4 py-3 bg-gradient-to-t from-[#FFF0E6] via-[#FFF0E6] to-transparent">
+        <button onClick={handleSave}
+          className="w-full py-3 bg-gradient-to-r from-[#E8734A] to-[#F09060] text-white rounded-2xl font-bold text-sm active:scale-[0.98] transition-transform"
+          style={{ boxShadow: '0 4px 16px rgba(232,115,74,0.3)' }}>
           保存头像
         </button>
       </div>
 
       <style>{`
         @keyframes previewPop {
-          0% { transform: scale(0.92); opacity: 0.7; }
-          60% { transform: scale(1.03); }
+          0% { transform: scale(0.85); opacity: 0.6; }
+          70% { transform: scale(1.04); }
           100% { transform: scale(1); opacity: 1; }
         }
         .scrollbar-hide::-webkit-scrollbar { display: none; }

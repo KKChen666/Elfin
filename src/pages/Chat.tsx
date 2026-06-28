@@ -73,7 +73,9 @@ export default function Chat() {
 
     // 模拟分身思考和回复延迟
     setTimeout(() => {
-      const avatarResponse = generateAvatarResponse(userMessage.content, relative.chatStyle!);
+      const currentMessages = useRelativeStore.getState().chatMessages[id || ''] || [];
+      const recentContext = currentMessages.slice(-10);
+      const avatarResponse = generateAvatarResponse(userMessage.content, relative.chatStyle!, recentContext);
       const avatarMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         content: avatarResponse,

@@ -101,12 +101,13 @@ export function getRelationCategory(relation: string): string {
 }
 
 export interface AvatarConfig {
-  faceShape: number;
-  hairstyle: number;
-  eyeStyle: number;
-  mouthStyle: number;
-  clothing: number;
-  accessory: number;
+  gender: number;        // 0=女孩 1=男孩
+  faceShape: number;     // 脸型 (0-4)
+  hairstyle: number;     // 发型 (0-9)
+  eyeStyle: number;      // 眼睛 (0-5)
+  mouthStyle: number;    // 嘴巴 (0-4)
+  clothing: number;      // 服饰 (0-7)
+  accessory: number;     // 配饰 (0-5)
   skinColor: string;
   hairColor: string;
   clothingColor: string;
@@ -140,6 +141,31 @@ export interface ChatStyle {
     useEllipsis: boolean;  // 是否常用省略号
     useTilde: boolean;  // 是否常用波浪号
   };
+
+  // 深度特征 — 蒸馏心智模型（借鉴 persona-skill 方法论）
+  // 真实回复模板：从聊天记录中提取的真实短句，而非通用模板
+  realReplyPatterns: {
+    greeting: string[];    // 真实问候句（如 "来了来了" "在呢"）
+    farewell: string[];    // 真实告别句
+    agreement: string[];   // 真实认同句（如 "确实" "对对对就是这样"）
+    question: string[];    // 真实提问句
+    comfort: string[];     // 真实安慰句
+    surprise: string[];    // 真实惊讶句
+    general: string[];     // 真实通用回复（如 "嗯嗯" "好嘞" "行"）
+    laughter: string[];    // 真实笑的表达
+  };
+  // 句式模板：提取的真实句式结构（如 "我觉得{内容}挺好的"）
+  sentenceTemplates: string[];
+  // 沟通特质
+  communicationTraits: {
+    questionFrequency: number;   // 提问频率 0-1
+    emojiFrequency: number;      // 表情使用频率 0-1
+    avgReplyLength: number;      // 平均回复字数
+    isInitiator: boolean;        // 是否主动发起话题
+    usesVoiceMessages: boolean;  // 是否常用语音（从文字记录推断短消息占比）
+  };
+  // 表达 DNA：该人最具辨识度的表达方式
+  expressionDNA: string[];  // 如 ["喜欢用反问句", "常在句尾加"嘛"", "习惯先肯定再说但是"]
 }
 
 export interface ChatMessage {
@@ -182,6 +208,7 @@ export interface Reminder {
 }
 
 export const DEFAULT_AVATAR: AvatarConfig = {
+  gender: 0,
   faceShape: 0,
   hairstyle: 0,
   eyeStyle: 0,
@@ -189,6 +216,6 @@ export const DEFAULT_AVATAR: AvatarConfig = {
   clothing: 0,
   accessory: 0,
   skinColor: '#FFD5B8',
-  hairColor: '#3D2314',
-  clothingColor: '#E8734A'
+  hairColor: '#C68B59',
+  clothingColor: '#D44A4A',
 };

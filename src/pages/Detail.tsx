@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Edit, Trash2, MessageSquare, Bot } from 'lucide-react';
+import { ArrowLeft, Edit, Trash2, Sparkles, Bot, Upload, MessageCircle } from 'lucide-react';
 import { useRelativeStore } from '../stores/useRelativeStore';
 import { getRelationLabel } from '../types';
 import AvatarPreview from '../components/avatar/AvatarPreview';
@@ -34,27 +34,9 @@ export default function Detail() {
           <button
             onClick={() => navigate(`/edit/${id}`)}
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            title="编辑"
           >
             <Edit size={20} />
-          </button>
-          <button
-            onClick={() => navigate(`/import/${id}`)}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-            title="导入聊天记录"
-          >
-            <MessageSquare size={20} />
-          </button>
-          <button
-            onClick={() => navigate(`/chat/${id}`)}
-            className={`p-2 rounded-lg transition-colors ${
-              relative.chatStyle
-                ? 'hover:bg-orange-50 text-[#E8734A]'
-                : 'text-gray-300 cursor-not-allowed'
-            }`}
-            title={relative.chatStyle ? '与分身对话' : '请先导入聊天记录'}
-            disabled={!relative.chatStyle}
-          >
-            <Bot size={20} />
           </button>
           <button onClick={handleDelete} className="p-2 hover:bg-red-50 text-red-500 rounded-lg transition-colors">
             <Trash2 size={20} />
@@ -194,9 +176,82 @@ export default function Detail() {
                     <span className="text-xs text-gray-400">性格：</span>
                     <span className="ml-2 text-sm">{relative.chatStyle.personality}</span>
                   </div>
+                  {relative.chatStyle.expressionDNA && relative.chatStyle.expressionDNA.length > 0 && (
+                    <div>
+                      <span className="text-xs text-gray-400">表达特点：</span>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {relative.chatStyle.expressionDNA.slice(0, 3).map((dna, i) => (
+                          <span key={i} className="px-2 py-0.5 bg-orange-50 rounded text-xs text-[#E8734A]">{dna}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
+
+            {/* 蒸馏分身功能卡片 */}
+            <div
+              onClick={() => relative.chatStyle ? navigate(`/chat/${id}`) : navigate(`/import/${id}`)}
+              className="rounded-xl p-4 cursor-pointer active:scale-[0.98] transition-all border"
+              style={relative.chatStyle ? {
+                background: 'linear-gradient(135deg, #FFF5EE 0%, #FDE8D8 100%)',
+                borderColor: '#FFD1A9',
+              } : {
+                background: 'linear-gradient(135deg, #F5F5F5 0%, #EEEEEE 100%)',
+                borderColor: '#E0E0E0',
+              }}
+            >
+              <div className="flex items-center gap-3">
+                <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${
+                  relative.chatStyle ? 'bg-[#E8734A]' : 'bg-gray-400'
+                }`}>
+                  {relative.chatStyle ? (
+                    <Bot size={22} className="text-white" />
+                  ) : (
+                    <Sparkles size={22} className="text-white" />
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-sm text-gray-800">
+                    {relative.chatStyle ? '与分身对话' : '蒸馏分身'}
+                  </h3>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    {relative.chatStyle
+                      ? '基于聊天记录生成的 AI 分身，模拟说话风格'
+                      : '导入聊天记录，提取说话风格，创建 AI 分身'
+                    }
+                  </p>
+                </div>
+                <div className="shrink-0">
+                  {relative.chatStyle ? (
+                    <MessageCircle size={18} className="text-[#E8734A]" />
+                  ) : (
+                    <Upload size={18} className="text-gray-400" />
+                  )}
+                </div>
+              </div>
+              {!relative.chatStyle && (
+                <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-200">
+                  <div className="flex-1 text-xs text-gray-400">上传微信/QQ聊天记录 → 自动提取风格 → 生成分身</div>
+                  <span className="text-xs text-[#E8734A] font-medium">开始 →</span>
+                </div>
+              )}
+              {relative.chatStyle && (
+                <div className="flex items-center gap-2 mt-3 pt-3 border-t border-orange-200">
+                  <div className="flex flex-wrap gap-1">
+                    <span className="px-2 py-0.5 bg-white/80 rounded text-xs text-gray-600">{relative.chatStyle.personality}</span>
+                    <span className="px-2 py-0.5 bg-white/80 rounded text-xs text-gray-600">
+                      {relative.chatStyle.languageStyle === 'casual' ? '随意' : relative.chatStyle.languageStyle === 'formal' ? '正式' : '混合'}
+                    </span>
+                    <span className="px-2 py-0.5 bg-white/80 rounded text-xs text-gray-600">
+                      {relative.chatStyle.commonEmojis.slice(0, 2).join('')}
+                    </span>
+                  </div>
+                  <span className="text-xs text-[#E8734A] font-medium ml-auto">聊天 →</span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

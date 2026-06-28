@@ -88,85 +88,92 @@ export default function ImageUploader({ onImageCropped, currentImage }: ImageUpl
       if (!ctx) return;
 
       if (cropShape === 'chibi') {
-        // 萌系Q版大头 - 180x200 比例（与 AvatarPreview 一致）
-        const W = 180;
-        const H = 200;
-        canvas.width = W;
-        canvas.height = H;
-        ctx.clearRect(0, 0, W, H);
+        // Companion 风格 Q版 - 160x160（与 AvatarPreview 一致）
+        const S = 160;
+        canvas.width = S;
+        canvas.height = S;
+        ctx.clearRect(0, 0, S, S);
 
-        // ── 身体（先画，在头下面）──
-        const skinColor = '#F5CBA7';
-        const clothColor = '#E8734A';
-        const bodyTop = 122;
+        const HCX = 80, HCY = 62, HR = 40, BT = 100;
+        const skin = '#F5CBA7';
+        const cloth = '#E8734A';
+        const STROKE = '#6B4C3B';
+        const SW = 2.5;
+
+        // 背景
+        ctx.fillStyle = '#FFF5EE';
+        ctx.fillRect(0, 0, S, S);
+
+        // 圆形裁剪
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(S / 2, S / 2, S / 2, 0, Math.PI * 2);
+        ctx.clip();
 
         // 脖子
-        ctx.fillStyle = skinColor;
+        ctx.fillStyle = skin;
+        ctx.strokeStyle = STROKE;
+        ctx.lineWidth = SW;
         ctx.beginPath();
-        ctx.roundRect(82, bodyTop - 4, 16, 10, 4);
+        ctx.roundRect(HCX - 5, BT - 6, 10, 10, 3);
         ctx.fill();
+        ctx.stroke();
 
-        // 身体主体
-        ctx.fillStyle = clothColor;
+        // 身体
+        ctx.fillStyle = cloth;
         ctx.beginPath();
-        ctx.moveTo(58, bodyTop + 8);
-        ctx.quadraticCurveTo(58, bodyTop - 2, 90, bodyTop - 2);
-        ctx.quadraticCurveTo(122, bodyTop - 2, 122, bodyTop + 8);
-        ctx.lineTo(126, bodyTop + 60);
-        ctx.quadraticCurveTo(126, bodyTop + 68, 90, bodyTop + 68);
-        ctx.quadraticCurveTo(54, bodyTop + 68, 54, bodyTop + 60);
+        ctx.moveTo(HCX - 22, BT + 2);
+        ctx.quadraticCurveTo(HCX - 22, BT - 6, HCX, BT - 6);
+        ctx.quadraticCurveTo(HCX + 22, BT - 6, HCX + 22, BT + 2);
+        ctx.lineTo(HCX + 26, BT + 36);
+        ctx.quadraticCurveTo(HCX + 26, BT + 42, HCX, BT + 42);
+        ctx.quadraticCurveTo(HCX - 26, BT + 42, HCX - 26, BT + 36);
         ctx.closePath();
         ctx.fill();
+        ctx.strokeStyle = STROKE;
+        ctx.lineWidth = SW;
+        ctx.stroke();
 
-        // 袖子
-        ctx.beginPath();
-        ctx.ellipse(54, bodyTop + 14, 10, 8, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.ellipse(126, bodyTop + 14, 10, 8, 0, 0, Math.PI * 2);
-        ctx.fill();
-
-        // 圆手
-        ctx.fillStyle = skinColor;
-        ctx.beginPath();
-        ctx.arc(46, bodyTop + 18, 6, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.arc(134, bodyTop + 18, 6, 0, Math.PI * 2);
-        ctx.fill();
+        // 袖子 + 手
+        ctx.fillStyle = cloth;
+        ctx.beginPath(); ctx.ellipse(HCX - 24, BT + 6, 8, 6, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        ctx.beginPath(); ctx.ellipse(HCX + 24, BT + 6, 8, 6, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = skin;
+        ctx.beginPath(); ctx.arc(HCX - 30, BT + 10, 5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        ctx.beginPath(); ctx.arc(HCX + 30, BT + 10, 5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
 
         // 领口
         ctx.strokeStyle = 'rgba(255,255,255,0.6)';
         ctx.lineWidth = 1.5;
         ctx.beginPath();
-        ctx.moveTo(78, bodyTop + 4);
-        ctx.quadraticCurveTo(90, bodyTop + 14, 102, bodyTop + 4);
+        ctx.moveTo(HCX - 10, BT - 4);
+        ctx.quadraticCurveTo(HCX, BT + 4, HCX + 10, BT - 4);
         ctx.stroke();
 
-        // 小脚丫
-        ctx.fillStyle = clothColor;
-        ctx.beginPath();
-        ctx.ellipse(78, bodyTop + 70, 12, 6, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.ellipse(102, bodyTop + 70, 12, 6, 0, 0, Math.PI * 2);
-        ctx.fill();
+        // 腿
+        ctx.fillStyle = skin;
+        ctx.strokeStyle = STROKE;
+        ctx.lineWidth = SW;
+        ctx.beginPath(); ctx.roundRect(HCX - 12, BT + 38, 10, 16, 5); ctx.fill(); ctx.stroke();
+        ctx.beginPath(); ctx.roundRect(HCX + 2, BT + 38, 10, 16, 5); ctx.fill(); ctx.stroke();
 
-        // ── 头像圆形裁剪 ──
-        const headR = 52;
-        const headCx = W / 2;
-        const headCy = 72;
+        // 鞋
+        ctx.fillStyle = '#5C4033';
+        ctx.beginPath(); ctx.ellipse(HCX - 7, BT + 56, 8, 4, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        ctx.beginPath(); ctx.ellipse(HCX + 7, BT + 56, 8, 4, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
 
+        // 头像（照片圆形裁剪叠在头部位置）
+        ctx.restore();
         ctx.save();
         ctx.beginPath();
-        ctx.arc(headCx, headCy, headR, 0, Math.PI * 2);
+        ctx.arc(HCX, HCY, HR - 2, 0, Math.PI * 2);
         ctx.clip();
-        ctx.translate(headCx + position.x, headCy + position.y);
+        ctx.translate(HCX + position.x, HCY + position.y);
         ctx.rotate((rotation * Math.PI) / 180);
         ctx.scale(scale, scale);
-        const drawW = headR * 2;
-        const drawH = (img.height / img.width) * drawW;
-        ctx.drawImage(img, -drawW / 2, -drawH / 2, drawW, drawH);
+        const dW = HR * 2;
+        const dH = (img.height / img.width) * dW;
+        ctx.drawImage(img, -dW / 2, -dH / 2, dW, dH);
         ctx.restore();
 
       } else {
