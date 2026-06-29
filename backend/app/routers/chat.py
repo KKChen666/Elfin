@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Query
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -121,10 +121,34 @@ def avatar_respond(
 chat_style_router = APIRouter(prefix="/api/relatives/{relative_id}/chat-style", tags=["聊天分析"])
 
 
+def _choose_target_speaker(
+    relative_name: str,
+    speaker1: str,
+    speaker2: str,
+    requested_target: str | None = None,
+) -> str:
+    speakers = [speaker1, speaker2]
+    if requested_target:
+        if requested_target not in speakers:
+            raise HTTPException(status_code=400, detail="指定的说话人不在聊天记录中")
+        return requested_target
+
+    if relative_name in speakers:
+        return relative_name
+
+    self_aliases = {"我", "本人", "自己", "me", "Me", "ME"}
+    for speaker in speakers:
+        if speaker in self_aliases:
+            return speaker2 if speaker == speaker1 else speaker1
+
+    return speaker1
+
+
 @chat_style_router.post("/upload", response_model=ChatStyleOut)
 async def upload_and_analyze(
     relative_id: int,
     file: UploadFile = File(...),
+    target_sender: str | None = Query(default=None),
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -132,6 +156,9 @@ async def upload_and_analyze(
     relative = _get_relative(db, user, relative_id)
 
     content = await file.read()
+    if len(content) > 10 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="聊天记录文件大小不能超过 10MB")
+
     text = content.decode("utf-8", errors="ignore")
 
     messages = parse_chat_file(text)
@@ -139,8 +166,8 @@ async def upload_and_analyze(
         raise HTTPException(status_code=400, detail="无法解析聊天记录，请检查格式")
 
     speaker1, speaker2 = identify_speakers(messages)
-    # 默认分析对方（非当前用户侧的说话人）
-    target = speaker1
+    # 默认分析亲友；如果无法判断，则回退到发言最多的一方
+    target = _choose_target_speaker(relative.name, speaker1, speaker2, target_sender)
 
     chat_style = analyze_chat_style(messages, target)
 

@@ -1,4 +1,4 @@
-import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
+﻿import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { Home, Bell, Calendar, BarChart3, LogOut } from 'lucide-react';
 import { useAuthStore } from '../stores/useAuthStore';
 
@@ -20,15 +20,15 @@ export default function Layout() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#FFF9F5] to-[#FFF3EB] flex">
+    <div className="min-h-screen bg-gradient-to-b from-[#FBFBFD] to-[#F5F5F7] flex">
       {/* 桌面端侧边栏 */}
       <aside className="hidden lg:flex flex-col w-56 xl:w-64 bg-white/80 backdrop-blur-sm border-r border-[#F5E6D8] fixed inset-y-0 left-0 z-40">
         <div className="px-5 py-6 border-b border-[#F5E6D8]">
-          <h1 className="text-lg font-bold text-[#3D2E22] flex items-center gap-2">
+          <h1 className="text-lg font-bold text-[#1D1D1F] flex items-center gap-2">
             <span className="text-xl">🧸</span>
             亲友管理
           </h1>
-          <p className="text-xs text-[#C0A898] mt-0.5">记录身边重要的人</p>
+          <p className="text-xs text-[#8E8E93] mt-0.5">记录身边重要的人</p>
         </div>
         <nav className="flex-1 px-3 py-4 space-y-1">
           {navItems.map(item => {
@@ -39,8 +39,8 @@ export default function Layout() {
                 to={item.path}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-2xl text-sm transition-all duration-200 ${
                   isActive
-                    ? 'bg-gradient-to-r from-[#FFE8D8] to-[#FFF0E5] text-[#E8734A] font-semibold shadow-sm'
-                    : 'text-[#8B7B6B] hover:bg-[#FFF5EE] hover:text-[#5C4A3A]'
+                    ? 'bg-gradient-to-r from-[#E9F2FF] to-[#E9F2FF] text-[#0066CC] font-semibold shadow-sm'
+                    : 'text-[#6E6E73] hover:bg-[#F5F5F7] hover:text-[#6E6E73]'
                 }`}
               >
                 <span className="text-base">{item.emoji}</span>
@@ -52,10 +52,10 @@ export default function Layout() {
         <div className="px-5 py-4 border-t border-[#F5E6D8]">
           {user && (
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs text-[#8B7B6B]">👤 {user.username}</span>
+              <span className="text-xs text-[#6E6E73]">👤 {user.username}</span>
               <button
                 onClick={handleLogout}
-                className="p-1.5 rounded-lg text-[#C0A898] hover:text-[#E8734A] hover:bg-[#FFF5EE] transition-colors"
+                className="p-1.5 rounded-lg text-[#8E8E93] hover:text-[#0066CC] hover:bg-[#F5F5F7] transition-colors"
                 title="退出登录"
               >
                 <LogOut size={14} />
@@ -86,7 +86,7 @@ export default function Layout() {
                   key={item.path}
                   to={item.path}
                   className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-2xl transition-all duration-200 min-w-[56px] ${
-                    isActive ? 'text-[#E8734A]' : 'text-[#C0A898]'
+                    isActive ? 'text-[#0066CC]' : 'text-[#8E8E93]'
                   }`}
                 >
                   <span className={`text-base transition-transform duration-200 ${isActive ? 'scale-110' : ''}`}>
@@ -94,7 +94,7 @@ export default function Layout() {
                   </span>
                   <span className={`text-[10px] ${isActive ? 'font-bold' : 'font-medium'}`}>{item.label}</span>
                   {isActive && (
-                    <div className="w-1 h-1 rounded-full bg-[#E8734A] mt-[-1px]" />
+                    <div className="w-1 h-1 rounded-full bg-[#0066CC] mt-[-1px]" />
                   )}
                 </Link>
               );

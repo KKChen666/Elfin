@@ -10,41 +10,36 @@ export default function AvatarCard({ relative }: AvatarCardProps) {
   const daysUntilBirthday = getDaysUntilBirthday(relative.birthday, relative.isLunar);
 
   return (
-    <div className="flex flex-col items-center p-2">
-      <div className="w-20 h-20 md:w-24 md:h-24 mb-2 relative">
-        {relative.avatarImage ? (
-          <div className="w-full h-full rounded-full overflow-hidden border-[2.5px] border-[#FFD1A9]"
-            style={{ boxShadow: '0 3px 10px rgba(232,115,74,0.12)' }}>
-            <img
-              src={relative.avatarImage}
-              alt={relative.name}
-              className="w-full h-full object-cover"
-            />
-          </div>
-        ) : (
-          <div className="w-full h-full rounded-full overflow-hidden border-[2.5px] border-[#FFD1A9]"
-            style={{ boxShadow: '0 3px 10px rgba(232,115,74,0.12)' }}>
-            <AvatarPreview avatar={relative.avatar} size={80} />
-          </div>
-        )}
+    <div className="flex flex-col items-center p-3 text-center">
+      <div className="relative mb-3 h-24 w-24">
+        <div className="h-full w-full overflow-hidden rounded-[30px] border border-black/5 bg-[#f5f5f7]">
+          {relative.avatarImage ? (
+            <img src={relative.avatarImage} alt={relative.name} className="h-full w-full object-cover" />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center">
+              <AvatarPreview avatar={relative.avatar} size={96} />
+            </div>
+          )}
+        </div>
         {relative.zodiac && (
-          <div className="absolute -bottom-0.5 -right-0.5 bg-gradient-to-br from-[#E8734A] to-[#F09060] text-white text-[9px] px-1.5 py-0.5 rounded-full font-semibold"
-            style={{ boxShadow: '0 2px 4px rgba(232,115,74,0.3)' }}>
+          <div className="absolute -bottom-1 -right-1 rounded-full border border-white bg-[#1d1d1f] px-2 py-1 text-[10px] font-medium text-white">
             {relative.zodiac}
           </div>
         )}
       </div>
-      <h3 className="font-semibold text-sm text-[#3D2E22] truncate w-full text-center">{relative.name}</h3>
-      <p className="text-[11px] text-[#C0A898] font-medium">{getRelationLabel(relative.relation)}</p>
+      <h3 className="w-full truncate text-[15px] font-semibold text-[#1d1d1f]">{relative.name}</h3>
+      <p className="mt-0.5 text-xs text-[#7a7a7a]">{getRelationLabel(relative.relation)}</p>
       {daysUntilBirthday !== null && daysUntilBirthday <= 30 && (
-        <div className={`mt-1 px-2 py-0.5 rounded-full text-[10px] font-semibold ${
-          daysUntilBirthday <= 3
-            ? 'bg-[#FFE0D0] text-[#E8734A]'
-            : daysUntilBirthday <= 7
-              ? 'bg-[#FFF0D0] text-[#D4A017]'
-              : 'bg-[#D5F5E3] text-[#27AE60]'
-        }`}>
-          {daysUntilBirthday === 0 ? '🎂 今天生日!' : `🎂 ${daysUntilBirthday}天`}
+        <div
+          className={`mt-2 rounded-full px-2.5 py-1 text-[11px] font-medium ${
+            daysUntilBirthday <= 3
+              ? 'bg-[#fff0f0] text-[#ff3b30]'
+              : daysUntilBirthday <= 7
+                ? 'bg-[#fff6e5] text-[#b36b00]'
+                : 'bg-[#eef8f1] text-[#248a3d]'
+          }`}
+        >
+          {daysUntilBirthday === 0 ? '今天生日' : `${daysUntilBirthday} 天后`}
         </div>
       )}
     </div>

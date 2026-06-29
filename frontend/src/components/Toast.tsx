@@ -1,21 +1,19 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { X, CheckCircle, WarningCircle, Info } from '@phosphor-icons/react';
+import { registerToastHandler, ToastType } from './toastBus';
+import gsap from 'gsap';
 
 interface ToastItem {
   id: number;
-  type: 'success' | 'error' | 'info';
+  type: ToastType;
   message: string;
 }
 
 let toastId = 0;
-let addToastFn: ((type: ToastItem['type'], message: string) => void) | null = null;
-
-export function showToast(type: ToastItem['type'], message: string) {
-  addToastFn?.(type, message);
-}
 
 export default function Toast() {
   const [toasts, setToasts] = useState<ToastItem[]>([]);
+  const toastRef = useRef<HTMLDivElement>(null);
 
   const addToast = useCallback((type: ToastItem['type'], message: string) => {
     const id = ++toastId;
@@ -26,32 +24,40 @@ export default function Toast() {
   }, []);
 
   useEffect(() => {
-    addToastFn = addToast;
-    return () => { addToastFn = null; };
+    registerToastHandler(addToast);
+    return () => { registerToastHandler(null); };
   }, [addToast]);
+
+  useEffect(() => {
+    const latest = toastRef.current?.lastElementChild;
+    if (!latest) return;
+
+    gsap.fromTo(
+      latest,
+      { x: 18, y: -8, opacity: 0, scale: 0.96, filter: 'blur(6px)' },
+      { x: 0, y: 0, opacity: 1, scale: 1, filter: 'blur(0px)', duration: 0.28, ease: 'power2.out', clearProps: 'transform,filter' },
+    );
+  }, [toasts.length]);
 
   if (toasts.length === 0) return null;
 
   return (
-    <div className="fixed top-4 right-4 z-[9999] flex flex-col gap-2">
+    <div ref={toastRef} className="fixed right-4 top-[max(1rem,env(safe-area-inset-top))] z-[9999] flex max-w-[calc(100vw-2rem)] flex-col gap-2">
       {toasts.map(toast => (
         <div
           key={toast.id}
           className={`
-            flex items-center gap-2 px-4 py-3 rounded-xl shadow-lg text-sm font-medium
-            animate-[slideIn_0.3s_ease-out]
-            ${toast.type === 'success' ? 'bg-[#00B578] text-white' : ''}
-            ${toast.type === 'error' ? 'bg-[#FF3B30] text-white' : ''}
-            ${toast.type === 'info' ? 'bg-[#3370FF] text-white' : ''}
+            ios-frosted flex items-center gap-2 rounded-2xl px-4 py-3 text-sm font-medium text-[#1d1d1f]
           `}
         >
-          {toast.type === 'success' && <CheckCircle size={18} />}
-          {toast.type === 'error' && <WarningCircle size={18} />}
-          {toast.type === 'info' && <Info size={18} />}
+          {toast.type === 'success' && <CheckCircle size={18} weight="fill" className="text-[#34c759]" />}
+          {toast.type === 'error' && <WarningCircle size={18} weight="fill" className="text-[#ff3b30]" />}
+          {toast.type === 'info' && <Info size={18} weight="fill" className="text-[#0066cc]" />}
           <span>{toast.message}</span>
           <button
             onClick={() => setToasts(prev => prev.filter(t => t.id !== toast.id))}
-            className="ml-2 p-0.5 rounded hover:bg-white/20"
+            className="ml-2 rounded-full p-1 text-[#8e8e93] hover:bg-black/5"
+            aria-label="关闭提示"
           >
             <X size={14} />
           </button>

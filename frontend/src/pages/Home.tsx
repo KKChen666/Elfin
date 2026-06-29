@@ -1,114 +1,115 @@
 import { Link } from 'react-router-dom';
-import { Plus, Search } from 'lucide-react';
+import { Plus, Search, Users } from 'lucide-react';
 import { useRelativeStore } from '../stores/useRelativeStore';
 import { RELATION_CATEGORIES, getRelationCategory } from '../types';
 import AvatarCard from '../components/avatar/AvatarCard';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
+import { useGsapEntrance } from '../hooks/useGsapEntrance';
 
 const FILTER_OPTIONS = [
-  { key: 'all', label: '全部', emoji: '🌟' },
-  ...RELATION_CATEGORIES.map(c => ({
+  { key: 'all', label: '全部' },
+  ...RELATION_CATEGORIES.map((c) => ({
     key: c.key,
     label: c.label,
-    emoji: c.key === 'family' ? '👨‍👩‍👧' : c.key === 'friend' ? '🤝' : c.key === 'colleague' ? '💼' : '📚'
   })),
-  { key: 'custom', label: '自定义', emoji: '✏️' },
+  { key: 'custom', label: '自定义' },
 ];
 
 export default function Home() {
   const { relatives } = useRelativeStore();
   const [filter, setFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const pageRef = useRef<HTMLDivElement>(null);
+  const gridRef = useRef<HTMLDivElement>(null);
 
-  const filteredRelatives = relatives.filter(r => {
-    const matchesFilter = filter === 'all'
-      || (filter === 'custom' && getRelationCategory(r.relation) === '自定义')
-      || RELATION_CATEGORIES.find(c => c.key === filter)?.items.some(item => item.key === r.relation)
-      || r.relation === filter;
-    const matchesSearch = r.name.includes(searchQuery);
+  const filteredRelatives = relatives.filter((r) => {
+    const matchesFilter =
+      filter === 'all' ||
+      (filter === 'custom' && getRelationCategory(r.relation) === '自定义') ||
+      RELATION_CATEGORIES.find((c) => c.key === filter)?.items.some((item) => item.key === r.relation) ||
+      r.relation === filter;
+    const matchesSearch = r.name.toLowerCase().includes(searchQuery.trim().toLowerCase());
     return matchesFilter && matchesSearch;
   });
 
+  useGsapEntrance(pageRef, [], { selector: '[data-gsap-page]', y: 18, stagger: 0.055 });
+  useGsapEntrance(gridRef, [filter, searchQuery, filteredRelatives.length], { y: 12, stagger: 0.035 });
+
   return (
-    <div className="p-4 md:p-6 lg:p-8">
-      {/* 可爱头部 */}
-      <header className="mb-5">
-        <div className="flex items-center gap-2">
-          <h1 className="text-xl md:text-2xl font-bold text-white">亲友广场</h1>
-          <span className="text-lg">🏠</span>
-        </div>
-        <p className="text-xs text-[#8a8a8a] mt-0.5">
-          你有 <span className="font-semibold text-[#E8734A]">{relatives.length}</span> 位亲友在等你关爱~
-        </p>
-      </header>
-
-      {/* 搜索栏 */}
-      <div className="flex items-center gap-2 mb-4 bg-[#2a2a2a] rounded-2xl px-3.5 py-2.5 border border-[#3a3a3a]">
-        <Search size={16} className="text-[#5a5a5a]" />
-        <input
-          type="text"
-          placeholder="搜索亲友..."
-          value={searchQuery}
-          onChange={e => setSearchQuery(e.target.value)}
-          className="flex-1 bg-transparent outline-none text-sm text-white placeholder:text-[#5a5a5a]"
-        />
-      </div>
-
-      {/* 筛选标签 */}
-      <div className="flex gap-1.5 mb-5 overflow-x-auto pb-1 scrollbar-hide">
-        {FILTER_OPTIONS.map(item => (
-          <button
-            key={item.key}
-            onClick={() => setFilter(item.key)}
-            className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs whitespace-nowrap transition-all duration-200 ${
-              filter === item.key
-                ? 'bg-[#d4a574] text-white'
-                : 'bg-[#2a2a2a] text-[#8a8a8a] hover:bg-[#3a3a3a]'
-            }`}
-          >
-            <span className="text-xs">{item.emoji}</span>
-            <span className="font-medium">{item.label}</span>
-          </button>
-        ))}
-      </div>
-
-      {/* 亲友卡片网格 */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4">
-        {filteredRelatives.map(relative => (
-          <Link key={relative.id} to={`/detail/${relative.id}`}>
-            <div className="bg-[#2a2a2a] rounded-2xl p-2 border border-[#3a3a3a] active:scale-[0.97] transition-all duration-150">
-              <AvatarCard relative={relative} />
-            </div>
-          </Link>
-        ))}
-        <Link
-          to="/add"
-          className="flex flex-col items-center justify-center p-3 active:scale-[0.97] transition-transform"
-        >
-          <div className="w-20 h-20 md:w-24 md:h-24 rounded-full border-2 border-dashed border-[#3a3a3a] flex items-center justify-center mb-2">
-            <Plus size={24} className="text-[#5a5a5a]" />
+    <div className="ios-page h-full overflow-y-auto">
+      <div ref={pageRef} className="ios-container">
+        <header className="ios-header" data-gsap-page>
+          <div>
+            <p className="ios-kicker">关系广场</p>
+            <h1 className="ios-title">把重要的人放在眼前。</h1>
+            <p className="ios-subtitle">
+              你已经记录了 <span className="font-semibold text-[#0066cc]">{relatives.length}</span> 位亲友。
+            </p>
           </div>
-          <span className="text-xs text-[#5a5a5a] font-medium">添加亲友</span>
-        </Link>
-      </div>
-
-      {/* 空状态 */}
-      {relatives.length === 0 && (
-        <div className="text-center py-16">
-          <div className="text-5xl mb-3">🧸</div>
-          <p className="text-[#8B7B6B] font-medium mb-1">还没有添加任何亲友</p>
-          <p className="text-xs text-[#C0A898] mb-5">快来记录你身边重要的人吧~</p>
-          <Link
-            to="/add"
-            className="inline-flex items-center gap-1.5 px-5 py-2.5 bg-gradient-to-r from-[#E8734A] to-[#F09060] text-white rounded-full text-sm font-semibold shadow-md active:scale-95 transition-transform"
-            style={{ boxShadow: '0 4px 14px rgba(232,115,74,0.3)' }}
-          >
-            <Plus size={16} />
-            添加第一位亲友
+          <Link to="/add" className="ios-button-primary shrink-0">
+            <Plus size={18} />
+            添加亲友
           </Link>
-        </div>
-      )}
+        </header>
 
+        <div className="ios-panel mb-5 p-3" data-gsap-page>
+          <div className="flex items-center gap-2">
+            <Search size={18} className="ml-2 shrink-0 text-[#8e8e93]" />
+            <input
+              type="text"
+              placeholder="搜索亲友"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="min-h-11 flex-1 bg-transparent px-2 text-[15px] outline-none placeholder:text-[#8e8e93]"
+            />
+          </div>
+        </div>
+
+        <div className="mb-6 flex gap-2 overflow-x-auto pb-1 scrollbar-hide" data-gsap-page>
+          {FILTER_OPTIONS.map((item) => (
+            <button
+              key={item.key}
+              onClick={() => setFilter(item.key)}
+              className="ios-chip"
+              data-active={filter === item.key}
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+
+        {filteredRelatives.length > 0 ? (
+          <div ref={gridRef} className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5">
+            {filteredRelatives.map((relative) => (
+              <Link key={relative.id} to={`/detail/${relative.id}`} className="ios-card block overflow-hidden">
+                <AvatarCard relative={relative} />
+              </Link>
+            ))}
+            <Link
+              to="/add"
+              className="ios-card flex min-h-[188px] flex-col items-center justify-center gap-3 border-dashed text-[#0066cc]"
+            >
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#e9f2ff]">
+                <Plus size={24} />
+              </div>
+              <span className="text-sm font-medium">添加亲友</span>
+            </Link>
+          </div>
+        ) : (
+          <div ref={gridRef} className="ios-panel flex flex-col items-center justify-center px-6 py-16 text-center">
+            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#e9f2ff] text-[#0066cc]">
+              <Users size={30} />
+            </div>
+            <h2 className="text-xl font-semibold tracking-[-0.01em]">这里还没有人。</h2>
+            <p className="mt-2 max-w-sm text-sm leading-6 text-[#7a7a7a]">
+              添加第一位亲友，Elfin 会帮你记住生日、关系细节和温柔的提醒。
+            </p>
+            <Link to="/add" className="ios-button-primary mt-6">
+              添加第一位亲友
+            </Link>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

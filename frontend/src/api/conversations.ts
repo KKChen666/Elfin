@@ -46,8 +46,11 @@ export const conversationsApi = {
   },
   triggerAgentReply(convId: number, agentId?: number) {
     const params = agentId ? `?agent_id=${agentId}` : '';
-    return client.post(`/conversations/${convId}/messages/agent${params}`, {}, {
-      responseType: 'stream',
+    return fetch(`/api/conversations/${convId}/messages/agent${params}`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`,
+      },
     });
   },
 };

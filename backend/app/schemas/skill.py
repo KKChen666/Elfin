@@ -1,11 +1,12 @@
 from datetime import datetime
-from pydantic import BaseModel
+from typing import Literal
+from pydantic import BaseModel, Field
 
 
 class SkillCreate(BaseModel):
-    name: str
+    name: str = Field(..., min_length=1, max_length=100)
     description: str | None = None
-    source_type: str = "manual"
+    source_type: Literal["manual", "chat_import", "merge", "creator"] = "manual"
     source_relative_id: int | None = None
     personality: dict | None = None
     communication_style: dict | None = None
@@ -16,7 +17,7 @@ class SkillCreate(BaseModel):
 
 
 class SkillUpdate(BaseModel):
-    name: str | None = None
+    name: str | None = Field(default=None, min_length=1, max_length=100)
     description: str | None = None
     personality: dict | None = None
     communication_style: dict | None = None
@@ -31,7 +32,7 @@ class SkillOut(BaseModel):
     id: int
     name: str
     description: str | None = None
-    source_type: str
+    source_type: Literal["manual", "chat_import", "merge", "creator"]
     source_relative_id: int | None = None
     personality: dict | None = None
     communication_style: dict | None = None

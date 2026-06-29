@@ -1,5 +1,6 @@
 export function getDaysUntilBirthday(birthday: string, isLunar: boolean): number | null {
   if (!birthday) return null;
+  if (isLunar) return null;
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);

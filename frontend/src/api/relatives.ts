@@ -1,5 +1,4 @@
 import client from './client';
-import { Relative } from '../types';
 
 export interface RelativeCreateData {
   name: string;

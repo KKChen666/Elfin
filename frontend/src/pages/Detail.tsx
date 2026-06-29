@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from 'react-router-dom';
+﻿import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Edit, Trash2, Sparkles, Bot, Upload, MessageCircle } from 'lucide-react';
 import { useRelativeStore } from '../stores/useRelativeStore';
 import { getRelationLabel } from '../types';
@@ -51,7 +51,7 @@ export default function Detail() {
             <img
               src={relative.avatarImage}
               alt={relative.name}
-              className="w-24 h-24 md:w-28 md:h-28 rounded-full object-cover mx-auto border-2 border-[#E8734A]"
+              className="w-24 h-24 md:w-28 md:h-28 rounded-full object-cover mx-auto border-2 border-[#0066CC]"
             />
           ) : (
             <div className="flex justify-center">
@@ -63,10 +63,10 @@ export default function Detail() {
           {(relative.zodiac || relative.chineseZodiac) && (
             <div className="flex justify-center gap-2 mt-2">
               {relative.zodiac && (
-                <span className="text-xs text-[#E8734A] bg-orange-50 px-2 py-0.5 rounded">{relative.zodiac}</span>
+                <span className="text-xs text-[#0066CC] bg-[#e9f2ff] px-2 py-0.5 rounded">{relative.zodiac}</span>
               )}
               {relative.chineseZodiac && (
-                <span className="text-xs text-[#E8734A] bg-orange-50 px-2 py-0.5 rounded">{relative.chineseZodiac}</span>
+                <span className="text-xs text-[#0066CC] bg-[#e9f2ff] px-2 py-0.5 rounded">{relative.chineseZodiac}</span>
               )}
             </div>
           )}
@@ -78,12 +78,12 @@ export default function Detail() {
             <div className="bg-white rounded-xl p-4 text-center border border-gray-50">
               {daysUntilBirthday === 0 ? (
                 <>
-                  <div className="text-2xl md:text-3xl font-bold text-[#E8734A]">今天</div>
-                  <div className="text-xs text-[#E8734A] mt-1 font-medium">生日快乐！</div>
+                  <div className="text-2xl md:text-3xl font-bold text-[#0066CC]">今天</div>
+                  <div className="text-xs text-[#0066CC] mt-1 font-medium">生日快乐！</div>
                 </>
               ) : daysUntilBirthday !== null ? (
                 <>
-                  <div className="text-2xl md:text-3xl font-bold text-[#E8734A]">{daysUntilBirthday}</div>
+                  <div className="text-2xl md:text-3xl font-bold text-[#0066CC]">{daysUntilBirthday}</div>
                   <div className="text-xs text-gray-400 mt-1">天后生日</div>
                 </>
               ) : (
@@ -122,7 +122,7 @@ export default function Detail() {
 
             {relative.hobbies && (
               <div className="bg-white rounded-xl p-3.5 flex items-center gap-3 border border-gray-50">
-                <div className="w-9 h-9 rounded-lg bg-orange-50 flex items-center justify-center text-sm shrink-0">❤️</div>
+                <div className="w-9 h-9 rounded-lg bg-[#e9f2ff] flex items-center justify-center text-sm shrink-0">❤️</div>
                 <div>
                   <div className="text-xs text-gray-400">喜好</div>
                   <div className="text-sm font-medium">{relative.hobbies}</div>
@@ -195,7 +195,7 @@ export default function Detail() {
                       <span className="text-xs text-gray-400">表达特点：</span>
                       <div className="flex flex-wrap gap-1 mt-1">
                         {relative.chatStyle.expressionDNA.slice(0, 3).map((dna, i) => (
-                          <span key={i} className="px-2 py-0.5 bg-orange-50 rounded text-xs text-[#E8734A]">{dna}</span>
+                          <span key={i} className="px-2 py-0.5 bg-[#e9f2ff] rounded text-xs text-[#0066CC]">{dna}</span>
                         ))}
                       </div>
                     </div>
@@ -209,7 +209,7 @@ export default function Detail() {
               onClick={() => relative.chatStyle ? navigate(`/avatar-chat/${id}`) : navigate(`/import/${id}`)}
               className="rounded-xl p-4 cursor-pointer active:scale-[0.98] transition-all border"
               style={relative.chatStyle ? {
-                background: 'linear-gradient(135deg, #FFF5EE 0%, #FDE8D8 100%)',
+                background: 'linear-gradient(135deg, #F5F5F7 0%, #FDE8D8 100%)',
                 borderColor: '#FFD1A9',
               } : {
                 background: 'linear-gradient(135deg, #F5F5F5 0%, #EEEEEE 100%)',
@@ -218,7 +218,7 @@ export default function Detail() {
             >
               <div className="flex items-center gap-3">
                 <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${
-                  relative.chatStyle ? 'bg-[#E8734A]' : 'bg-gray-400'
+                  relative.chatStyle ? 'bg-[#0066CC]' : 'bg-gray-400'
                 }`}>
                   {relative.chatStyle ? (
                     <Bot size={22} className="text-white" />
@@ -239,7 +239,7 @@ export default function Detail() {
                 </div>
                 <div className="shrink-0">
                   {relative.chatStyle ? (
-                    <MessageCircle size={18} className="text-[#E8734A]" />
+                    <MessageCircle size={18} className="text-[#0066CC]" />
                   ) : (
                     <Upload size={18} className="text-gray-400" />
                   )}
@@ -248,11 +248,11 @@ export default function Detail() {
               {!relative.chatStyle && (
                 <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-200">
                   <div className="flex-1 text-xs text-gray-400">上传微信/QQ聊天记录 → 自动提取风格 → 生成分身</div>
-                  <span className="text-xs text-[#E8734A] font-medium">开始 →</span>
+                  <span className="text-xs text-[#0066CC] font-medium">开始 →</span>
                 </div>
               )}
               {relative.chatStyle && (
-                <div className="flex items-center gap-2 mt-3 pt-3 border-t border-orange-200">
+                <div className="flex items-center gap-2 mt-3 pt-3 border-t border-[#c7ddff]">
                   <div className="flex flex-wrap gap-1">
                     <span className="px-2 py-0.5 bg-white/80 rounded text-xs text-gray-600">{relative.chatStyle.personality}</span>
                     <span className="px-2 py-0.5 bg-white/80 rounded text-xs text-gray-600">
@@ -262,7 +262,7 @@ export default function Detail() {
                       {relative.chatStyle.commonEmojis.slice(0, 2).join('')}
                     </span>
                   </div>
-                  <span className="text-xs text-[#E8734A] font-medium ml-auto">聊天 →</span>
+                  <span className="text-xs text-[#0066CC] font-medium ml-auto">聊天 →</span>
                 </div>
               )}
             </div>

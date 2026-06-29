@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuthStore } from '../stores/useAuthStore';
+import { useGsapEntrance } from '../hooks/useGsapEntrance';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -9,6 +10,9 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const authRef = useRef<HTMLDivElement>(null);
+
+  useGsapEntrance(authRef, [], { selector: '[data-gsap-auth]', y: 16, scale: 0.98, stagger: 0.07 });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -18,9 +22,7 @@ export default function Login() {
       await login(username, password);
       navigate('/');
     } catch (err: unknown) {
-      const msg =
-        (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ||
-        '登录失败';
+      const msg = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail || '登录失败';
       setError(msg);
     } finally {
       setLoading(false);
@@ -28,59 +30,53 @@ export default function Login() {
   };
 
   return (
-    <div
-      className="min-h-screen flex items-center justify-center p-4"
-      style={{ background: 'linear-gradient(135deg, #FFF5EE 0%, #FFE8D8 100%)' }}
-    >
-      <div className="w-full max-w-sm">
-        <div className="text-center mb-8">
-          <div className="text-5xl mb-3">🏠</div>
-          <h1 className="text-2xl font-bold text-[#3D2E22]">亲友管理</h1>
-          <p className="text-sm text-[#A08B7A] mt-1">记录每一位重要的人</p>
+    <div className="ios-page flex min-h-screen items-center justify-center overflow-y-auto px-4 py-5">
+      <div ref={authRef} className="w-full max-w-[420px] sm:-translate-y-10">
+        <div className="mb-5 text-center" data-gsap-auth>
+          <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-[20px] bg-[#1d1d1f] text-base font-semibold text-white">
+            E
+          </div>
+          <p className="ios-kicker">欢迎回来</p>
+          <h1 className="text-3xl font-semibold tracking-[-0.03em] text-[#1d1d1f]">登录 Elfin。</h1>
+          <p className="mt-2 text-sm leading-6 text-[#7a7a7a]">继续记录那些值得被温柔记住的人和事。</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-white rounded-2xl p-6 shadow-sm">
-          <h2 className="text-lg font-bold text-[#3D2E22] mb-5 text-center">登录</h2>
+        <form onSubmit={handleSubmit} className="ios-panel p-4 sm:p-5" data-gsap-auth>
+          {error && <div className="mb-4 rounded-2xl bg-[#fff0f0] px-4 py-3 text-sm text-[#ff3b30]">{error}</div>}
 
-          {error && (
-            <div className="mb-4 p-3 bg-red-50 text-red-600 text-sm rounded-xl">{error}</div>
-          )}
+          <div className="space-y-4">
+            <label className="block">
+              <span className="mb-1.5 block text-sm font-medium text-[#6e6e73]">用户名</span>
+              <input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required
+                className="ios-input"
+                placeholder="请输入用户名"
+              />
+            </label>
 
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-[#5C4A3A] mb-1.5">用户名</label>
-            <input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              required
-              className="w-full px-4 py-2.5 bg-gray-50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#E8734A] focus:ring-opacity-50"
-              placeholder="请输入用户名"
-            />
+            <label className="block">
+              <span className="mb-1.5 block text-sm font-medium text-[#6e6e73]">密码</span>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="ios-input"
+                placeholder="请输入密码"
+              />
+            </label>
           </div>
 
-          <div className="mb-5">
-            <label className="block text-sm font-medium text-[#5C4A3A] mb-1.5">密码</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full px-4 py-2.5 bg-gray-50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#E8734A] focus:ring-opacity-50"
-              placeholder="请输入密码"
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-2.5 bg-gradient-to-r from-[#E8734A] to-[#F09060] text-white rounded-xl font-bold text-sm active:scale-[0.98] transition-transform disabled:opacity-50"
-          >
+          <button type="submit" disabled={loading} className="ios-button-primary mt-5 w-full">
             {loading ? '登录中...' : '登录'}
           </button>
 
-          <p className="text-center text-sm text-[#A08B7A] mt-4">
+          <p className="mt-5 text-center text-sm text-[#7a7a7a]">
             还没有账号？{' '}
-            <Link to="/register" className="text-[#E8734A] font-medium">
+            <Link to="/register" className="font-medium text-[#0066cc]">
               注册
             </Link>
           </p>

@@ -33,24 +33,38 @@ Elfin/
 # 1. 进入后端目录
 cd D:\code\Elfin\backend
 
-# 2. 激活虚拟环境（已创建好）
-venv\Scripts\activate
+# 2. 激活虚拟环境
+.venv\Scripts\activate
 
-# 3. 启动服务
-uvicorn app.main:app --reload --port 8000
+# 3. 启动服务（二选一）
+python run.py
+# 或
+python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 3290
 ```
 
 **访问地址：**
-- API 服务：http://localhost:8000
-- Swagger 文档：http://localhost:8000/docs
+- API 服务：http://localhost:3290
+- Swagger 文档：http://localhost:3290/docs
 
-**首次安装（如果 venv 丢失）：**
+**首次配置虚拟环境：**
+
+项目后端统一使用 `backend/.venv` 作为虚拟环境目录，不再使用 `backend/venv`。
+
 ```bash
 cd D:\code\Elfin\backend
-python -m venv venv
-venv\Scripts\activate
+python -m venv .venv
+.venv\Scripts\activate
+python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
+
+**PyCharm 运行方式：**
+
+1. Python 解释器选择 `D:\code\Elfin\backend\.venv\Scripts\python.exe`
+2. 打开 `backend/run.py`
+3. 右键选择 `Run 'run'`
+
+`run.py` 会自动启动 FastAPI，默认监听 `127.0.0.1:3290`。
 
 ### 前端
 
@@ -65,7 +79,7 @@ npm install
 npm run dev
 ```
 
-**访问地址：** http://localhost:5173
+**访问地址：** http://localhost:2901
 
 ---
 
@@ -100,7 +114,7 @@ LLM_MODEL=gpt-3.5-turbo
 
 ### 前端配置 (`frontend/vite.config.ts`)
 
-开发模式下自动代理 `/api` 请求到后端 `http://localhost:8000`。
+开发模式下自动代理 `/api` 请求到后端 `http://127.0.0.1:3290`。
 
 ---
 
@@ -180,4 +194,4 @@ LLM_MODEL=gpt-3.5-turbo
 | POST | `/api/conversations` | 创建对话 |
 | POST | `/api/conversations/{id}/messages` | 发送消息 |
 
-完整 API 文档：http://localhost:8000/docs
+完整 API 文档：http://localhost:3290/docs

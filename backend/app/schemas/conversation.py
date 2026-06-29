@@ -1,11 +1,12 @@
 from datetime import datetime
-from pydantic import BaseModel
+from typing import Literal
+from pydantic import BaseModel, Field
 
 
 class ConversationCreate(BaseModel):
     title: str | None = None
-    type: str = "direct"  # direct or group
-    agent_ids: list[int]  # 参与的 Agent ID 列表
+    type: Literal["direct", "group"] = "direct"
+    agent_ids: list[int] = Field(..., min_length=1)  # 参与的 Agent ID 列表
 
 
 class ConversationOut(BaseModel):
@@ -21,7 +22,7 @@ class ConversationOut(BaseModel):
 
 
 class MessageCreate(BaseModel):
-    content: str
+    content: str = Field(..., min_length=1)
 
 
 class MessageOut(BaseModel):

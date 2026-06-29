@@ -1,4 +1,4 @@
-import { useId } from 'react';
+﻿import { useId } from 'react';
 import { AvatarConfig } from '../../types';
 
 interface AvatarPreviewProps {
@@ -799,8 +799,8 @@ const ACCESSORIES: Array<() => React.ReactNode> = [
   // 5  围巾
   () => (
     <>
-      <rect x={78} y={74} width={44} height={10} rx={4} fill="#E8734A" stroke={OL} strokeWidth={SW} />
-      <path d={`M114,78 L120,96 Q122,102 118,100 L112,82`} fill="#E8734A" stroke={OL} strokeWidth={SW} />
+      <rect x={78} y={74} width={44} height={10} rx={4} fill="#0066CC" stroke={OL} strokeWidth={SW} />
+      <path d={`M114,78 L120,96 Q122,102 118,100 L112,82`} fill="#0066CC" stroke={OL} strokeWidth={SW} />
     </>
   ),
 ];
@@ -846,7 +846,7 @@ export default function AvatarPreview({ avatar, size = 100 }: AvatarPreviewProps
         </clipPath>
       </defs>
       <g clipPath={`url(#${clipId})`}>
-        <rect width="200" height="200" fill="#FFF5EE" />
+        <rect width="200" height="200" fill="#F5F5F7" />
 
         {/* 1. 头发后层（在身体后面） */}
         {hair.back}

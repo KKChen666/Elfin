@@ -94,14 +94,13 @@ def delete_relative(db: Session, user: User, relative_id: int) -> None:
 def get_stats(db: Session, user: User) -> dict:
     relatives = db.query(Relative).filter(Relative.user_id == user.id).all()
     family_relations = [
-        "father", "mother", "grandfather", "grandmother",
-        "spouse", "child", "sibling", "uncle", "aunt",
-        "cousin", "father_in_law", "mother_in_law",
-        "brother_in_law", "sister_in_law",
+        "grandpa", "grandma", "grandpa_maternal", "grandma_maternal",
+        "father", "mother", "uncle", "aunt", "brother", "sister",
+        "son", "daughter", "spouse", "cousin",
     ]
-    friend_relations = ["friend", "best_friend", "partner"]
+    friend_relations = ["friend", "best_friend", "neighbor"]
     colleague_relations = ["colleague", "boss", "client"]
-    classmate_relations = ["classmate", "schoolmate", "mentor"]
+    classmate_relations = ["classmate", "schoolmate", "teacher"]
 
     total = len(relatives)
     family = sum(1 for r in relatives if r.relation in family_relations)

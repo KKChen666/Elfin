@@ -5,6 +5,14 @@ load_dotenv()
 
 
 class Settings:
+    APP_ENV: str = os.getenv("APP_ENV", "development")
+    AUTO_CREATE_TABLES: bool = os.getenv("AUTO_CREATE_TABLES", "true").lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
+
     # MySQL
     DB_HOST: str = os.getenv("DB_HOST", "localhost")
     DB_PORT: int = int(os.getenv("DB_PORT", "3306"))

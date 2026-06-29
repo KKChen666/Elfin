@@ -1,98 +1,92 @@
 import { useRelativeStore } from '../stores/useRelativeStore';
 import { getUpcomingEvents } from '../utils/dateUtils';
-import { Bell } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { Bell, CalendarDays, Gift, Heart } from 'lucide-react';
+import { useRef } from 'react';
+import { useGsapEntrance } from '../hooks/useGsapEntrance';
 
-const EVENT_STYLES: Record<string, { bg: string; icon: string; badgeClass: string; badgeText: string }> = {
-  birthday: { bg: 'bg-gradient-to-br from-[#FFF5EE] to-[#FFE8D8]', icon: '🎂', badgeClass: 'bg-[#FFE0D0] text-[#E8734A]', badgeText: '生日' },
-  mothers_day: { bg: 'bg-gradient-to-br from-[#FFF0F5] to-[#FFE0EB]', icon: '👩', badgeClass: 'bg-[#FFD6E8] text-[#D4469D]', badgeText: '母节' },
-  fathers_day: { bg: 'bg-gradient-to-br from-[#EFF6FF] to-[#DBEAFE]', icon: '👨', badgeClass: 'bg-[#BFDBFE] text-[#3B82F6]', badgeText: '父节' }
+const EVENT_META: Record<string, { icon: typeof Gift; badgeText: string; tint: string }> = {
+  birthday: { icon: Gift, badgeText: '生日', tint: 'text-[#0066cc] bg-[#e9f2ff]' },
+  mothers_day: { icon: Heart, badgeText: '母亲节', tint: 'text-[#af52de] bg-[#f7edff]' },
+  fathers_day: { icon: CalendarDays, badgeText: '父亲节', tint: 'text-[#248a3d] bg-[#eef8f1]' },
 };
 
 function getCountdownText(days: number): string {
-  if (days === 0) return '就是今天！';
-  if (days === 1) return '明天~';
-  if (days <= 3) return `${days}天后`;
-  if (days <= 7) return `还有${days}天`;
-  return `${days}天后`;
-}
-
-function getCountdownEmoji(days: number): string {
-  if (days === 0) return '🎉';
-  if (days <= 3) return '🔥';
-  if (days <= 7) return '⏰';
-  return '📆';
+  if (days === 0) return '今天';
+  if (days === 1) return '明天';
+  return `${days} 天后`;
 }
 
 export default function Reminders() {
   const { relatives } = useRelativeStore();
   const events = getUpcomingEvents(relatives);
+  const pageRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+
+  useGsapEntrance(pageRef, [], { selector: '[data-gsap-page]', y: 18, stagger: 0.06 });
+  useGsapEntrance(listRef, [events.length], { y: 12, stagger: 0.045 });
 
   return (
-    <div className="p-4 md:p-6 lg:p-8">
-      <header className="mb-5">
-        <div className="flex items-center gap-2">
-          <h1 className="text-xl md:text-2xl font-bold text-[#3D2E22]">提醒管理</h1>
-          <span className="text-lg">🔔</span>
-        </div>
-        <p className="text-xs text-[#C0A898] mt-0.5">
-          {events.length > 0
-            ? <>最近有 <span className="font-semibold text-[#E8734A]">{events.length}</span> 件事情要关注哦~</>
-            : '查看即将到来的生日和节日'}
-        </p>
-      </header>
+    <div className="ios-page h-full overflow-y-auto">
+      <div ref={pageRef} className="ios-container">
+        <header className="ios-header" data-gsap-page>
+          <div>
+            <p className="ios-kicker">提醒</p>
+            <h1 className="ios-title">别错过重要日子。</h1>
+            <p className="ios-subtitle">
+              {events.length > 0 ? (
+                <>
+                  最近有 <span className="font-semibold text-[#0066cc]">{events.length}</span> 件事情值得关注。
+                </>
+              ) : (
+                '添加亲友后，生日和节日会自动整理到这里。'
+              )}
+            </p>
+          </div>
+        </header>
 
-      {events.length === 0 ? (
-        <div className="text-center py-20">
-          <div className="text-5xl mb-3">😴</div>
-          <p className="text-[#8B7B6B] font-medium mb-1">暂时没有提醒</p>
-          <p className="text-xs text-[#C0A898]">添加亲友后会自动生成提醒哦~</p>
-        </div>
-      ) : (
-        <div className="space-y-2.5">
-          {events.map((event, index) => {
-            const style = EVENT_STYLES[event.type] || EVENT_STYLES.birthday;
-            return (
-              <Link
-                key={`${event.id}-${event.type}-${index}`}
-                to={`/detail/${event.id}`}
-                className="block rounded-2xl p-4 border border-[#F5E6D8] active:scale-[0.99] transition-all duration-150"
-                style={{
-                  background: event.type === 'birthday' ? 'linear-gradient(135deg, #FFF5EE, #FFE8D8)'
-                    : event.type === 'mothers_day' ? 'linear-gradient(135deg, #FFF0F5, #FFE0EB)'
-                    : 'linear-gradient(135deg, #EFF6FF, #DBEAFE)',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
-                }}
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-2xl bg-white/70 flex items-center justify-center text-2xl shrink-0"
-                    style={{ boxShadow: '0 2px 6px rgba(0,0,0,0.04)' }}>
-                    {style.icon}
+        {events.length === 0 ? (
+          <div ref={listRef} className="ios-panel flex flex-col items-center justify-center px-6 py-16 text-center">
+            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#e9f2ff] text-[#0066cc]">
+              <Bell size={30} />
+            </div>
+            <h2 className="text-xl font-semibold">暂时没有提醒</h2>
+            <p className="mt-2 text-sm text-[#7a7a7a]">这里会安静地等到真正需要提醒你的时候。</p>
+          </div>
+        ) : (
+          <div ref={listRef} className="grid gap-3" data-gsap-page>
+            {events.map((event, index) => {
+              const meta = EVENT_META[event.type] || EVENT_META.birthday;
+              const Icon = meta.icon;
+              return (
+                <Link
+                  key={`${event.id}-${event.type}-${index}`}
+                  to={event.id ? `/detail/${event.id}` : '/calendar'}
+                  className="ios-card block p-4"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${meta.tint}`}>
+                      <Icon size={22} />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="truncate text-[16px] font-semibold text-[#1d1d1f]">{event.name}</h3>
+                      <p className="mt-0.5 text-sm text-[#7a7a7a]">
+                        {event.date.toLocaleDateString('zh-CN', { month: 'long', day: 'numeric' })}
+                      </p>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <div className="rounded-full bg-[#f5f5f7] px-3 py-1 text-sm font-semibold text-[#1d1d1f]">
+                        {getCountdownText(event.daysUntil)}
+                      </div>
+                      <div className="mt-1 text-xs text-[#8e8e93]">{meta.badgeText}</div>
+                    </div>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-sm text-[#3D2E22] truncate">{event.name}</h3>
-                    <p className="text-[11px] text-[#A09080] mt-0.5">
-                      {event.date.toLocaleDateString('zh-CN', { month: 'long', day: 'numeric' })}
-                    </p>
-                  </div>
-                  <div className="flex flex-col items-end gap-1 shrink-0">
-                    <span className="text-lg">{getCountdownEmoji(event.daysUntil)}</span>
-                    <span className={`px-2 py-0.5 rounded-full text-[11px] font-semibold ${
-                      event.daysUntil <= 3
-                        ? 'bg-[#FFE0D0] text-[#E8734A]'
-                        : event.daysUntil <= 7
-                          ? 'bg-[#FFF0D0] text-[#D4A017]'
-                          : 'bg-[#D5F5E3] text-[#27AE60]'
-                    }`}>
-                      {getCountdownText(event.daysUntil)}
-                    </span>
-                  </div>
-                </div>
-              </Link>
-            );
-          })}
-        </div>
-      )}
+                </Link>
+              );
+            })}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

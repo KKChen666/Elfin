@@ -7,11 +7,29 @@ import { traeBadgePlugin } from 'vite-plugin-trae-solo-badge';
 export default defineConfig({
   build: {
     sourcemap: 'hidden',
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return;
+          if (id.includes('react') || id.includes('react-dom') || id.includes('react-router-dom')) {
+            return 'react-vendor';
+          }
+          if (id.includes('@phosphor-icons') || id.includes('lucide-react')) {
+            return 'icon-vendor';
+          }
+          if (id.includes('gsap')) {
+            return 'animation-vendor';
+          }
+          return 'vendor';
+        },
+      },
+    },
   },
   server: {
+    port: 2901,
     proxy: {
       '/api': {
-        target: 'http://localhost:8000',
+        target: 'http://127.0.0.1:3290',
         changeOrigin: true,
       },
     },

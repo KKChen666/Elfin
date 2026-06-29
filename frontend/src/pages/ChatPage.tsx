@@ -1,9 +1,25 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
-import { PaperPlaneRight, Robot, User, Plus } from '@phosphor-icons/react';
+import { PaperPlaneRight, Robot, User, CheckCircle } from '@phosphor-icons/react';
 import { conversationsApi, Conversation, Message } from '../api/conversations';
 import { agentsApi, Agent } from '../api/agents';
 import gsap from 'gsap';
+import { useGsapEntrance } from '../hooks/useGsapEntrance';
+
+function getConversationTitle(conversation: Conversation | null) {
+  if (!conversation) return '对话';
+  if (conversation.title) return conversation.title;
+  const names = conversation.participants?.map((p) => p.agent_name).filter(Boolean) || [];
+  return names.length ? names.join('、') : '新的对话';
+}
+
+function timeLabel(value: string) {
+  try {
+    return new Date(value).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+  } catch {
+    return '';
+  }
+}
 
 export default function ChatPage() {
   const { id } = useParams<{ id: string }>();
@@ -18,17 +34,19 @@ export default function ChatPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const messageContainerRef = useRef<HTMLDivElement>(null);
+  const setupRef = useRef<HTMLDivElement>(null);
+  const chatFrameRef = useRef<HTMLDivElement>(null);
+  const chatListRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     loadAgents();
   }, []);
 
-  // 处理 ?agent= 参数，自动选中 agent
   useEffect(() => {
     const agentParam = searchParams.get('agent');
     if (agentParam && agents.length > 0) {
       const agentId = parseInt(agentParam);
-      if (!isNaN(agentId) && agents.some(a => a.id === agentId)) {
+      if (!Number.isNaN(agentId) && agents.some((a) => a.id === agentId)) {
         setSelectedAgents([agentId]);
       }
     }
@@ -48,12 +66,26 @@ export default function ChatPage() {
     scrollToBottom();
   }, [messages]);
 
+  useEffect(() => {
+    const lastMessage = chatListRef.current?.lastElementChild;
+    if (!lastMessage || messages.length === 0) return;
+
+    gsap.fromTo(
+      lastMessage,
+      { y: 12, opacity: 0, scale: 0.985 },
+      { y: 0, opacity: 1, scale: 1, duration: 0.28, ease: 'power2.out', clearProps: 'transform' },
+    );
+  }, [messages.length]);
+
+  useGsapEntrance(setupRef, [agents.length], { selector: '[data-agent-option]', y: 14, stagger: 0.045 });
+  useGsapEntrance(chatFrameRef, [id], { selector: '[data-gsap-chat]', y: 12, stagger: 0.055 });
+
   const loadAgents = async () => {
     try {
       const res = await agentsApi.getAll();
       setAgents(res.data);
     } catch {
-      // 静默失败
+      setAgents([]);
     }
   };
 
@@ -62,10 +94,10 @@ export default function ChatPage() {
       const res = await conversationsApi.getOne(convId);
       setConversation(res.data);
       if (res.data.participants) {
-        setSelectedAgents(res.data.participants.map(p => p.agent_id));
+        setSelectedAgents(res.data.participants.map((p) => p.agent_id));
       }
     } catch {
-      // 静默失败
+      setConversation(null);
     }
   };
 
@@ -74,7 +106,7 @@ export default function ChatPage() {
       const res = await conversationsApi.getMessages(convId);
       setMessages(res.data);
     } catch {
-      // 静默失败
+      setMessages([]);
     }
   };
 
@@ -88,7 +120,7 @@ export default function ChatPage() {
       const res = await conversationsApi.create(selectedAgents);
       navigate(`/chat/${res.data.id}`);
     } catch {
-      // 静默失败
+      // Kept quiet; global API layer may surface auth/network issues.
     }
   };
 
@@ -98,7 +130,6 @@ export default function ChatPage() {
     const content = inputValue.trim();
     setInputValue('');
 
-    // 添加用户消息到本地
     const userMsg: Message = {
       id: Date.now(),
       conversation_id: parseInt(id),
@@ -109,15 +140,13 @@ export default function ChatPage() {
       metadata_json: null,
       created_at: new Date().toISOString(),
     };
-    setMessages(prev => [...prev, userMsg]);
+    setMessages((prev) => [...prev, userMsg]);
 
-    // 发送到后端
     try {
       await conversationsApi.sendMessage(parseInt(id), content);
-      // 触发 agent 回复
       await triggerAgentReply();
     } catch {
-      // 静默失败
+      // Keep the optimistic user message visible.
     }
   };
 
@@ -126,12 +155,7 @@ export default function ChatPage() {
     setIsStreaming(true);
 
     try {
-      const response = await fetch(`/api/conversations/${id}/messages/agent`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
+      const response = await conversationsApi.triggerAgentReply(parseInt(id));
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
@@ -172,20 +196,8 @@ export default function ChatPage() {
                   metadata_json: null,
                   created_at: new Date().toISOString(),
                 };
-                setMessages(prev => [...prev, agentMsg]);
+                setMessages((prev) => [...prev, agentMsg]);
 
-                // GSAP 动画
-                setTimeout(() => {
-                  const lastMsg = messageContainerRef.current?.lastElementChild;
-                  if (lastMsg) {
-                    gsap.from(lastMsg, {
-                      y: 20,
-                      opacity: 0,
-                      duration: 0.3,
-                      ease: 'power2.out',
-                    });
-                  }
-                }, 50);
               }
               currentAgentId = null;
               currentContent = '';
@@ -198,212 +210,211 @@ export default function ChatPage() {
               }
             }
           } catch {
-            // JSON 解析失败，跳过
+            // Ignore malformed stream chunks.
           }
         }
       }
     } catch {
-      // 静默失败
+      // Quiet failure preserves the chat state.
     } finally {
       setIsStreaming(false);
     }
   };
 
-  // 新对话页面：选择 Agent
   if (!id || id === 'new') {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center p-6 bg-[#F7F8FA]">
-        <div className="w-full max-w-md">
-          <div className="text-center mb-8">
-            <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[#FF6A00] to-[#FF8A33] flex items-center justify-center mx-auto mb-5 shadow-lg"
-              style={{ boxShadow: '0 8px 32px rgba(255, 106, 0, 0.25)' }}>
-              <Robot size={40} className="text-white" weight="fill" />
+      <div className="ios-page flex h-full items-center justify-center overflow-y-auto px-4 py-10">
+        <div ref={setupRef} className="w-full max-w-[720px]">
+          <div className="mb-8 text-center" data-agent-option>
+            <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-[28px] bg-[#1d1d1f] text-white">
+              <Robot size={38} weight="fill" />
             </div>
-            <h1 className="text-2xl font-bold text-[#1A1A1A] mb-2">新建对话</h1>
-            <p className="text-[#999] text-sm">选择要对话的 Agent</p>
+            <p className="ios-kicker">选择一位或多位 Agent</p>
+            <h1 className="ios-title">开始一段新的对话。</h1>
+            <p className="ios-subtitle mx-auto max-w-md">
+              Elfin 会把不同 Agent 的能力组织在同一个安静、清晰的对话空间里。
+            </p>
           </div>
 
-          {/* Agent 选择 */}
-          <div className="space-y-2 mb-6">
-            {agents.map((agent) => (
-              <label
-                key={agent.id}
-                className={`
-                  flex items-center gap-3 p-4 rounded-2xl cursor-pointer transition-all duration-200
-                  ${selectedAgents.includes(agent.id)
-                    ? 'bg-white shadow-md border-2 border-[#FF6A00]'
-                    : 'bg-white shadow-sm border-2 border-transparent hover:shadow-md'
-                  }
-                `}
-              >
-                <input
-                  type="checkbox"
-                  checked={selectedAgents.includes(agent.id)}
-                  onChange={(e) => {
-                    if (e.target.checked) {
-                      setSelectedAgents(prev => [...prev, agent.id]);
-                    } else {
-                      setSelectedAgents(prev => prev.filter(id => id !== agent.id));
-                    }
-                  }}
-                  className="sr-only"
-                />
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#FF6A00] to-[#FF8A33] flex items-center justify-center">
-                  {agent.avatar_url ? (
-                    <img src={agent.avatar_url} alt="" className="w-12 h-12 rounded-xl" />
-                  ) : (
-                    <Robot size={24} className="text-white" weight="fill" />
-                  )}
-                </div>
-                <div className="flex-1">
-                  <p className="font-semibold text-[#1A1A1A]">{agent.name}</p>
-                  <p className="text-xs text-[#999] mt-0.5 truncate">
-                    {agent.description || 'AI Agent'}
-                  </p>
-                </div>
-                {selectedAgents.includes(agent.id) && (
-                  <div className="w-6 h-6 rounded-full bg-[#FF6A00] flex items-center justify-center">
-                    <svg width="12" height="12" viewBox="0 0 10 10" fill="none">
-                      <path d="M2 5L4.5 7.5L8 3" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {agents.map((agent) => {
+              const selected = selectedAgents.includes(agent.id);
+              return (
+                <label
+                  key={agent.id}
+                  data-agent-option
+                  className={`ios-card cursor-pointer p-4 ${selected ? 'border-[#0066cc] bg-[#f0f7ff]' : ''}`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={selected}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedAgents((prev) => [...prev, agent.id]);
+                      } else {
+                        setSelectedAgents((prev) => prev.filter((agentId) => agentId !== agent.id));
+                      }
+                    }}
+                    className="sr-only"
+                  />
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#e9f2ff] text-[#0066cc]">
+                      {agent.avatar_url ? (
+                        <img src={agent.avatar_url} alt="" className="h-full w-full object-cover" />
+                      ) : (
+                        <Robot size={24} weight="fill" />
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <p className="truncate text-[17px] font-semibold text-[#1d1d1f]">{agent.name}</p>
+                        {selected && <CheckCircle size={18} weight="fill" className="shrink-0 text-[#0066cc]" />}
+                      </div>
+                      <p className="mt-1 line-clamp-2 text-sm leading-5 text-[#6e6e73]">
+                        {agent.description || '一个可以陪你完成关系记录的 AI Agent'}
+                      </p>
+                    </div>
                   </div>
-                )}
-              </label>
-            ))}
+                </label>
+              );
+            })}
           </div>
 
           {agents.length === 0 && (
-            <div className="text-center py-12 bg-white rounded-2xl shadow-sm">
-              <Robot size={48} className="mx-auto text-[#E8E8E8] mb-4" />
-              <p className="text-[#999] mb-4">还没有 Agent</p>
-              <button
-                onClick={() => navigate('/agents')}
-                className="px-5 py-2.5 bg-[#FF6A00] text-white rounded-xl text-sm font-medium shadow-sm hover:bg-[#E55D00] transition-colors"
-                style={{ boxShadow: '0 4px 16px rgba(255, 106, 0, 0.3)' }}
-              >
+            <div className="ios-panel p-8 text-center" data-agent-option>
+              <Robot size={46} className="mx-auto mb-4 text-[#8e8e93]" />
+              <h2 className="text-lg font-semibold">还没有 Agent</h2>
+              <p className="mt-1 text-sm text-[#7a7a7a]">先创建一个 Agent，再回来开启对话。</p>
+              <button onClick={() => navigate('/agents')} className="ios-button-primary mt-5">
                 创建 Agent
               </button>
             </div>
           )}
 
           {agents.length > 0 && (
-            <button
-              onClick={handleCreateConversation}
-              disabled={selectedAgents.length === 0}
-              className="w-full py-3.5 bg-[#FF6A00] text-white rounded-2xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#E55D00] transition-all active:scale-[0.98] shadow-lg"
-              style={{ boxShadow: '0 4px 16px rgba(255, 106, 0, 0.3)' }}
-            >
-              开始对话
-            </button>
+            <div className="mt-6 flex justify-center" data-agent-option>
+              <button
+                onClick={handleCreateConversation}
+                disabled={selectedAgents.length === 0}
+                className="ios-button-primary w-full max-w-sm"
+              >
+                开始对话
+              </button>
+            </div>
           )}
         </div>
       </div>
     );
   }
 
-  // 对话页面
   return (
-    <div className="flex-1 flex flex-col bg-white">
-      {/* 顶部标题 */}
-      <header className="flex items-center justify-between px-6 py-4 border-b border-[#F0F0F0] bg-white">
-        <div>
-          <h1 className="font-semibold text-[#1A1A1A]">{conversation?.title || '对话'}</h1>
-          <p className="text-xs text-[#999] mt-0.5">
-            {conversation?.type === 'group' ? '群聊' : '单聊'}
-            {conversation?.participants && ` · ${conversation.participants.length} 个 Agent`}
-          </p>
+    <div ref={chatFrameRef} className="ios-page flex h-full flex-col overflow-hidden">
+      <header className="ios-frosted z-10 border-b border-white/60 px-5 py-4 lg:px-8" data-gsap-chat>
+        <div className="mx-auto flex max-w-4xl items-center justify-between gap-4 pl-12 lg:pl-0">
+          <div className="min-w-0">
+            <h1 className="truncate text-[17px] font-semibold tracking-[-0.01em] text-[#1d1d1f]">
+              {getConversationTitle(conversation)}
+            </h1>
+            <p className="mt-0.5 truncate text-xs text-[#7a7a7a]">
+              {conversation?.type === 'group' ? '群聊' : '单聊'}
+              {conversation?.participants && ` · ${conversation.participants.length} 位 Agent`}
+            </p>
+          </div>
+          <div className="hidden rounded-full bg-white/70 px-3 py-1 text-xs text-[#7a7a7a] sm:block">
+            {isStreaming ? '正在回复' : '在线'}
+          </div>
         </div>
       </header>
 
-      {/* 消息区域 */}
-      <div className="flex-1 overflow-y-auto bg-[#F7F8FA]">
-        <div ref={messageContainerRef} className="max-w-3xl mx-auto px-6 py-8 space-y-6">
+      <div className="flex-1 overflow-y-auto" data-gsap-chat>
+        <div ref={messageContainerRef} className="mx-auto max-w-4xl px-4 py-7 sm:px-6 lg:px-8">
           {messages.length === 0 && (
-            <div className="text-center py-20">
-              <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[#FF6A00] to-[#FF8A33] flex items-center justify-center mx-auto mb-5 shadow-lg"
-                style={{ boxShadow: '0 8px 32px rgba(255, 106, 0, 0.25)' }}>
-                <Robot size={40} className="text-white" weight="fill" />
+            <div className="py-20 text-center">
+              <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-[28px] bg-white text-[#0066cc] ring-1 ring-black/5">
+                <Robot size={38} weight="fill" />
               </div>
-              <h2 className="text-xl font-bold text-[#1A1A1A] mb-2">开始对话</h2>
-              <p className="text-[#999] text-sm">发送消息开始与 Agent 交流</p>
+              <h2 className="text-2xl font-semibold tracking-[-0.02em] text-[#1d1d1f]">这一页还很安静。</h2>
+              <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-[#7a7a7a]">
+                发送第一条消息，Agent 会在这里用更自然的节奏回应你。
+              </p>
             </div>
           )}
 
-          {messages.map((msg) => (
-            <div
-              key={msg.id}
-              className={`flex gap-3 ${msg.sender_type === 'user' ? 'justify-end' : ''}`}
-            >
-              {msg.sender_type === 'agent' && (
-                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#FF6A00] to-[#FF8A33] flex items-center justify-center shrink-0 shadow-sm">
-                  <Robot size={18} className="text-white" weight="fill" />
+          <div ref={chatListRef} className="space-y-5">
+            {messages.map((msg) => {
+              const isUser = msg.sender_type === 'user';
+              return (
+                <div key={msg.id} className={`flex gap-3 ${isUser ? 'justify-end' : 'justify-start'}`}>
+                  {!isUser && (
+                    <div className="mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#e9f2ff] text-[#0066cc]">
+                      <Robot size={18} weight="fill" />
+                    </div>
+                  )}
+                  <div className={`max-w-[82%] sm:max-w-[72%] ${isUser ? 'order-first' : ''}`}>
+                    {!isUser && msg.sender_name && (
+                      <p className="mb-1.5 px-1 text-xs font-medium text-[#0066cc]">{msg.sender_name}</p>
+                    )}
+                    <div
+                      className={`
+                        rounded-[24px] px-4 py-3 text-[15px] leading-7
+                        ${isUser ? 'bg-[#0066cc] text-white' : 'border border-black/5 bg-white text-[#1d1d1f]'}
+                      `}
+                    >
+                      <p className="whitespace-pre-wrap">{msg.content}</p>
+                    </div>
+                    <div className={`mt-1 px-1 text-[11px] text-[#8e8e93] ${isUser ? 'text-right' : ''}`}>
+                      {timeLabel(msg.created_at)}
+                    </div>
+                  </div>
+                  {isUser && (
+                    <div className="mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#1d1d1f] text-white">
+                      <User size={17} weight="fill" />
+                    </div>
+                  )}
                 </div>
-              )}
-              <div
-                className={`
-                  max-w-[80%] rounded-2xl px-4 py-3 text-sm
-                  ${msg.sender_type === 'user'
-                    ? 'bg-[#FF6A00] text-white shadow-sm'
-                    : 'bg-white shadow-sm text-[#1A1A1A]'
-                  }
-                `}
-                style={msg.sender_type === 'user' ? { boxShadow: '0 2px 12px rgba(255, 106, 0, 0.2)' } : {}}
-              >
-                {msg.sender_type === 'agent' && msg.sender_name && (
-                  <p className="text-xs text-[#FF6A00] mb-1.5 font-semibold">{msg.sender_name}</p>
-                )}
-                <p className="whitespace-pre-wrap leading-relaxed">{msg.content}</p>
-              </div>
-              {msg.sender_type === 'user' && (
-                <div className="w-9 h-9 rounded-xl bg-[#E8E8E8] flex items-center justify-center shrink-0">
-                  <User size={18} className="text-[#666]" />
-                </div>
-              )}
-            </div>
-          ))}
+              );
+            })}
 
-          {isStreaming && (
-            <div className="flex gap-3">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#FF6A00] to-[#FF8A33] flex items-center justify-center shadow-sm">
-                <Robot size={18} className="text-white" weight="fill" />
-              </div>
-              <div className="bg-white rounded-2xl px-4 py-3 shadow-sm">
-                <div className="flex gap-1.5">
-                  <div className="w-2 h-2 bg-[#FF6A00] rounded-full animate-bounce" />
-                  <div className="w-2 h-2 bg-[#FF6A00] rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
-                  <div className="w-2 h-2 bg-[#FF6A00] rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+            {isStreaming && (
+              <div className="flex gap-3">
+                <div className="mt-1 flex h-9 w-9 items-center justify-center rounded-full bg-[#e9f2ff] text-[#0066cc]">
+                  <Robot size={18} weight="fill" />
+                </div>
+                <div className="rounded-[24px] border border-black/5 bg-white px-4 py-3">
+                  <div className="flex gap-1.5">
+                    <div className="h-2 w-2 animate-bounce rounded-full bg-[#0066cc]" />
+                    <div className="h-2 w-2 animate-bounce rounded-full bg-[#0066cc]" style={{ animationDelay: '0.1s' }} />
+                    <div className="h-2 w-2 animate-bounce rounded-full bg-[#0066cc]" style={{ animationDelay: '0.2s' }} />
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
 
           <div ref={messagesEndRef} />
         </div>
       </div>
 
-      {/* 输入区域 */}
-      <div className="border-t border-[#F0F0F0] p-4 bg-white">
-        <div className="max-w-3xl mx-auto">
-          <div className="flex gap-3 items-center">
-            <input
-              ref={inputRef}
-              type="text"
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
-              placeholder="输入消息..."
-              className="flex-1 bg-[#F7F8FA] rounded-2xl px-5 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#FF6A00] focus:ring-opacity-30 placeholder-[#999] transition-all"
-              disabled={isStreaming}
-            />
-            <button
-              onClick={handleSendMessage}
-              disabled={!inputValue.trim() || isStreaming}
-              className="p-3.5 bg-[#FF6A00] text-white rounded-2xl hover:bg-[#E55D00] disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95 shadow-sm"
-              style={{ boxShadow: '0 4px 16px rgba(255, 106, 0, 0.3)' }}
-            >
-              <PaperPlaneRight size={20} weight="fill" />
-            </button>
-          </div>
+      <div className="ios-frosted border-t border-white/60 p-3 safe-bottom" data-gsap-chat>
+        <div className="mx-auto flex max-w-4xl items-center gap-2">
+          <input
+            ref={inputRef}
+            type="text"
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
+            placeholder="输入消息..."
+            className="ios-input flex-1"
+            disabled={isStreaming}
+          />
+          <button
+            onClick={handleSendMessage}
+            disabled={!inputValue.trim() || isStreaming}
+            className="ios-button-primary !h-11 !w-11 !px-0"
+            aria-label="发送消息"
+          >
+            <PaperPlaneRight size={20} weight="fill" />
+          </button>
         </div>
       </div>
     </div>

@@ -30,6 +30,15 @@ export interface SkillCreateData {
   system_prompt?: string;
 }
 
+export interface SkillCreatorData {
+  name: string;
+  goal: string;
+  description?: string;
+  raw_text?: string;
+  debug_cases?: string;
+  files?: File[];
+}
+
 export const skillsApi = {
   getAll() {
     return client.get<Skill[]>('/skills');
@@ -51,5 +60,18 @@ export const skillsApi = {
   },
   merge(skillIds: number[], newName: string) {
     return client.post<Skill>('/skills/merge', { skill_ids: skillIds, new_name: newName });
+  },
+  createWithCreator(data: SkillCreatorData) {
+    const formData = new FormData();
+    formData.append('name', data.name);
+    formData.append('goal', data.goal);
+    if (data.description) formData.append('description', data.description);
+    if (data.raw_text) formData.append('raw_text', data.raw_text);
+    if (data.debug_cases) formData.append('debug_cases', data.debug_cases);
+    data.files?.forEach((file) => formData.append('files', file));
+    return client.post<Skill>('/skills/creator', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 90000,
+    });
   },
 };

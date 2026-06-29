@@ -1,4 +1,5 @@
 import json
+from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
@@ -64,16 +65,18 @@ def create_conversation(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    agent_ids = list(dict.fromkeys(data.agent_ids))
+
     # 验证所有 agent 属于当前用户
     agents = db.query(Agent).filter(
-        Agent.id.in_(data.agent_ids), Agent.user_id == user.id
+        Agent.id.in_(agent_ids), Agent.user_id == user.id
     ).all()
-    if len(agents) != len(data.agent_ids):
+    if len(agents) != len(agent_ids):
         raise HTTPException(status_code=400, detail="部分 Agent 不存在")
 
     # 确定对话类型
     conv_type = data.type if data.type in ("direct", "group") else "direct"
-    if len(data.agent_ids) > 1:
+    if len(agent_ids) > 1:
         conv_type = "group"
 
     # 自动生成标题
@@ -93,7 +96,7 @@ def create_conversation(
     db.flush()
 
     # 添加参与者
-    for agent_id in data.agent_ids:
+    for agent_id in agent_ids:
         participant = ConversationParticipant(
             conversation_id=conv.id,
             agent_id=agent_id,
@@ -194,6 +197,7 @@ def send_message(
         sender_id=user.id,
         content=data.content,
     )
+    conv.updated_at = datetime.utcnow()
     db.add(msg)
     db.commit()
     db.refresh(msg)
@@ -247,7 +251,11 @@ async def trigger_agent_reply(
     agents_data = []
     for agent in target_agents:
         messages = _build_messages_for_agent(conv, agent, db)
-        agents_data.append({"agent": agent, "messages": messages})
+        agents_data.append({
+            "agent_id": agent.id,
+            "agent_name": agent.name,
+            "messages": messages,
+        })
 
     async def generate():
         # 在生成器内部创建新的 DB session
@@ -255,26 +263,34 @@ async def trigger_agent_reply(
         gen_db = SessionLocal()
         try:
             for agent_data in agents_data:
-                agent = agent_data["agent"]
+                agent_id_value = agent_data["agent_id"]
+                agent_name = agent_data["agent_name"]
                 messages = agent_data["messages"]
 
                 # 流式生成回复
                 full_response = ""
                 async for chunk in chat_completion_stream(messages):
                     full_response += chunk
-                    yield f"data: {json.dumps({'agent_id': agent.id, 'agent_name': agent.name, 'content': chunk, 'done': False})}\n\n"
+                    yield f"data: {json.dumps({'agent_id': agent_id_value, 'agent_name': agent_name, 'content': chunk, 'done': False})}\n\n"
 
                 # 保存 agent 回复
                 msg = Message(
                     conversation_id=conv_id,
                     sender_type="agent",
-                    sender_id=agent.id,
+                    sender_id=agent_id_value,
                     content=full_response,
                 )
+                conv_for_update = (
+                    gen_db.query(Conversation)
+                    .filter(Conversation.id == conv_id)
+                    .first()
+                )
+                if conv_for_update:
+                    conv_for_update.updated_at = datetime.utcnow()
                 gen_db.add(msg)
                 gen_db.commit()
 
-                yield f"data: {json.dumps({'agent_id': agent.id, 'agent_name': agent.name, 'content': '', 'done': True})}\n\n"
+                yield f"data: {json.dumps({'agent_id': agent_id_value, 'agent_name': agent_name, 'content': '', 'done': True})}\n\n"
         finally:
             gen_db.close()
 

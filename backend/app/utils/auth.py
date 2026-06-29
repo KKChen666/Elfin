@@ -1,6 +1,6 @@
 import hashlib
-import secrets
 from datetime import datetime, timedelta
+import bcrypt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
@@ -13,15 +13,27 @@ from app.models.user import User
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
 
+def _bcrypt_input(password: str) -> bytes:
+    return hashlib.sha256(password.encode("utf-8")).hexdigest().encode("ascii")
+
+
 def hash_password(password: str) -> str:
-    """使用 SHA-256 + salt 哈希密码"""
-    salt = secrets.token_hex(16)
-    hash_obj = hashlib.sha256((salt + password).encode())
-    return f"{salt}${hash_obj.hexdigest()}"
+    """使用 bcrypt 哈希密码。"""
+    return bcrypt.hashpw(_bcrypt_input(password), bcrypt.gensalt()).decode("utf-8")
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """验证密码"""
+    if hashed_password.startswith("$2"):
+        try:
+            return bcrypt.checkpw(
+                _bcrypt_input(plain_password),
+                hashed_password.encode("utf-8"),
+            )
+        except ValueError:
+            return False
+
+    # 兼容早期 SHA-256 + salt 哈希。
     try:
         salt, hash_value = hashed_password.split("$", 1)
         hash_obj = hashlib.sha256((salt + plain_password).encode())

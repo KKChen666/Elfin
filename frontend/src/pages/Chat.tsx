@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+﻿import { useState, useEffect, useMemo, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Send, Trash2 } from 'lucide-react';
 import { useRelativeStore } from '../stores/useRelativeStore';
@@ -17,7 +17,10 @@ export default function Chat() {
     requestAvatarResponse,
   } = useRelativeStore();
   const relative = getRelative(id || '');
-  const messages = chatMessages[id || ''] || [];
+  const messages = useMemo(
+    () => chatMessages[id || ''] || [],
+    [chatMessages, id]
+  );
 
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -57,7 +60,7 @@ export default function Chat() {
           <p className="text-gray-500 mb-4">还没有导入聊天记录，无法创建分身</p>
           <button
             onClick={() => navigate(`/import/${id}`)}
-            className="px-4 py-2 bg-[#E8734A] text-white rounded-xl text-sm font-medium hover:bg-[#D4633A] transition-colors"
+            className="px-4 py-2 bg-[#0066CC] text-white rounded-xl text-sm font-medium hover:bg-[#005BB8] transition-colors"
           >
             导入聊天记录
           </button>
@@ -147,7 +150,7 @@ export default function Chat() {
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.length === 0 && (
           <div className="text-center py-8">
-            <div className="w-16 h-16 rounded-full bg-orange-50 flex items-center justify-center mx-auto mb-3">
+            <div className="w-16 h-16 rounded-full bg-[#e9f2ff] flex items-center justify-center mx-auto mb-3">
               {relative.avatarImage ? (
                 <img
                   src={relative.avatarImage}
@@ -192,7 +195,7 @@ export default function Chat() {
                 <div
                   className={`px-3 py-2 rounded-2xl text-sm ${
                     msg.sender === 'user'
-                      ? 'bg-[#E8734A] text-white rounded-br-md'
+                      ? 'bg-[#0066CC] text-white rounded-br-md'
                       : 'bg-white border border-gray-100 rounded-bl-md'
                   }`}
                 >
@@ -256,13 +259,13 @@ export default function Chat() {
             onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
             placeholder="输入消息..."
-            className="flex-1 px-4 py-2 bg-gray-50 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-[#E8734A] focus:ring-opacity-50"
+            className="flex-1 px-4 py-2 bg-gray-50 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-[#0066CC] focus:ring-opacity-50"
             disabled={isTyping}
           />
           <button
             onClick={handleSendMessage}
             disabled={!inputValue.trim() || isTyping}
-            className="p-2 bg-[#E8734A] text-white rounded-full hover:bg-[#D4633A] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="p-2 bg-[#0066CC] text-white rounded-full hover:bg-[#005BB8] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Send size={18} />
           </button>

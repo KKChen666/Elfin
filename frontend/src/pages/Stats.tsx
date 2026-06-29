@@ -1,83 +1,106 @@
 import { useRelativeStore } from '../stores/useRelativeStore';
 import { RELATION_CATEGORIES, getRelationCategory } from '../types';
 import { Users, UserCheck, Calendar, MessageSquare } from 'lucide-react';
+import { useEffect, useRef } from 'react';
+import gsap from 'gsap';
+import { useGsapEntrance } from '../hooks/useGsapEntrance';
+
+const statIcons = [Users, UserCheck, Calendar, MessageSquare];
 
 export default function Stats() {
   const { relatives } = useRelativeStore();
+  const pageRef = useRef<HTMLDivElement>(null);
+  const cardsRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLElement>(null);
 
   const totalRelatives = relatives.length;
-  const familyCount = relatives.filter(r => getRelationCategory(r.relation) === '家人').length;
-  const friendCount = relatives.filter(r => getRelationCategory(r.relation) === '朋友').length;
-  const withChatStyle = relatives.filter(r => r.chatStyle).length;
+  const familyCount = relatives.filter((r) => getRelationCategory(r.relation) === '家人').length;
+  const friendCount = relatives.filter((r) => getRelationCategory(r.relation) === '朋友').length;
+  const withChatStyle = relatives.filter((r) => r.chatStyle).length;
+
+  const summary = [
+    { label: '亲友总数', value: totalRelatives },
+    { label: '家人数量', value: familyCount },
+    { label: '朋友数量', value: friendCount },
+    { label: '已导入风格', value: withChatStyle },
+  ];
 
   const categoryStats = [
-    ...RELATION_CATEGORIES.map(c => ({
+    ...RELATION_CATEGORIES.map((c) => ({
       label: c.label,
-      count: relatives.filter(r => c.items.some(item => item.key === r.relation)).length
+      count: relatives.filter((r) => c.items.some((item) => item.key === r.relation)).length,
     })),
     {
       label: '自定义',
-      count: relatives.filter(r => getRelationCategory(r.relation) === '自定义').length
-    }
+      count: relatives.filter((r) => getRelationCategory(r.relation) === '自定义').length,
+    },
   ];
 
+  useGsapEntrance(pageRef, [], { selector: '[data-gsap-page]', y: 18, stagger: 0.06 });
+  useGsapEntrance(cardsRef, [totalRelatives], { y: 14, stagger: 0.05 });
+
+  useEffect(() => {
+    const root = panelRef.current;
+    if (!root) return;
+
+    const bars = Array.from(root.querySelectorAll<HTMLElement>('[data-stat-bar]'));
+    const ctx = gsap.context(() => {
+      bars.forEach((bar, index) => {
+        const width = bar.style.width || '0%';
+        gsap.fromTo(
+          bar,
+          { width: '0%' },
+          { width, duration: 0.58, delay: index * 0.045, ease: 'power2.out' },
+        );
+      });
+    }, root);
+
+    return () => ctx.revert();
+  }, [totalRelatives, relatives.length]);
+
   return (
-    <div className="p-4 md:p-6 lg:p-8">
-      <header className="mb-5 md:mb-6">
-        <h1 className="text-xl md:text-2xl font-bold text-[#2D2A26]">数据统计</h1>
-        <p className="text-sm text-gray-400 mt-0.5">查看你的亲友管理情况</p>
-      </header>
-
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-5">
-        <div className="bg-white rounded-xl p-4 border border-gray-50">
-          <div className="w-9 h-9 rounded-lg bg-orange-50 flex items-center justify-center mb-3">
-            <Users size={18} className="text-[#E8734A]" />
+    <div className="ios-page h-full overflow-y-auto">
+      <div ref={pageRef} className="ios-container">
+        <header className="ios-header" data-gsap-page>
+          <div>
+            <p className="ios-kicker">统计</p>
+            <h1 className="ios-title">关系记忆的轮廓。</h1>
+            <p className="ios-subtitle">用轻量数据看看你记录了哪些人，以及哪些关系已经有了沟通风格。</p>
           </div>
-          <div className="text-2xl font-bold text-[#2D2A26]">{totalRelatives}</div>
-          <div className="text-xs text-gray-400">亲友总数</div>
-        </div>
+        </header>
 
-        <div className="bg-white rounded-xl p-4 border border-gray-50">
-          <div className="w-9 h-9 rounded-lg bg-green-50 flex items-center justify-center mb-3">
-            <UserCheck size={18} className="text-[#5B8C6E]" />
-          </div>
-          <div className="text-2xl font-bold text-[#2D2A26]">{familyCount}</div>
-          <div className="text-xs text-gray-400">家人数量</div>
-        </div>
-
-        <div className="bg-white rounded-xl p-4 border border-gray-50">
-          <div className="w-9 h-9 rounded-lg bg-purple-50 flex items-center justify-center mb-3">
-            <Calendar size={18} className="text-[#7B68EE]" />
-          </div>
-          <div className="text-2xl font-bold text-[#2D2A26]">{friendCount}</div>
-          <div className="text-xs text-gray-400">朋友数量</div>
-        </div>
-
-        <div className="bg-white rounded-xl p-4 border border-gray-50">
-          <div className="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center mb-3">
-            <MessageSquare size={18} className="text-[#4A90D9]" />
-          </div>
-          <div className="text-2xl font-bold text-[#2D2A26]">{withChatStyle}</div>
-          <div className="text-xs text-gray-400">已导入风格</div>
-        </div>
-      </div>
-
-      <div className="bg-white rounded-xl p-4 border border-gray-50">
-        <h3 className="font-semibold text-sm mb-4">亲友分布</h3>
-        <div className="space-y-3">
-          {categoryStats.map(stat => (
-            <div key={stat.label} className="flex items-center gap-3">
-              <div className="w-14 text-xs text-gray-400 shrink-0">{stat.label}</div>
-              <div className="flex-1 h-5 bg-gray-50 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-[#E8734A] rounded-full transition-all"
-                  style={{ width: `${totalRelatives > 0 ? (stat.count / totalRelatives) * 100 : 0}%` }}
-                />
+        <div ref={cardsRef} className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4" data-gsap-page>
+          {summary.map((item, index) => {
+            const Icon = statIcons[index];
+            return (
+              <div key={item.label} className="ios-card p-4">
+                <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-[#e9f2ff] text-[#0066cc]">
+                  <Icon size={19} />
+                </div>
+                <div className="text-3xl font-semibold tracking-[-0.03em] text-[#1d1d1f]">{item.value}</div>
+                <div className="mt-1 text-sm text-[#7a7a7a]">{item.label}</div>
               </div>
-              <div className="w-6 text-right text-xs font-medium text-gray-500">{stat.count}</div>
-            </div>
-          ))}
+            );
+          })}
         </div>
+
+        <section ref={panelRef} className="ios-panel p-5" data-gsap-page>
+          <h2 className="mb-5 text-xl font-semibold tracking-[-0.01em]">亲友分布</h2>
+          <div className="space-y-4">
+            {categoryStats.map((stat) => {
+              const width = totalRelatives > 0 ? (stat.count / totalRelatives) * 100 : 0;
+              return (
+                <div key={stat.label} className="grid grid-cols-[4.5rem_1fr_2rem] items-center gap-3">
+                  <div className="text-sm text-[#6e6e73]">{stat.label}</div>
+                  <div className="h-2 overflow-hidden rounded-full bg-black/5">
+                    <div data-stat-bar className="h-full rounded-full bg-[#0066cc]" style={{ width: `${width}%` }} />
+                  </div>
+                  <div className="text-right text-sm font-semibold text-[#1d1d1f]">{stat.count}</div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
       </div>
     </div>
   );

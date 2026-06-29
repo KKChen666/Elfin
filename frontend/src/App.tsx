@@ -25,8 +25,8 @@ function RequireAuth({ children }: { children: ReactNode }) {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#1a1a1a]">
-        <div className="animate-spin w-8 h-8 border-[3px] border-[#d4a574] border-t-transparent rounded-full" />
+      <div className="ios-page flex min-h-screen items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-[3px] border-[#0066cc] border-t-transparent" />
       </div>
     );
   }

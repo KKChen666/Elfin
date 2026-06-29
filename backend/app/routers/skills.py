@@ -1,11 +1,13 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models.user import User
 from app.models.skill import Skill
+from app.models.relative import Relative
 from app.schemas.skill import SkillCreate, SkillUpdate, SkillOut
+from app.services.skill_creator_service import create_skill_from_materials
 from app.services.distill_service import distill_from_relative, merge_skills
 from app.utils.auth import get_current_user
 
@@ -32,11 +34,52 @@ def create_skill(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    if data.source_relative_id is not None:
+        relative = (
+            db.query(Relative)
+            .filter(Relative.id == data.source_relative_id, Relative.user_id == user.id)
+            .first()
+        )
+        if not relative:
+            raise HTTPException(status_code=404, detail="亲友不存在")
+
     skill = Skill(user_id=user.id, **data.model_dump())
     db.add(skill)
     db.commit()
     db.refresh(skill)
     return SkillOut.model_validate(skill)
+
+
+@router.post("/creator", response_model=SkillOut, status_code=201)
+async def create_skill_with_creator(
+    name: str = Form(...),
+    goal: str = Form(...),
+    description: str | None = Form(default=None),
+    raw_text: str | None = Form(default=None),
+    debug_cases: str | None = Form(default=None),
+    files: list[UploadFile] = File(default=[]),
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Create a reusable AI skill from notes, chat records, PDFs, images, and debug cases."""
+    if not name.strip():
+        raise HTTPException(status_code=400, detail="Skill name is required")
+    if not goal.strip():
+        raise HTTPException(status_code=400, detail="Skill goal is required")
+    try:
+        skill = await create_skill_from_materials(
+            db=db,
+            user_id=user.id,
+            name=name,
+            goal=goal,
+            description=description,
+            raw_text=raw_text,
+            debug_cases=debug_cases,
+            files=files,
+        )
+        return SkillOut.model_validate(skill)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @router.get("/{skill_id}", response_model=SkillOut)

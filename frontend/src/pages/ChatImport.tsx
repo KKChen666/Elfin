@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Upload } from 'lucide-react';
 import { useRelativeStore } from '../stores/useRelativeStore';
@@ -102,11 +102,11 @@ export default function ChatImport() {
 
         {analyzing && (
           <div className="text-center py-12">
-            <div className="animate-spin w-10 h-10 border-[3px] border-[#E8734A] border-t-transparent rounded-full mx-auto mb-4" />
+            <div className="animate-spin w-10 h-10 border-[3px] border-[#0066CC] border-t-transparent rounded-full mx-auto mb-4" />
             <p className="font-medium text-sm mb-2">正在分析聊天记录...</p>
             <div className="w-48 h-1.5 bg-gray-100 rounded-full mx-auto">
               <div
-                className="h-full bg-[#E8734A] rounded-full transition-all"
+                className="h-full bg-[#0066CC] rounded-full transition-all"
                 style={{ width: `${progress}%` }}
               />
             </div>
@@ -121,7 +121,7 @@ export default function ChatImport() {
             <div className="bg-white rounded-xl p-4 border border-gray-50">
               <h3 className="font-medium text-sm mb-2">性格特点</h3>
               <div className="flex flex-wrap gap-2">
-                <span className="px-3 py-1 bg-orange-50 rounded-full text-sm text-[#E8734A]">
+                <span className="px-3 py-1 bg-[#e9f2ff] rounded-full text-sm text-[#0066CC]">
                   {result.personality}
                 </span>
                 <span className="px-3 py-1 bg-blue-50 rounded-full text-sm text-blue-600">
@@ -168,7 +168,7 @@ export default function ChatImport() {
                 {result.toneWords.map((word, i) => (
                   <span
                     key={i}
-                    className="px-2 py-0.5 bg-orange-50 rounded text-sm text-[#E8734A]"
+                    className="px-2 py-0.5 bg-[#e9f2ff] rounded text-sm text-[#0066CC]"
                   >
                     {word}
                   </span>
@@ -177,14 +177,14 @@ export default function ChatImport() {
             </div>
 
             {result.expressionDNA && result.expressionDNA.length > 0 && (
-              <div className="bg-white rounded-xl p-4 border border-orange-100">
-                <h3 className="font-medium text-sm mb-2 text-[#E8734A]">表达 DNA</h3>
+              <div className="bg-white rounded-xl p-4 border border-[#dbeaff]">
+                <h3 className="font-medium text-sm mb-2 text-[#0066CC]">表达 DNA</h3>
                 <p className="text-xs text-gray-400 mb-2">最具辨识度的表达方式</p>
                 <div className="flex flex-wrap gap-1.5">
                   {result.expressionDNA.map((trait, i) => (
                     <span
                       key={i}
-                      className="px-2.5 py-1 bg-orange-50 rounded-full text-sm text-[#E8734A]"
+                      className="px-2.5 py-1 bg-[#e9f2ff] rounded-full text-sm text-[#0066CC]"
                     >
                       {trait}
                     </span>
@@ -214,7 +214,7 @@ export default function ChatImport() {
               </button>
               <button
                 onClick={handleSave}
-                className="flex-1 py-2.5 bg-[#E8734A] text-white rounded-xl text-sm font-medium hover:bg-[#D4633A] transition-colors"
+                className="flex-1 py-2.5 bg-[#0066CC] text-white rounded-xl text-sm font-medium hover:bg-[#005BB8] transition-colors"
               >
                 保存结果
               </button>

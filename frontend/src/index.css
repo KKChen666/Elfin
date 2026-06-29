@@ -3,52 +3,63 @@
 @tailwind utilities;
 
 :root {
-  font-family: 'PingFang SC', 'Microsoft YaHei', -apple-system, BlinkMacSystemFont, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-  color: #1A1A1A;
-  background-color: #F7F8FA;
-
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC",
+    "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+  color: #1d1d1f;
+  background: #f5f5f7;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  --ios-blue: #0066cc;
+  --ios-blue-focus: #0071e3;
+  --ios-ink: #1d1d1f;
+  --ios-muted: #7a7a7a;
+  --ios-canvas: #ffffff;
+  --ios-parchment: #f5f5f7;
+  --ios-pearl: #fafafc;
+  --ios-hairline: rgba(0, 0, 0, 0.08);
+  --ios-glass: rgba(255, 255, 255, 0.78);
 }
 
 * {
   box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
   margin: 0;
-  padding: 0;
+  min-width: 320px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 12% 4%, rgba(0, 102, 204, 0.08), transparent 26rem),
+    linear-gradient(180deg, #fbfbfd 0%, #f5f5f7 48%, #efeff4 100%);
 }
 
-html, body, #root {
-  height: 100%;
-  background-color: #F7F8FA;
+button,
+input,
+textarea,
+select {
+  font: inherit;
 }
 
-/* 确保侧边栏背景不被覆盖 */
-aside {
-  background-color: #FFFFFF !important;
+button {
+  -webkit-tap-highlight-color: transparent;
 }
 
-html {
-  /* 移动端安全区域 */
-  padding-bottom: env(safe-area-inset-bottom);
+::selection {
+  background: rgba(0, 102, 204, 0.16);
 }
 
-input, textarea, select, button {
-  font-family: inherit;
-}
-
-/* 安全底部间距 */
-.safe-bottom {
-  padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
-}
-
-/* 滚动条 */
 ::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -56,55 +67,234 @@ input, textarea, select, button {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #E0DCD6;
-  border-radius: 2px;
+  background: rgba(60, 60, 67, 0.24);
+  border-radius: 999px;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: #B0ACA6;
-}
-
-/* 隐藏滚动条 */
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
 
-/* 淡入动画 */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-.animate-fadeIn {
-  animation: fadeIn 0.25s ease-out;
+.safe-bottom {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
 }
 
-/* 自定义 range 样式 */
-input[type="range"] {
-  -webkit-appearance: none;
-  appearance: none;
-  height: 4px;
-  background: #EDE8E3;
-  border-radius: 4px;
-  outline: none;
+@layer components {
+  .ios-page {
+    min-height: 100%;
+    color: var(--ios-ink);
+    background:
+      radial-gradient(circle at top right, rgba(0, 102, 204, 0.07), transparent 22rem),
+      linear-gradient(180deg, #fbfbfd 0%, #f5f5f7 100%);
+  }
+
+  .ios-container {
+    width: min(100%, 1120px);
+    margin: 0 auto;
+    padding: 2rem clamp(1rem, 3vw, 2rem);
+  }
+
+  .ios-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .ios-kicker {
+    margin: 0 0 0.35rem;
+    color: var(--ios-muted);
+    font-size: 0.8125rem;
+    line-height: 1.35;
+  }
+
+  .ios-title {
+    margin: 0;
+    color: var(--ios-ink);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", sans-serif;
+    font-size: clamp(1.75rem, 3vw, 2.45rem);
+    font-weight: 650;
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+  }
+
+  .ios-subtitle {
+    margin-top: 0.55rem;
+    color: var(--ios-muted);
+    font-size: 0.9375rem;
+    line-height: 1.55;
+  }
+
+  .ios-panel {
+    background: rgba(255, 255, 255, 0.86);
+    border: 1px solid var(--ios-hairline);
+    border-radius: 24px;
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.72) inset;
+    backdrop-filter: saturate(180%) blur(20px);
+  }
+
+  .ios-card {
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid var(--ios-hairline);
+    border-radius: 22px;
+    transition: transform 160ms ease, background-color 160ms ease, border-color 160ms ease;
+  }
+
+  .ios-card:hover {
+    border-color: rgba(0, 102, 204, 0.16);
+  }
+
+  .ios-card:active {
+    transform: scale(0.985);
+  }
+
+  .ios-button-primary {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    padding: 0.68rem 1.25rem;
+    border-radius: 999px;
+    background: var(--ios-blue);
+    color: white;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    line-height: 1;
+    transition: transform 140ms ease, background-color 140ms ease, opacity 140ms ease;
+  }
+
+  .ios-button-primary:hover {
+    background: var(--ios-blue-focus);
+  }
+
+  .ios-button-primary:active {
+    transform: scale(0.95);
+  }
+
+  .ios-button-primary:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
+  .ios-button-secondary {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    padding: 0.68rem 1.05rem;
+    border: 1px solid var(--ios-hairline);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.72);
+    color: var(--ios-blue);
+    font-size: 0.9375rem;
+    font-weight: 500;
+    transition: transform 140ms ease, background-color 140ms ease;
+  }
+
+  .ios-button-secondary:active {
+    transform: scale(0.95);
+  }
+
+  .ios-icon-button {
+    width: 44px;
+    height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--ios-hairline);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.72);
+    color: var(--ios-ink);
+    transition: transform 140ms ease, background-color 140ms ease, color 140ms ease;
+  }
+
+  .ios-icon-button:active {
+    transform: scale(0.94);
+  }
+
+  .ios-input {
+    width: 100%;
+    min-height: 44px;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    background: rgba(118, 118, 128, 0.12);
+    color: var(--ios-ink);
+    padding: 0.75rem 1rem;
+    outline: none;
+    font-size: 0.9375rem;
+    transition: border-color 140ms ease, background-color 140ms ease, box-shadow 140ms ease;
+  }
+
+  .ios-input::placeholder {
+    color: rgba(60, 60, 67, 0.48);
+  }
+
+  .ios-input:focus {
+    border-color: rgba(0, 102, 204, 0.45);
+    background: rgba(255, 255, 255, 0.94);
+    box-shadow: 0 0 0 4px rgba(0, 102, 204, 0.12);
+  }
+
+  textarea.ios-input {
+    min-height: 92px;
+    border-radius: 18px;
+    resize: vertical;
+  }
+
+  .ios-chip {
+    min-height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    padding: 0.45rem 0.8rem;
+    border: 1px solid var(--ios-hairline);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.72);
+    color: var(--ios-muted);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    white-space: nowrap;
+    transition: transform 140ms ease, background-color 140ms ease, color 140ms ease;
+  }
+
+  .ios-chip[data-active="true"] {
+    background: var(--ios-blue);
+    color: white;
+    border-color: var(--ios-blue);
+  }
+
+  .ios-chip:active {
+    transform: scale(0.95);
+  }
+
+  .ios-frosted {
+    background: var(--ios-glass);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.65) inset;
+    backdrop-filter: saturate(180%) blur(22px);
+  }
 }
-input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: #E8734A;
-  cursor: pointer;
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
-input[type="range"]::-moz-range-thumb {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: #E8734A;
-  cursor: pointer;
-  border: none;
+
+.animate-fadeIn {
+  animation: fadeIn 0.24s ease-out;
 }

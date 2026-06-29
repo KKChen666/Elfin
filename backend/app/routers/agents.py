@@ -50,15 +50,26 @@ def create_agent(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    skill_ids = data.skill_ids or []
+    skill_ids = list(dict.fromkeys(data.skill_ids or []))
     agent_data = data.model_dump(exclude={"skill_ids"})
 
-    # 如果没有指定 system_prompt，从关联的 skills 生成
-    if not agent_data.get("system_prompt") and skill_ids:
+    skills: list[Skill] = []
+    if skill_ids:
         skills = db.query(Skill).filter(
             Skill.id.in_(skill_ids), Skill.user_id == user.id
         ).all()
-        prompts = [s.system_prompt for s in skills if s.system_prompt]
+        if len(skills) != len(skill_ids):
+            raise HTTPException(status_code=404, detail="部分技能不存在")
+
+    # 如果没有指定 system_prompt，从关联的 skills 生成
+    if not agent_data.get("system_prompt") and skills:
+        skills_by_id = {s.id: s for s in skills}
+        prompts = [
+            skills_by_id[skill_id].system_prompt
+            or _build_prompt_from_skill_data(skills_by_id[skill_id])
+            for skill_id in skill_ids
+        ]
+        prompts = [p for p in prompts if p]
         agent_data["system_prompt"] = "\n\n---\n\n".join(prompts) if prompts else None
 
     agent = Agent(user_id=user.id, **agent_data)
@@ -139,6 +150,7 @@ def add_skill_to_agent(
 
     agent_skill = AgentSkill(agent_id=agent_id, skill_id=data.skill_id, weight=data.weight)
     db.add(agent_skill)
+    db.flush()
 
     # 更新 system_prompt
     _refresh_agent_prompt(db, agent)
@@ -176,7 +188,7 @@ def _refresh_agent_prompt(db: Session, agent: Agent):
     """重新生成 Agent 的 system_prompt（考虑权重）"""
     # 按权重排序，高权重的 prompt 放在前面
     sorted_skills = sorted(
-        agent.agent_skills,
+        db.query(AgentSkill).filter(AgentSkill.agent_id == agent.id).all(),
         key=lambda x: x.weight,
         reverse=True,
     )

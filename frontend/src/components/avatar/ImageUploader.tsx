@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+﻿import { useState, useRef, useCallback } from 'react';
 import { Upload, X, RotateCw, ZoomIn, ZoomOut, Move, Wand2 } from 'lucide-react';
 
 interface ImageUploaderProps {
@@ -22,12 +22,6 @@ export default function ImageUploader({ onImageCropped, currentImage }: ImageUpl
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const previewRef = useRef<HTMLDivElement>(null);
 
-  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    processFile(file);
-  }, []);
-
   const processFile = useCallback((file: File) => {
     const reader = new FileReader();
     reader.onload = (event) => {
@@ -39,6 +33,12 @@ export default function ImageUploader({ onImageCropped, currentImage }: ImageUpl
     };
     reader.readAsDataURL(file);
   }, []);
+
+  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    processFile(file);
+  }, [processFile]);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -96,12 +96,12 @@ export default function ImageUploader({ onImageCropped, currentImage }: ImageUpl
 
         const HCX = 80, HCY = 62, HR = 40, BT = 100;
         const skin = '#F5CBA7';
-        const cloth = '#E8734A';
+        const cloth = '#0066CC';
         const STROKE = '#6B4C3B';
         const SW = 2.5;
 
         // 背景
-        ctx.fillStyle = '#FFF5EE';
+        ctx.fillStyle = '#F5F5F7';
         ctx.fillRect(0, 0, S, S);
 
         // 圆形裁剪
@@ -235,12 +235,12 @@ export default function ImageUploader({ onImageCropped, currentImage }: ImageUpl
           onClick={() => fileInputRef.current?.click()}
           className={`w-full aspect-[4/3] max-w-xs mx-auto rounded-2xl border-2 border-dashed cursor-pointer flex flex-col items-center justify-center transition-all duration-200 ${
             isDragging
-              ? 'border-[#E8734A] bg-orange-50 scale-[1.01]'
-              : 'border-gray-200 bg-white active:border-[#E8734A]'
+              ? 'border-[#0066CC] bg-[#e9f2ff] scale-[1.01]'
+              : 'border-gray-200 bg-white active:border-[#0066CC]'
           }`}
         >
           <div className="w-12 h-12 rounded-xl bg-gray-50 flex items-center justify-center mb-2">
-            <Upload size={22} className={isDragging ? 'text-[#E8734A]' : 'text-gray-300'} />
+            <Upload size={22} className={isDragging ? 'text-[#0066CC]' : 'text-gray-300'} />
           </div>
           <p className="text-sm font-medium text-gray-500 mb-0.5">点击或拖拽上传照片</p>
           <p className="text-[11px] text-gray-300">JPG / PNG</p>
@@ -253,7 +253,7 @@ export default function ImageUploader({ onImageCropped, currentImage }: ImageUpl
           {/* 预览区域 */}
           <div
             ref={previewRef}
-            className={`relative mx-auto mb-4 overflow-hidden border-2 border-[#E8734A] touch-none select-none ${
+            className={`relative mx-auto mb-4 overflow-hidden border-2 border-[#0066CC] touch-none select-none ${
               cropShape === 'chibi' ? 'w-36 h-40 rounded-2xl' : 'w-36 h-36 rounded-full'
             }`}
             onPointerDown={handlePointerDown}
@@ -285,7 +285,7 @@ export default function ImageUploader({ onImageCropped, currentImage }: ImageUpl
               onClick={() => setCropShape('circle')}
               className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-medium transition-colors ${
                 cropShape === 'circle'
-                  ? 'bg-[#E8734A] text-white'
+                  ? 'bg-[#0066CC] text-white'
                   : 'bg-white text-gray-500 border border-gray-200'
               }`}
             >
@@ -298,7 +298,7 @@ export default function ImageUploader({ onImageCropped, currentImage }: ImageUpl
               onClick={() => setCropShape('chibi')}
               className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-medium transition-colors ${
                 cropShape === 'chibi'
-                  ? 'bg-[#E8734A] text-white'
+                  ? 'bg-[#0066CC] text-white'
                   : 'bg-white text-gray-500 border border-gray-200'
               }`}
             >
@@ -319,7 +319,7 @@ export default function ImageUploader({ onImageCropped, currentImage }: ImageUpl
                 value={scale}
                 onChange={(e) => setScale(parseFloat(e.target.value))}
                 className="flex-1 h-1"
-                style={{ accentColor: '#E8734A' }}
+                style={{ accentColor: '#0066CC' }}
               />
               <ZoomIn size={14} className="text-gray-400" />
             </div>
@@ -334,7 +334,7 @@ export default function ImageUploader({ onImageCropped, currentImage }: ImageUpl
                 value={rotation}
                 onChange={(e) => setRotation(parseInt(e.target.value))}
                 className="flex-1 h-1"
-                style={{ accentColor: '#E8734A' }}
+                style={{ accentColor: '#0066CC' }}
               />
               <span className="text-[10px] text-gray-400 w-8 text-right">{rotation}°</span>
             </div>
@@ -365,7 +365,7 @@ export default function ImageUploader({ onImageCropped, currentImage }: ImageUpl
               type="button"
               onClick={cropImage}
               disabled={isProcessing}
-              className="flex-1 py-2 bg-[#E8734A] text-white rounded-xl text-xs font-semibold active:bg-[#D4633A] transition-colors disabled:opacity-50"
+              className="flex-1 py-2 bg-[#0066CC] text-white rounded-xl text-xs font-semibold active:bg-[#005BB8] transition-colors disabled:opacity-50"
             >
               {isProcessing ? '处理中...' : '确认裁剪'}
             </button>
@@ -377,10 +377,10 @@ export default function ImageUploader({ onImageCropped, currentImage }: ImageUpl
       {croppedImage && (
         <div className="flex flex-col items-center gap-2">
           <div className="relative">
-            <div className={`overflow-hidden border-2 border-[#E8734A] ${
+            <div className={`overflow-hidden border-2 border-[#0066CC] ${
               cropShape === 'chibi' ? 'w-28 h-32 rounded-xl' : 'w-28 h-28 rounded-full'
             }`}
-              style={{ boxShadow: '0 4px 16px rgba(232,115,74,0.15)' }}
+              style={{ boxShadow: '0 4px 16px rgba(0,102,204,0.15)' }}
             >
               <img src={croppedImage} alt="头像" className="w-full h-full object-cover" />
             </div>
@@ -398,7 +398,7 @@ export default function ImageUploader({ onImageCropped, currentImage }: ImageUpl
           <button
             type="button"
             onClick={() => setCroppedImage(null)}
-            className="text-[11px] text-[#E8734A] active:underline"
+            className="text-[11px] text-[#0066CC] active:underline"
           >
             重新调整
           </button>

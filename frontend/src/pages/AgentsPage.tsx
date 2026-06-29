@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Robot, Trash, ChatCircleDots } from '@phosphor-icons/react';
+import { Plus, Robot, Trash, ChatCircleDots, X } from '@phosphor-icons/react';
 import { agentsApi, Agent } from '../api/agents';
 import { skillsApi, Skill } from '../api/skills';
-import { showToast } from '../components/Toast';
+import { showToast } from '../components/toastBus';
 import gsap from 'gsap';
+import { useGsapEntrance } from '../hooks/useGsapEntrance';
 
 export default function AgentsPage() {
   const navigate = useNavigate();
@@ -17,6 +18,7 @@ export default function AgentsPage() {
     skill_ids: [] as number[],
   });
   const listRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     loadAgents();
@@ -25,15 +27,15 @@ export default function AgentsPage() {
 
   useEffect(() => {
     if (listRef.current?.children) {
-      gsap.from(listRef.current.children, {
-        y: 20,
-        opacity: 0,
-        duration: 0.4,
-        stagger: 0.05,
-        ease: 'power2.out',
-      });
+      gsap.fromTo(
+        listRef.current.children,
+        { y: 14, opacity: 0, scale: 0.985 },
+        { y: 0, opacity: 1, scale: 1, duration: 0.32, stagger: 0.04, ease: 'power2.out', clearProps: 'transform' },
+      );
     }
   }, [agents]);
+
+  useGsapEntrance(panelRef, [showCreate], { y: 12, scale: 0.98, stagger: 0.035 });
 
   const loadAgents = async () => {
     try {
@@ -49,7 +51,7 @@ export default function AgentsPage() {
       const res = await skillsApi.getAll();
       setSkills(res.data);
     } catch {
-      // 静默失败
+      // Skills are optional when creating a basic Agent.
     }
   };
 
@@ -70,10 +72,10 @@ export default function AgentsPage() {
     }
   };
 
-  const handleDelete = async (id: number) => {
-    if (!confirm('确定删除这个 Agent？')) return;
+  const handleDelete = async (agent: Agent) => {
+    if (!confirm(`确定删除「${agent.name}」吗？`)) return;
     try {
-      await agentsApi.delete(id);
+      await agentsApi.delete(agent.id);
       showToast('success', '已删除');
       loadAgents();
     } catch {
@@ -82,127 +84,111 @@ export default function AgentsPage() {
   };
 
   return (
-    <div className="flex-1 overflow-y-auto bg-[#F7F8FA]">
-      <div className="max-w-4xl mx-auto px-6 py-8">
-        {/* 标题 */}
-        <div className="flex items-center justify-between mb-8">
+    <div className="ios-page h-full overflow-y-auto">
+      <div className="ios-container">
+        <header className="ios-header">
           <div>
-            <h1 className="text-2xl font-bold text-[#1A1A1A]">Agents</h1>
-            <p className="text-sm text-[#999] mt-1">管理你的 AI 智能体</p>
+            <p className="ios-kicker">AI 伙伴</p>
+            <h1 className="ios-title">管理你的 Agent。</h1>
+            <p className="ios-subtitle">为不同关系场景配置专属能力，让对话更有边界，也更有温度。</p>
           </div>
-          <button
-            onClick={() => setShowCreate(true)}
-            className="flex items-center gap-2 px-5 py-2.5 bg-[#FF6A00] text-white rounded-xl text-sm font-medium shadow-sm hover:bg-[#E55D00] transition-all active:scale-[0.98]"
-            style={{ boxShadow: '0 4px 16px rgba(255, 106, 0, 0.3)' }}
-          >
-            <Plus size={16} weight="bold" />
+          <button onClick={() => setShowCreate(true)} className="ios-button-primary shrink-0">
+            <Plus size={18} weight="bold" />
             创建 Agent
           </button>
-        </div>
+        </header>
 
-        {/* 创建表单 */}
         {showCreate && (
-          <div className="bg-white rounded-2xl p-6 mb-6 shadow-sm border border-[#F0F0F0]">
-            <h3 className="font-semibold text-[#1A1A1A] mb-4">创建新 Agent</h3>
-            <div className="space-y-4">
+          <section ref={panelRef} className="ios-panel mb-6 p-5">
+            <div className="mb-5 flex items-start justify-between gap-4">
               <div>
-                <label className="block text-sm text-[#666] mb-1.5">名称 *</label>
+                <h2 className="text-xl font-semibold tracking-[-0.01em]">创建新 Agent</h2>
+                <p className="mt-1 text-sm text-[#7a7a7a]">先定义名字和用途，稍后可以继续补充技能。</p>
+              </div>
+              <button onClick={() => setShowCreate(false)} className="ios-icon-button !h-9 !w-9" aria-label="关闭">
+                <X size={16} />
+              </button>
+            </div>
+            <div className="grid gap-4">
+              <label className="block">
+                <span className="mb-1.5 block text-sm font-medium text-[#6e6e73]">名称</span>
                 <input
                   type="text"
                   value={newAgent.name}
-                  onChange={(e) => setNewAgent(prev => ({ ...prev, name: e.target.value }))}
-                  placeholder="给 Agent 起个名字"
-                  className="w-full bg-[#F7F8FA] rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#FF6A00] focus:ring-opacity-30 transition-all"
+                  onChange={(e) => setNewAgent((prev) => ({ ...prev, name: e.target.value }))}
+                  placeholder="例如：温柔提醒助手"
+                  className="ios-input"
                 />
-              </div>
-              <div>
-                <label className="block text-sm text-[#666] mb-1.5">描述</label>
+              </label>
+              <label className="block">
+                <span className="mb-1.5 block text-sm font-medium text-[#6e6e73]">描述</span>
                 <textarea
                   value={newAgent.description}
-                  onChange={(e) => setNewAgent(prev => ({ ...prev, description: e.target.value }))}
-                  placeholder="描述这个 Agent 的用途"
-                  className="w-full bg-[#F7F8FA] rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#FF6A00] focus:ring-opacity-30 resize-none transition-all"
-                  rows={2}
+                  onChange={(e) => setNewAgent((prev) => ({ ...prev, description: e.target.value }))}
+                  placeholder="说明这个 Agent 适合处理什么事情"
+                  className="ios-input"
+                  rows={3}
                 />
-              </div>
+              </label>
               <div>
-                <label className="block text-sm text-[#666] mb-2">关联技能</label>
+                <span className="mb-2 block text-sm font-medium text-[#6e6e73]">关联技能</span>
                 <div className="flex flex-wrap gap-2">
-                  {skills.map((skill) => (
-                    <button
-                      key={skill.id}
-                      onClick={() => {
-                        setNewAgent(prev => ({
-                          ...prev,
-                          skill_ids: prev.skill_ids.includes(skill.id)
-                            ? prev.skill_ids.filter(id => id !== skill.id)
-                            : [...prev.skill_ids, skill.id]
-                        }));
-                      }}
-                      className={`
-                        px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200
-                        ${newAgent.skill_ids.includes(skill.id)
-                          ? 'bg-[#FF6A00] text-white shadow-sm'
-                          : 'bg-[#F7F8FA] text-[#666] hover:bg-[#E8E8E8]'
-                        }
-                      `}
-                    >
-                      {skill.name}
-                    </button>
-                  ))}
-                  {skills.length === 0 && (
-                    <p className="text-xs text-[#999]">暂无技能，先去创建技能</p>
-                  )}
+                  {skills.map((skill) => {
+                    const active = newAgent.skill_ids.includes(skill.id);
+                    return (
+                      <button
+                        key={skill.id}
+                        onClick={() => {
+                          setNewAgent((prev) => ({
+                            ...prev,
+                            skill_ids: active
+                              ? prev.skill_ids.filter((id) => id !== skill.id)
+                              : [...prev.skill_ids, skill.id],
+                          }));
+                        }}
+                        className="ios-chip"
+                        data-active={active}
+                      >
+                        {skill.name}
+                      </button>
+                    );
+                  })}
+                  {skills.length === 0 && <p className="text-sm text-[#8e8e93]">暂无可关联技能。</p>}
                 </div>
               </div>
-              <div className="flex gap-3 pt-2">
-                <button
-                  onClick={handleCreate}
-                  disabled={!newAgent.name.trim()}
-                  className="px-5 py-2.5 bg-[#FF6A00] text-white rounded-xl text-sm font-medium disabled:opacity-50 hover:bg-[#E55D00] transition-all active:scale-[0.98] shadow-sm"
-                  style={{ boxShadow: '0 4px 16px rgba(255, 106, 0, 0.3)' }}
-                >
+              <div className="flex flex-wrap gap-2 pt-1">
+                <button onClick={handleCreate} disabled={!newAgent.name.trim()} className="ios-button-primary">
                   创建
                 </button>
-                <button
-                  onClick={() => setShowCreate(false)}
-                  className="px-5 py-2.5 bg-[#F7F8FA] text-[#666] rounded-xl text-sm font-medium hover:bg-[#E8E8E8] transition-colors"
-                >
+                <button onClick={() => setShowCreate(false)} className="ios-button-secondary">
                   取消
                 </button>
               </div>
             </div>
-          </div>
+          </section>
         )}
 
-        {/* Agent 列表 */}
-        <div ref={listRef} className="grid gap-4">
+        <div ref={listRef} className="grid gap-3">
           {agents.map((agent) => (
-            <div
-              key={agent.id}
-              className="bg-white rounded-2xl p-5 shadow-sm border border-[#F0F0F0] hover:shadow-md transition-all duration-200"
-            >
-              <div className="flex items-start justify-between">
-                <div className="flex items-start gap-4">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#FF6A00] to-[#FF8A33] flex items-center justify-center shadow-sm">
+            <article key={agent.id} className="ios-card p-5">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex min-w-0 items-start gap-4">
+                  <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#e9f2ff] text-[#0066cc]">
                     {agent.avatar_url ? (
-                      <img src={agent.avatar_url} alt="" className="w-14 h-14 rounded-2xl" />
+                      <img src={agent.avatar_url} alt="" className="h-full w-full object-cover" />
                     ) : (
-                      <Robot size={28} className="text-white" weight="fill" />
+                      <Robot size={28} weight="fill" />
                     )}
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-[#1A1A1A] text-[15px]">{agent.name}</h3>
-                    <p className="text-sm text-[#999] mt-1">
-                      {agent.description || 'AI Agent'}
+                  <div className="min-w-0">
+                    <h3 className="truncate text-[17px] font-semibold text-[#1d1d1f]">{agent.name}</h3>
+                    <p className="mt-1 line-clamp-2 text-sm leading-6 text-[#6e6e73]">
+                      {agent.description || '一个尚未填写描述的 AI Agent'}
                     </p>
                     {agent.skills && agent.skills.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5 mt-3">
+                      <div className="mt-3 flex flex-wrap gap-1.5">
                         {agent.skills.map((skill) => (
-                          <span
-                            key={skill.id}
-                            className="px-2.5 py-1 bg-[#FFF5EE] rounded-lg text-xs text-[#FF6A00] font-medium"
-                          >
+                          <span key={skill.id} className="rounded-full bg-[#e9f2ff] px-2.5 py-1 text-xs font-medium text-[#0066cc]">
                             {skill.name}
                           </span>
                         ))}
@@ -210,36 +196,34 @@ export default function AgentsPage() {
                     )}
                   </div>
                 </div>
-                <div className="flex gap-1">
+                <div className="flex shrink-0 gap-1">
                   <button
                     onClick={() => navigate(`/chat/new?agent=${agent.id}`)}
-                    className="p-2.5 rounded-xl hover:bg-[#FFF5EE] text-[#999] hover:text-[#FF6A00] transition-colors"
+                    className="ios-icon-button"
                     title="开始对话"
+                    aria-label="开始对话"
                   >
                     <ChatCircleDots size={18} />
                   </button>
                   <button
-                    onClick={() => handleDelete(agent.id)}
-                    className="p-2.5 rounded-xl hover:bg-red-50 text-[#999] hover:text-[#FF3B30] transition-colors"
+                    onClick={() => handleDelete(agent)}
+                    className="ios-icon-button text-[#8e8e93] hover:text-[#ff3b30]"
                     title="删除"
+                    aria-label="删除"
                   >
                     <Trash size={18} />
                   </button>
                 </div>
               </div>
-            </div>
+            </article>
           ))}
 
           {agents.length === 0 && (
-            <div className="text-center py-20 bg-white rounded-2xl shadow-sm">
-              <Robot size={56} className="mx-auto text-[#E8E8E8] mb-4" />
-              <p className="text-[#999] mb-2">还没有 Agent</p>
-              <p className="text-xs text-[#CCC] mb-6">创建你的第一个 AI 智能体</p>
-              <button
-                onClick={() => setShowCreate(true)}
-                className="px-5 py-2.5 bg-[#FF6A00] text-white rounded-xl text-sm font-medium shadow-sm hover:bg-[#E55D00] transition-all"
-                style={{ boxShadow: '0 4px 16px rgba(255, 106, 0, 0.3)' }}
-              >
+            <div className="ios-panel px-6 py-16 text-center">
+              <Robot size={48} className="mx-auto mb-4 text-[#8e8e93]" />
+              <h2 className="text-xl font-semibold">还没有 Agent</h2>
+              <p className="mt-2 text-sm text-[#7a7a7a]">创建第一个 Agent，给关系记录配置一个专属声音。</p>
+              <button onClick={() => setShowCreate(true)} className="ios-button-primary mt-6">
                 创建第一个 Agent
               </button>
             </div>

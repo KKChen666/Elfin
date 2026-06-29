@@ -1,13 +1,38 @@
 import { useState, useEffect, useRef } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import {
-  ChatCircleDots, Plus, SignOut, CaretLeft,
-  Robot, Sparkle, Users, Bell, Calendar, ChartBar,
-  List, X
+  ChatCircleDots,
+  Plus,
+  SignOut,
+  CaretLeft,
+  Robot,
+  Sparkle,
+  Users,
+  Bell,
+  Calendar,
+  ChartBar,
+  List,
+  X,
 } from '@phosphor-icons/react';
 import { useAuthStore } from '../stores/useAuthStore';
 import { conversationsApi, Conversation } from '../api/conversations';
 import gsap from 'gsap';
+
+const navItems = [
+  { path: '/chat', icon: ChatCircleDots, label: '对话' },
+  { path: '/agents', icon: Robot, label: 'Agents' },
+  { path: '/skills', icon: Sparkle, label: '技能' },
+  { path: '/relatives', icon: Users, label: '亲友' },
+  { path: '/reminders', icon: Bell, label: '提醒' },
+  { path: '/calendar', icon: Calendar, label: '日历' },
+  { path: '/stats', icon: ChartBar, label: '统计' },
+];
+
+function formatConversationTitle(conv: Conversation) {
+  if (conv.title) return conv.title;
+  const names = conv.participants?.map((p) => p.agent_name).filter(Boolean) || [];
+  return names.length ? names.join('、') : '新的对话';
+}
 
 export default function ClaudeLayout() {
   const navigate = useNavigate();
@@ -17,6 +42,8 @@ export default function ClaudeLayout() {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const sidebarRef = useRef<HTMLElement>(null);
+  const navRef = useRef<HTMLElement>(null);
+  const conversationListRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     loadConversations();
@@ -24,146 +51,209 @@ export default function ClaudeLayout() {
 
   useEffect(() => {
     if (sidebarRef.current) {
-      gsap.from(sidebarRef.current, { x: -20, opacity: 0, duration: 0.4, ease: 'power2.out' });
+      const ctx = gsap.context(() => {
+        gsap.from(sidebarRef.current, { x: -18, opacity: 0, duration: 0.35, ease: 'power2.out' });
+        if (navRef.current?.children) {
+          gsap.from(navRef.current.children, {
+            x: -8,
+            opacity: 0,
+            duration: 0.28,
+            stagger: 0.025,
+            delay: 0.08,
+            ease: 'power2.out',
+          });
+        }
+      }, sidebarRef);
+
+      return () => ctx.revert();
     }
   }, []);
+
+  useEffect(() => {
+    if (!conversationListRef.current?.children) return;
+
+    gsap.fromTo(
+      conversationListRef.current.children,
+      { y: 8, opacity: 0 },
+      { y: 0, opacity: 1, duration: 0.26, stagger: 0.025, ease: 'power2.out', clearProps: 'transform' },
+    );
+  }, [conversations.length]);
 
   const loadConversations = async () => {
     try {
       const res = await conversationsApi.getAll();
       setConversations(res.data);
-    } catch {}
+    } catch {
+      setConversations([]);
+    }
   };
-
-  const navItems = [
-    { path: '/chat', icon: ChatCircleDots, label: '对话' },
-    { path: '/agents', icon: Robot, label: 'Agents' },
-    { path: '/skills', icon: Sparkle, label: '技能' },
-    { path: '/relatives', icon: Users, label: '亲友' },
-    { path: '/reminders', icon: Bell, label: '提醒' },
-    { path: '/calendar', icon: Calendar, label: '日历' },
-    { path: '/stats', icon: ChartBar, label: '统计' },
-  ];
 
   const isActive = (path: string) => {
     if (path === '/chat') return location.pathname.startsWith('/chat');
     return location.pathname.startsWith(path);
   };
 
-  const sidebarWidth = collapsed ? 0 : 280;
+  const sidebarWidth = collapsed ? 0 : 296;
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#F7F8FA]">
-      {/* 移动端遮罩 */}
+    <div className="relative flex h-screen overflow-hidden bg-[#f5f5f7] text-[#1d1d1f]">
       {mobileOpen && (
-        <div className="fixed inset-0 bg-black/40 z-[55] lg:hidden" onClick={() => setMobileOpen(false)} />
+        <button
+          aria-label="关闭菜单遮罩"
+          className="fixed inset-0 z-[55] bg-black/24 backdrop-blur-sm lg:hidden"
+          onClick={() => setMobileOpen(false)}
+        />
       )}
 
-      {/* 侧边栏 */}
       <aside
         ref={sidebarRef}
         className={`
-          bg-white border-r border-[#E8E8E8] flex flex-col h-full flex-shrink-0
-          transition-[width] duration-300 ease-in-out overflow-hidden
-          fixed inset-y-0 left-0 z-[60] lg:static lg:z-auto
-          ${mobileOpen ? '!w-[280px]' : 'w-0 lg:w-[' + sidebarWidth + 'px]'}
+          ios-frosted fixed inset-y-0 left-0 z-[60] flex h-full shrink-0 flex-col overflow-hidden
+          border-r border-white/60 transition-[width] duration-300 ease-out lg:static lg:z-auto
+          ${mobileOpen ? '!w-[296px]' : ''}
         `}
-        style={{ width: mobileOpen ? 280 : sidebarWidth }}
+        style={{ width: mobileOpen ? 296 : sidebarWidth }}
       >
-        {/* 顶部 */}
-        <div className="flex items-center justify-between p-5 border-b border-[#F0F0F0] flex-shrink-0 min-w-[280px]">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#FF6A00] to-[#FF8A33] flex items-center justify-center">
-              <span className="text-sm font-bold text-white">E</span>
+        <div className="flex min-w-[296px] items-center justify-between px-5 pb-4 pt-[max(1.25rem,env(safe-area-inset-top))]">
+          <button
+            onClick={() => {
+              navigate('/chat');
+              setMobileOpen(false);
+            }}
+            className="flex min-h-11 items-center gap-3 rounded-full pr-3 text-left transition active:scale-[0.98]"
+          >
+            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#1d1d1f] text-[15px] font-semibold text-white">
+              E
             </div>
-            <span className="font-semibold text-[16px] text-[#1A1A1A]">Elfin</span>
-          </div>
-          <button onClick={() => setMobileOpen(false)} className="lg:hidden p-1.5 rounded-lg hover:bg-[#F7F8FA]">
-            <X size={18} className="text-[#999]" />
+            <div>
+              <div className="text-[17px] font-semibold leading-tight tracking-[-0.01em]">Elfin</div>
+              <div className="text-xs leading-tight text-[#7a7a7a]">温柔记录每段关系</div>
+            </div>
+          </button>
+          <button onClick={() => setMobileOpen(false)} className="ios-icon-button lg:hidden" aria-label="关闭菜单">
+            <X size={18} />
           </button>
         </div>
 
-        {/* 新建按钮 */}
-        <div className="p-4 flex-shrink-0 min-w-[280px]">
+        <div className="min-w-[296px] px-4 pb-4">
           <button
-            onClick={() => { navigate('/chat/new'); setMobileOpen(false); }}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#FF6A00] text-white font-medium text-sm hover:bg-[#E55D00] transition-colors"
-            style={{ boxShadow: '0 4px 16px rgba(255,106,0,0.3)' }}
+            onClick={() => {
+              navigate('/chat/new');
+              setMobileOpen(false);
+            }}
+            className="ios-button-primary w-full"
           >
             <Plus size={18} weight="bold" />
             新对话
           </button>
         </div>
 
-        {/* 导航 */}
-        <nav className="px-3 mb-2 flex-shrink-0 min-w-[280px]">
+        <nav ref={navRef} className="min-w-[296px] px-3 pb-3">
           {navItems.map((item) => {
             const active = isActive(item.path);
             return (
               <button
                 key={item.path}
-                onClick={() => { navigate(item.path); setMobileOpen(false); }}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm mb-0.5 transition-all duration-200 ${
-                  active ? 'bg-[#FFF5EE] text-[#FF6A00] font-medium' : 'text-[#666] hover:bg-[#F7F8FA] hover:text-[#1A1A1A]'
-                }`}
+                onClick={() => {
+                  navigate(item.path);
+                  setMobileOpen(false);
+                }}
+                className={`
+                  mb-1 flex min-h-11 w-full items-center gap-3 rounded-full px-4 text-[15px]
+                  transition active:scale-[0.98]
+                  ${active ? 'bg-[#0066cc] text-white' : 'text-[#4d4d50] hover:bg-white/70 hover:text-[#1d1d1f]'}
+                `}
               >
                 <item.icon size={20} weight={active ? 'fill' : 'regular'} />
-                {item.label}
+                <span className="font-medium">{item.label}</span>
               </button>
             );
           })}
         </nav>
 
-        <div className="px-4 flex-shrink-0 min-w-[280px]"><div className="border-t border-[#F0F0F0]" /></div>
+        <div className="mx-5 h-px min-w-[256px] bg-black/5" />
 
-        {/* 对话列表 */}
-        <div className="flex-1 overflow-y-auto px-3 py-3 min-h-0 min-w-[280px]">
-          <p className="text-xs text-[#999] px-3 mb-2 font-medium">最近对话</p>
-          {conversations.map((conv) => (
-            <button
-              key={conv.id}
-              onClick={() => { navigate(`/chat/${conv.id}`); setMobileOpen(false); }}
-              className={`w-full text-left px-3 py-2.5 rounded-xl text-sm mb-0.5 truncate transition-all duration-200 ${
-                location.pathname === `/chat/${conv.id}` ? 'bg-[#FFF5EE] text-[#FF6A00] font-medium' : 'text-[#666] hover:bg-[#F7F8FA]'
-              }`}
-            >
-              {conv.title || '新对话'}
-            </button>
-          ))}
+        <div className="min-w-[296px] flex-1 overflow-y-auto px-3 py-4">
+          <div className="mb-2 flex items-center justify-between px-3">
+            <p className="text-xs font-medium text-[#7a7a7a]">最近对话</p>
+            <span className="rounded-full bg-white/70 px-2 py-0.5 text-[11px] text-[#7a7a7a]">
+              {conversations.length}
+            </span>
+          </div>
+          <div ref={conversationListRef} className="space-y-1">
+            {conversations.map((conv) => {
+              const active = location.pathname === `/chat/${conv.id}`;
+              return (
+                <button
+                  key={conv.id}
+                  onClick={() => {
+                    navigate(`/chat/${conv.id}`);
+                    setMobileOpen(false);
+                  }}
+                  className={`
+                    w-full rounded-2xl px-3 py-2.5 text-left transition active:scale-[0.99]
+                    ${active ? 'bg-white text-[#0066cc]' : 'text-[#4d4d50] hover:bg-white/60'}
+                  `}
+                >
+                  <div className="truncate text-sm font-medium">{formatConversationTitle(conv)}</div>
+                  <div className="mt-0.5 truncate text-xs text-[#8e8e93]">
+                    {conv.last_message?.content || '还没有消息'}
+                  </div>
+                </button>
+              );
+            })}
+            {conversations.length === 0 && (
+              <div className="rounded-2xl bg-white/55 px-4 py-5 text-center text-sm text-[#8e8e93]">
+                开始一段新的对话吧
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* 用户信息 */}
-        <div className="p-4 border-t border-[#F0F0F0] flex-shrink-0 min-w-[280px]">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#FF6A00] to-[#FF8A33] flex items-center justify-center">
-                <span className="text-xs font-bold text-white">{user?.username?.[0]?.toUpperCase() || 'U'}</span>
+        <div className="min-w-[296px] border-t border-black/5 p-4 safe-bottom">
+          <div className="flex items-center justify-between rounded-3xl bg-white/70 p-2.5">
+            <div className="flex min-w-0 items-center gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#e9f2ff] text-sm font-semibold text-[#0066cc]">
+                {user?.username?.[0]?.toUpperCase() || 'U'}
               </div>
-              <span className="text-sm text-[#666]">{user?.username || '用户'}</span>
+              <div className="min-w-0">
+                <div className="truncate text-sm font-medium text-[#1d1d1f]">{user?.username || '用户'}</div>
+                <div className="text-xs text-[#8e8e93]">已登录</div>
+              </div>
             </div>
-            <button onClick={() => { logout(); navigate('/login'); }} className="p-2 rounded-lg hover:bg-[#F7F8FA] text-[#999] hover:text-[#FF3B30]" title="退出">
-              <SignOut size={16} />
+            <button
+              onClick={() => {
+                logout();
+                navigate('/login');
+              }}
+              className="ios-icon-button !h-10 !w-10 border-transparent bg-transparent text-[#8e8e93] hover:text-[#ff3b30]"
+              title="退出登录"
+              aria-label="退出登录"
+            >
+              <SignOut size={17} />
             </button>
           </div>
         </div>
       </aside>
 
-      {/* 折叠按钮 */}
       <button
         onClick={() => setCollapsed(!collapsed)}
-        className="hidden lg:flex absolute top-5 z-30 p-1.5 rounded-lg bg-white shadow-sm text-[#999] hover:text-[#1A1A1A] transition-all duration-300"
-        style={{ left: collapsed ? 8 : 268 }}
+        className="ios-icon-button absolute top-5 z-30 hidden !h-9 !w-9 text-[#6e6e73] transition-all duration-300 lg:flex"
+        style={{ left: collapsed ? 12 : 280 }}
+        aria-label={collapsed ? '展开侧边栏' : '收起侧边栏'}
       >
         <CaretLeft size={14} className={`transition-transform duration-300 ${collapsed ? 'rotate-180' : ''}`} />
       </button>
 
-      {/* 移动端菜单按钮 */}
-      <button onClick={() => setMobileOpen(true)} className="fixed top-4 left-4 z-50 lg:hidden p-2 rounded-xl bg-white shadow-md">
+      <button
+        onClick={() => setMobileOpen(true)}
+        className="ios-icon-button fixed left-4 top-[max(1rem,env(safe-area-inset-top))] z-50 lg:hidden"
+        aria-label="打开菜单"
+      >
         <List size={20} />
       </button>
 
-      {/* 主内容 */}
-      <main className="flex-1 min-w-0 overflow-auto">
+      <main className="min-w-0 flex-1 overflow-hidden">
         <Outlet />
       </main>
     </div>
