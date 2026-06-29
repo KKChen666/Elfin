@@ -10,6 +10,7 @@ from app.schemas.skill import SkillCreate, SkillOut, SkillUpdate
 from app.services.distill_service import distill_from_relative, merge_skills
 from app.services.skill_creator_service import create_skill_from_materials
 from app.utils.auth import get_current_user
+from app.utils.secrets import decrypt_secret, encrypt_secret, is_encrypted_secret
 
 
 class MergeRequest(BaseModel):
@@ -74,6 +75,11 @@ async def create_skill_with_creator(
         raise HTTPException(status_code=400, detail="Skill goal is required")
 
     try:
+        api_key = decrypt_secret(user.llm_api_key)
+        if user.llm_api_key and api_key and not is_encrypted_secret(user.llm_api_key):
+            user.llm_api_key = encrypt_secret(api_key)
+            db.commit()
+
         skill = await create_skill_from_materials(
             db=db,
             user_id=user.id,
@@ -83,6 +89,12 @@ async def create_skill_with_creator(
             raw_text=raw_text,
             debug_cases=debug_cases,
             files=files,
+            llm_config={
+                "api_key": api_key,
+                "api_base": user.llm_api_base,
+                "model": user.llm_model,
+                "timeout": user.llm_timeout,
+            },
         )
         return SkillOut.model_validate(skill)
     except ValueError as exc:

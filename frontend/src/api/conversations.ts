@@ -6,6 +6,8 @@ export interface Conversation {
   type: 'direct' | 'group';
   participants: { agent_id: number; agent_name: string; agent_avatar: string | null }[] | null;
   last_message: { id: number; content: string; sender_type: string; created_at: string } | null;
+  is_archived: boolean;
+  archived_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -22,8 +24,8 @@ export interface Message {
 }
 
 export const conversationsApi = {
-  getAll() {
-    return client.get<Conversation[]>('/conversations');
+  getAll(archived = false) {
+    return client.get<Conversation[]>('/conversations', { params: { archived } });
   },
   getOne(id: number) {
     return client.get<Conversation>(`/conversations/${id}`);
@@ -37,6 +39,15 @@ export const conversationsApi = {
   },
   delete(id: number) {
     return client.delete(`/conversations/${id}`);
+  },
+  update(id: number, data: { title?: string | null; is_archived?: boolean }) {
+    return client.patch<Conversation>(`/conversations/${id}`, data);
+  },
+  archive(id: number) {
+    return client.patch<Conversation>(`/conversations/${id}`, { is_archived: true });
+  },
+  restore(id: number) {
+    return client.patch<Conversation>(`/conversations/${id}`, { is_archived: false });
   },
   getMessages(convId: number) {
     return client.get<Message[]>(`/conversations/${convId}/messages`);

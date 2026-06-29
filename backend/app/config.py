@@ -40,10 +40,10 @@ class Settings:
     COS_BUCKET: str = os.getenv("COS_BUCKET", "")
     COS_REGION: str = os.getenv("COS_REGION", "ap-guangzhou")
 
-    # LLM API (OpenAI 兼容)
-    LLM_API_KEY: str = os.getenv("LLM_API_KEY", "")
+    # LLM defaults. API keys are stored per user via /api/auth/llm-settings.
     LLM_API_BASE: str = os.getenv("LLM_API_BASE", "https://api.openai.com/v1")
     LLM_MODEL: str = os.getenv("LLM_MODEL", "gpt-3.5-turbo")
+    LLM_TIMEOUT: int = int(os.getenv("LLM_TIMEOUT", "60"))
 
 
 settings = Settings()

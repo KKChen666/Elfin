@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import Integer, String, Text, DateTime, ForeignKey, JSON, Enum as SAEnum
+from sqlalchemy import Boolean, Integer, String, Text, DateTime, ForeignKey, JSON, Enum as SAEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -22,6 +22,8 @@ class Conversation(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
     )
+    is_archived: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    archived_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
     # 关系
     user = relationship("User")

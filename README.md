@@ -106,10 +106,10 @@ COS_SECRET_KEY=your_secret_key
 COS_BUCKET=your_bucket
 COS_REGION=ap-nanjing
 
-# LLM API（Agent 对话功能需要）
-LLM_API_KEY=your_api_key
+# LLM 默认值（真实调用优先使用用户在前端“模型设置”里保存的配置，API Key 会加密存储）
 LLM_API_BASE=https://api.openai.com/v1
 LLM_MODEL=gpt-3.5-turbo
+LLM_TIMEOUT=60
 ```
 
 ### 前端配置 (`frontend/vite.config.ts`)

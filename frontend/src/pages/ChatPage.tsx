@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
-import { PaperPlaneRight, Robot, User, CheckCircle } from '@phosphor-icons/react';
+import { Archive, PaperPlaneRight, Robot, User, CheckCircle } from '@phosphor-icons/react';
 import { conversationsApi, Conversation, Message } from '../api/conversations';
 import { agentsApi, Agent } from '../api/agents';
 import gsap from 'gsap';
@@ -29,6 +29,7 @@ export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [agents, setAgents] = useState<Agent[]>([]);
   const [selectedAgents, setSelectedAgents] = useState<number[]>([]);
+  const [conversationTitle, setConversationTitle] = useState('');
   const [inputValue, setInputValue] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -117,10 +118,26 @@ export default function ChatPage() {
   const handleCreateConversation = async () => {
     if (selectedAgents.length === 0) return;
     try {
-      const res = await conversationsApi.create(selectedAgents);
+      const res = await conversationsApi.create(selectedAgents, conversationTitle.trim() || undefined);
       navigate(`/chat/${res.data.id}`);
     } catch {
       // Kept quiet; global API layer may surface auth/network issues.
+    }
+  };
+
+  const handleArchiveCurrent = async () => {
+    if (!conversation) return;
+    try {
+      if (conversation.is_archived) {
+        const res = await conversationsApi.restore(conversation.id);
+        setConversation(res.data);
+      } else {
+        await conversationsApi.archive(conversation.id);
+        navigate('/chat');
+      }
+      window.dispatchEvent(new Event('elfin:conversations-changed'));
+    } catch {
+      // Keep current chat visible if archive/restore fails.
     }
   };
 
@@ -144,6 +161,7 @@ export default function ChatPage() {
 
     try {
       await conversationsApi.sendMessage(parseInt(id), content);
+      window.dispatchEvent(new Event('elfin:conversations-changed'));
       await triggerAgentReply();
     } catch {
       // Keep the optimistic user message visible.
@@ -166,6 +184,8 @@ export default function ChatPage() {
 
       const decoder = new TextDecoder();
       let currentAgentId: number | null = null;
+      let currentAgentName = '';
+      let currentMessageId: number | null = null;
       let currentContent = '';
       let buffer = '';
 
@@ -185,28 +205,35 @@ export default function ChatPage() {
             const data = JSON.parse(trimmed.slice(6));
 
             if (data.done) {
-              if (currentAgentId && currentContent) {
+              currentAgentId = null;
+              currentAgentName = '';
+              currentMessageId = null;
+              currentContent = '';
+            } else {
+              if (currentAgentId !== data.agent_id) {
+                currentAgentId = data.agent_id;
+                currentAgentName = data.agent_name;
+                currentMessageId = Date.now() + Math.random();
+                currentContent = data.content;
                 const agentMsg: Message = {
-                  id: Date.now() + Math.random(),
+                  id: currentMessageId,
                   conversation_id: parseInt(id),
                   sender_type: 'agent',
                   sender_id: currentAgentId,
-                  sender_name: data.agent_name,
+                  sender_name: currentAgentName,
                   content: currentContent,
                   metadata_json: null,
                   created_at: new Date().toISOString(),
                 };
                 setMessages((prev) => [...prev, agentMsg]);
-
-              }
-              currentAgentId = null;
-              currentContent = '';
-            } else {
-              if (currentAgentId !== data.agent_id) {
-                currentAgentId = data.agent_id;
-                currentContent = data.content;
               } else {
                 currentContent += data.content;
+                const messageId = currentMessageId;
+                setMessages((prev) =>
+                  prev.map((msg) =>
+                    msg.id === messageId ? { ...msg, content: currentContent } : msg,
+                  ),
+                );
               }
             }
           } catch {
@@ -218,6 +245,7 @@ export default function ChatPage() {
       // Quiet failure preserves the chat state.
     } finally {
       setIsStreaming(false);
+      window.dispatchEvent(new Event('elfin:conversations-changed'));
     }
   };
 
@@ -234,6 +262,15 @@ export default function ChatPage() {
             <p className="ios-subtitle mx-auto max-w-md">
               Elfin 会把不同 Agent 的能力组织在同一个安静、清晰的对话空间里。
             </p>
+          </div>
+
+          <div className="ios-panel mb-4 p-3" data-agent-option>
+            <input
+              value={conversationTitle}
+              onChange={(e) => setConversationTitle(e.target.value)}
+              placeholder="对话名（可选）"
+              className="ios-input"
+            />
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2">
@@ -323,6 +360,16 @@ export default function ChatPage() {
           <div className="hidden rounded-full bg-white/70 px-3 py-1 text-xs text-[#7a7a7a] sm:block">
             {isStreaming ? '正在回复' : '在线'}
           </div>
+          {conversation && (
+            <button
+              onClick={handleArchiveCurrent}
+              className="ios-icon-button !h-10 !w-10 shrink-0 text-[#6e6e73]"
+              title={conversation.is_archived ? '恢复对话' : '归档对话'}
+              aria-label={conversation.is_archived ? '恢复对话' : '归档对话'}
+            >
+              <Archive size={18} />
+            </button>
+          )}
         </div>
       </header>
 

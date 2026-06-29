@@ -35,6 +35,7 @@ async def create_skill_from_materials(
     raw_text: str | None,
     debug_cases: str | None,
     files: list[UploadFile],
+    llm_config: dict | None = None,
 ) -> Skill:
     materials = []
     if raw_text and raw_text.strip():
@@ -56,6 +57,7 @@ async def create_skill_from_materials(
         description=description,
         materials=materials,
         debug_cases=debug_cases,
+        llm_config=llm_config,
     )
 
     skill = Skill(
@@ -186,6 +188,7 @@ async def _generate_skill_payload(
     description: str | None,
     materials: list[Material],
     debug_cases: str | None,
+    llm_config: dict | None,
 ) -> dict:
     context = _build_context(goal, description, materials, debug_cases)
     messages = [
@@ -209,7 +212,15 @@ async def _generate_skill_payload(
     ]
 
     try:
-        content = await chat_completion(messages, temperature=0.25, max_tokens=2200)
+        content = await chat_completion(
+            messages,
+            temperature=0.25,
+            max_tokens=2200,
+            api_key=(llm_config or {}).get("api_key"),
+            api_base=(llm_config or {}).get("api_base"),
+            model=(llm_config or {}).get("model") or "gpt-3.5-turbo",
+            timeout=(llm_config or {}).get("timeout"),
+        )
         parsed = _parse_json(str(content))
         return _normalize_payload(parsed, name, goal, description, materials, debug_cases)
     except Exception:

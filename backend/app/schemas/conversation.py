@@ -9,12 +9,19 @@ class ConversationCreate(BaseModel):
     agent_ids: list[int] = Field(..., min_length=1)  # 参与的 Agent ID 列表
 
 
+class ConversationUpdate(BaseModel):
+    title: str | None = Field(default=None, max_length=200)
+    is_archived: bool | None = None
+
+
 class ConversationOut(BaseModel):
     id: int
     title: str | None = None
     type: str
     participants: list[dict] | None = None
     last_message: dict | None = None
+    is_archived: bool = False
+    archived_at: datetime | None = None
     created_at: datetime
     updated_at: datetime
 

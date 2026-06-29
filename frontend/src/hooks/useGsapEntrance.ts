@@ -16,12 +16,23 @@ export function useGsapEntrance<T extends HTMLElement>(
   deps: DependencyList = [],
   options: EntranceOptions = {},
 ) {
+  const {
+    selector,
+    y = 14,
+    scale = 0.985,
+    duration = 0.42,
+    stagger = 0.045,
+    delay = 0,
+    ease = 'power2.out',
+  } = options;
+  const depsKey = JSON.stringify(deps);
+
   useLayoutEffect(() => {
     const root = ref.current;
     if (!root) return;
 
-    const targets = options.selector
-      ? Array.from(root.querySelectorAll<HTMLElement>(options.selector))
+    const targets = selector
+      ? Array.from(root.querySelectorAll<HTMLElement>(selector))
       : root.children.length > 0
         ? Array.from(root.children)
         : [root];
@@ -32,9 +43,9 @@ export function useGsapEntrance<T extends HTMLElement>(
       gsap.fromTo(
         targets,
         {
-          y: options.y ?? 14,
+          y,
           opacity: 0,
-          scale: options.scale ?? 0.985,
+          scale,
           filter: 'blur(6px)',
         },
         {
@@ -42,15 +53,15 @@ export function useGsapEntrance<T extends HTMLElement>(
           opacity: 1,
           scale: 1,
           filter: 'blur(0px)',
-          duration: options.duration ?? 0.42,
-          delay: options.delay ?? 0,
-          stagger: options.stagger ?? 0.045,
-          ease: options.ease ?? 'power2.out',
+          duration,
+          delay,
+          stagger,
+          ease,
           clearProps: 'transform,filter',
         },
       );
     }, root);
 
     return () => ctx.revert();
-  }, deps);
+  }, [ref, selector, y, scale, duration, stagger, delay, ease, depsKey]);
 }

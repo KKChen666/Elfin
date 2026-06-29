@@ -11,6 +11,21 @@ export interface User {
   created_at: string;
 }
 
+export interface LLMSettings {
+  api_key_masked: string | null;
+  api_base: string;
+  model: string;
+  timeout: number;
+  is_configured: boolean;
+}
+
+export interface LLMSettingsUpdate {
+  api_key?: string | null;
+  api_base?: string | null;
+  model?: string | null;
+  timeout?: number | null;
+}
+
 export const authApi = {
   register(username: string, password: string) {
     return client.post<User>('/auth/register', { username, password });
@@ -22,5 +37,13 @@ export const authApi = {
 
   getMe() {
     return client.get<User>('/auth/me');
+  },
+
+  getLLMSettings() {
+    return client.get<LLMSettings>('/auth/llm-settings');
+  },
+
+  updateLLMSettings(data: LLMSettingsUpdate) {
+    return client.put<LLMSettings>('/auth/llm-settings', data);
   },
 };

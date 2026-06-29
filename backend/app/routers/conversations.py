@@ -1,6 +1,6 @@
 import json
 from datetime import datetime
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
@@ -8,9 +8,16 @@ from app.database import get_db
 from app.models.user import User
 from app.models.agent import Agent
 from app.models.conversation import Conversation, ConversationParticipant, Message
-from app.schemas.conversation import ConversationCreate, ConversationOut, MessageCreate, MessageOut
+from app.schemas.conversation import (
+    ConversationCreate,
+    ConversationOut,
+    ConversationUpdate,
+    MessageCreate,
+    MessageOut,
+)
 from app.services.llm_service import chat_completion_stream
 from app.utils.auth import get_current_user
+from app.utils.secrets import decrypt_secret, encrypt_secret, is_encrypted_secret
 
 router = APIRouter(prefix="/api/conversations", tags=["对话系统"])
 
@@ -40,6 +47,8 @@ def _build_conversation_out(conv: Conversation, db: Session) -> ConversationOut:
         type=conv.type,
         participants=participants,
         last_message=last_message,
+        is_archived=conv.is_archived,
+        archived_at=conv.archived_at,
         created_at=conv.created_at,
         updated_at=conv.updated_at,
     )
@@ -47,12 +56,13 @@ def _build_conversation_out(conv: Conversation, db: Session) -> ConversationOut:
 
 @router.get("", response_model=list[ConversationOut])
 def list_conversations(
+    archived: bool = Query(default=False),
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     convs = (
         db.query(Conversation)
-        .filter(Conversation.user_id == user.id)
+        .filter(Conversation.user_id == user.id, Conversation.is_archived == archived)
         .order_by(Conversation.updated_at.desc())
         .all()
     )
@@ -119,6 +129,33 @@ def get_conversation(
     ).first()
     if not conv:
         raise HTTPException(status_code=404, detail="对话不存在")
+    return _build_conversation_out(conv, db)
+
+
+@router.patch("/{conv_id}", response_model=ConversationOut)
+def update_conversation(
+    conv_id: int,
+    data: ConversationUpdate,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    conv = db.query(Conversation).filter(
+        Conversation.id == conv_id, Conversation.user_id == user.id
+    ).first()
+    if not conv:
+        raise HTTPException(status_code=404, detail="对话不存在")
+
+    if "title" in data.model_fields_set:
+        title = data.title.strip() if data.title else ""
+        conv.title = title or None
+
+    if "is_archived" in data.model_fields_set and data.is_archived != conv.is_archived:
+        conv.is_archived = data.is_archived
+        conv.archived_at = datetime.utcnow() if data.is_archived else None
+
+    conv.updated_at = datetime.utcnow()
+    db.commit()
+    db.refresh(conv)
     return _build_conversation_out(conv, db)
 
 
@@ -256,6 +293,17 @@ async def trigger_agent_reply(
             "agent_name": agent.name,
             "messages": messages,
         })
+    api_key = decrypt_secret(user.llm_api_key)
+    if user.llm_api_key and api_key and not is_encrypted_secret(user.llm_api_key):
+        user.llm_api_key = encrypt_secret(api_key)
+        db.commit()
+
+    llm_config = {
+        "api_key": api_key,
+        "api_base": user.llm_api_base,
+        "model": user.llm_model,
+        "timeout": user.llm_timeout,
+    }
 
     async def generate():
         # 在生成器内部创建新的 DB session
@@ -269,7 +317,13 @@ async def trigger_agent_reply(
 
                 # 流式生成回复
                 full_response = ""
-                async for chunk in chat_completion_stream(messages):
+                async for chunk in chat_completion_stream(
+                    messages,
+                    api_key=llm_config["api_key"],
+                    api_base=llm_config["api_base"],
+                    model=llm_config["model"] or "gpt-3.5-turbo",
+                    timeout=llm_config["timeout"],
+                ):
                     full_response += chunk
                     yield f"data: {json.dumps({'agent_id': agent_id_value, 'agent_name': agent_name, 'content': chunk, 'done': False})}\n\n"
 

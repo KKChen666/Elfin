@@ -20,6 +20,21 @@ class UserOut(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class LLMSettingsIn(BaseModel):
+    api_key: str | None = None
+    api_base: str | None = None
+    model: str | None = None
+    timeout: int | None = Field(default=None, ge=5, le=300)
+
+
+class LLMSettingsOut(BaseModel):
+    api_key_masked: str | None = None
+    api_base: str
+    model: str
+    timeout: int
+    is_configured: bool
+
+
 class Token(BaseModel):
     access_token: str
     token_type: str = "bearer"

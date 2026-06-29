@@ -1,9 +1,4 @@
-"""
-LLM 服务 - OpenAI 兼容接口
-支持各种 LLM 提供商（OpenAI、Claude、国产模型等）
-"""
-import httpx
-import json
+"""LLM 服务 - 通过 hello-agents 统一接入各供应商模型"""
 import random
 import re
 from app.config import settings
@@ -15,43 +10,23 @@ async def chat_completion(
     temperature: float = 0.7,
     max_tokens: int = 1000,
     stream: bool = False,
+    api_key: str | None = None,
+    api_base: str | None = None,
+    timeout: int | None = None,
 ) -> dict | str:
     """
-    调用 OpenAI 兼容的 Chat API
+    调用 hello-agents 统一 LLM 接口
     messages: [{"role": "system"/"user"/"assistant", "content": "..."}]
     """
-    api_key = settings.LLM_API_KEY
-    api_base = settings.LLM_API_BASE
-
     if not api_key:
         return _mock_response(messages)
 
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json",
-    }
+    llm = _create_hello_agents_llm(api_key, api_base, model, temperature, max_tokens, timeout)
+    if stream:
+        return llm.astream_invoke(messages, temperature=temperature, max_tokens=max_tokens)
 
-    payload = {
-        "model": model,
-        "messages": messages,
-        "temperature": temperature,
-        "max_tokens": max_tokens,
-        "stream": stream,
-    }
-
-    async with httpx.AsyncClient(timeout=60.0) as client:
-        response = await client.post(
-            f"{api_base}/chat/completions",
-            headers=headers,
-            json=payload,
-        )
-        response.raise_for_status()
-
-        if stream:
-            return response.aiter_lines()
-
-        data = response.json()
-        return data["choices"][0]["message"]["content"]
+    response = await llm.ainvoke(messages, temperature=temperature, max_tokens=max_tokens)
+    return response.content if hasattr(response, "content") else str(response)
 
 
 async def chat_completion_stream(
@@ -59,11 +34,11 @@ async def chat_completion_stream(
     model: str = "gpt-3.5-turbo",
     temperature: float = 0.7,
     max_tokens: int = 1000,
+    api_key: str | None = None,
+    api_base: str | None = None,
+    timeout: int | None = None,
 ):
     """流式调用 Chat API，yield 每个 chunk"""
-    api_key = settings.LLM_API_KEY
-    api_base = settings.LLM_API_BASE
-
     if not api_key:
         response = _mock_response(messages)
         # 按词组 yield，而非单字
@@ -71,40 +46,38 @@ async def chat_completion_stream(
             yield response[i:i+3]
         return
 
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json",
-    }
+    llm = _create_hello_agents_llm(api_key, api_base, model, temperature, max_tokens, timeout)
+    async for chunk in llm.astream_invoke(
+        messages,
+        temperature=temperature,
+        max_tokens=max_tokens,
+    ):
+        if chunk:
+            yield chunk
 
-    payload = {
-        "model": model,
-        "messages": messages,
-        "temperature": temperature,
-        "max_tokens": max_tokens,
-        "stream": True,
-    }
 
-    async with httpx.AsyncClient(timeout=60.0) as client:
-        async with client.stream(
-            "POST",
-            f"{api_base}/chat/completions",
-            headers=headers,
-            json=payload,
-        ) as response:
-            response.raise_for_status()
-            async for line in response.aiter_lines():
-                if line.startswith("data: "):
-                    data_str = line[6:]
-                    if data_str.strip() == "[DONE]":
-                        break
-                    try:
-                        data = json.loads(data_str)
-                        delta = data["choices"][0].get("delta", {})
-                        content = delta.get("content", "")
-                        if content:
-                            yield content
-                    except json.JSONDecodeError:
-                        continue
+def _create_hello_agents_llm(
+    api_key: str,
+    api_base: str | None,
+    model: str,
+    temperature: float,
+    max_tokens: int,
+    timeout: int | None,
+):
+    """创建 hello-agents LLM 客户端，统一走其供应商适配层。"""
+    try:
+        from hello_agents import HelloAgentsLLM
+    except ImportError as exc:
+        raise RuntimeError("请先安装 hello-agents：pip install hello-agents") from exc
+
+    return HelloAgentsLLM(
+        model=model or settings.LLM_MODEL,
+        api_key=api_key,
+        base_url=api_base or settings.LLM_API_BASE,
+        temperature=temperature,
+        max_tokens=max_tokens,
+        timeout=timeout or settings.LLM_TIMEOUT,
+    )
 
 
 def _extract_system_prompt_info(messages: list[dict]) -> dict:
