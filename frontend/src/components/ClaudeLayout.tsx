@@ -1,22 +1,22 @@
-import { useState, useEffect, useRef } from 'react';
-import { Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
-  ChatCircleDots,
-  Plus,
-  SignOut,
-  CaretLeft,
-  Robot,
-  Sparkle,
-  Users,
   Bell,
   Calendar,
+  CaretLeft,
   ChartBar,
+  ChatCircleDots,
   List,
+  Plus,
+  Robot,
+  SignOut,
+  Sparkle,
+  Users,
   X,
 } from '@phosphor-icons/react';
-import { useAuthStore } from '../stores/useAuthStore';
-import { conversationsApi, Conversation } from '../api/conversations';
 import gsap from 'gsap';
+import { conversationsApi, Conversation } from '../api/conversations';
+import { useAuthStore } from '../stores/useAuthStore';
 
 const navItems = [
   { path: '/chat', icon: ChatCircleDots, label: '对话' },
@@ -50,32 +50,44 @@ export default function ClaudeLayout() {
   }, [location.pathname]);
 
   useEffect(() => {
-    if (sidebarRef.current) {
-      const ctx = gsap.context(() => {
-        gsap.from(sidebarRef.current, { x: -18, opacity: 0, duration: 0.35, ease: 'power2.out' });
-        if (navRef.current?.children) {
-          gsap.from(navRef.current.children, {
-            x: -8,
-            opacity: 0,
-            duration: 0.28,
-            stagger: 0.025,
-            delay: 0.08,
-            ease: 'power2.out',
-          });
-        }
-      }, sidebarRef);
+    if (!sidebarRef.current) return;
 
-      return () => ctx.revert();
-    }
+    const ctx = gsap.context(() => {
+      gsap.from(sidebarRef.current, {
+        x: -18,
+        opacity: 0,
+        duration: 0.35,
+        ease: 'power2.out',
+      });
+      if (navRef.current?.children) {
+        gsap.from(navRef.current.children, {
+          x: -8,
+          opacity: 0,
+          duration: 0.28,
+          stagger: 0.025,
+          delay: 0.08,
+          ease: 'power2.out',
+        });
+      }
+    }, sidebarRef);
+
+    return () => ctx.revert();
   }, []);
 
   useEffect(() => {
-    if (!conversationListRef.current?.children) return;
+    if (!conversationListRef.current?.children.length) return;
 
     gsap.fromTo(
       conversationListRef.current.children,
       { y: 8, opacity: 0 },
-      { y: 0, opacity: 1, duration: 0.26, stagger: 0.025, ease: 'power2.out', clearProps: 'transform' },
+      {
+        y: 0,
+        opacity: 1,
+        duration: 0.26,
+        stagger: 0.025,
+        ease: 'power2.out',
+        clearProps: 'transform',
+      },
     );
   }, [conversations.length]);
 
@@ -126,11 +138,17 @@ export default function ClaudeLayout() {
               E
             </div>
             <div>
-              <div className="text-[17px] font-semibold leading-tight tracking-[-0.01em]">Elfin</div>
+              <div className="text-[17px] font-semibold leading-tight tracking-[-0.01em]">
+                Elfin
+              </div>
               <div className="text-xs leading-tight text-[#7a7a7a]">温柔记录每段关系</div>
             </div>
           </button>
-          <button onClick={() => setMobileOpen(false)} className="ios-icon-button lg:hidden" aria-label="关闭菜单">
+          <button
+            onClick={() => setMobileOpen(false)}
+            className="ios-icon-button lg:hidden"
+            aria-label="关闭菜单"
+          >
             <X size={18} />
           </button>
         </div>
@@ -217,7 +235,9 @@ export default function ClaudeLayout() {
                 {user?.username?.[0]?.toUpperCase() || 'U'}
               </div>
               <div className="min-w-0">
-                <div className="truncate text-sm font-medium text-[#1d1d1f]">{user?.username || '用户'}</div>
+                <div className="truncate text-sm font-medium text-[#1d1d1f]">
+                  {user?.username || '用户'}
+                </div>
                 <div className="text-xs text-[#8e8e93]">已登录</div>
               </div>
             </div>

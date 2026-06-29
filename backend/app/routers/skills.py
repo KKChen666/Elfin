@@ -3,12 +3,12 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models.user import User
-from app.models.skill import Skill
 from app.models.relative import Relative
-from app.schemas.skill import SkillCreate, SkillUpdate, SkillOut
-from app.services.skill_creator_service import create_skill_from_materials
+from app.models.skill import Skill
+from app.models.user import User
+from app.schemas.skill import SkillCreate, SkillOut, SkillUpdate
 from app.services.distill_service import distill_from_relative, merge_skills
+from app.services.skill_creator_service import create_skill_from_materials
 from app.utils.auth import get_current_user
 
 
@@ -16,7 +16,8 @@ class MergeRequest(BaseModel):
     skill_ids: list[int]
     new_name: str
 
-router = APIRouter(prefix="/api/skills", tags=["技能管理"])
+
+router = APIRouter(prefix="/api/skills", tags=["skills"])
 
 
 @router.get("", response_model=list[SkillOut])
@@ -24,8 +25,13 @@ def list_skills(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    skills = db.query(Skill).filter(Skill.user_id == user.id).order_by(Skill.created_at.desc()).all()
-    return [SkillOut.model_validate(s) for s in skills]
+    skills = (
+        db.query(Skill)
+        .filter(Skill.user_id == user.id)
+        .order_by(Skill.created_at.desc())
+        .all()
+    )
+    return [SkillOut.model_validate(skill) for skill in skills]
 
 
 @router.post("", response_model=SkillOut, status_code=201)
@@ -66,6 +72,7 @@ async def create_skill_with_creator(
         raise HTTPException(status_code=400, detail="Skill name is required")
     if not goal.strip():
         raise HTTPException(status_code=400, detail="Skill goal is required")
+
     try:
         skill = await create_skill_from_materials(
             db=db,
@@ -78,8 +85,8 @@ async def create_skill_with_creator(
             files=files,
         )
         return SkillOut.model_validate(skill)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 @router.get("/{skill_id}", response_model=SkillOut)
@@ -104,10 +111,10 @@ def update_skill(
     skill = db.query(Skill).filter(Skill.id == skill_id, Skill.user_id == user.id).first()
     if not skill:
         raise HTTPException(status_code=404, detail="技能不存在")
+
     for key, value in data.model_dump(exclude_unset=True).items():
         setattr(skill, key, value)
     db.flush()
-    # 级联更新：刷新所有使用该 Skill 的 Agent 的 prompt
     _cascade_refresh_agents(db, skill)
     db.commit()
     db.refresh(skill)
@@ -115,26 +122,27 @@ def update_skill(
 
 
 def _cascade_refresh_agents(db: Session, skill: Skill):
-    """Skill 更新后，刷新所有关联 Agent 的 prompt"""
+    """Refresh prompts for agents linked to the updated skill."""
     from app.models.agent import AgentSkill
+
     agent_skills = db.query(AgentSkill).filter(AgentSkill.skill_id == skill.id).all()
     for agent_skill in agent_skills:
         agent = agent_skill.agent
-        # 重新收集所有 skill 的 prompt
         prompts = []
-        for as_item in agent.agent_skills:
-            s = as_item.skill
-            p = s.system_prompt
-            if not p:
-                # 从结构化数据生成
+        for item in agent.agent_skills:
+            linked_skill = item.skill
+            prompt = linked_skill.system_prompt
+            if not prompt:
                 parts = []
-                if s.personality:
-                    parts.append(f"性格：{s.personality.get('type', '均衡型')}")
-                if s.communication_style:
-                    parts.append(f"风格：{s.communication_style.get('language_style', 'mixed')}")
-                p = "；".join(parts) if parts else None
-            if p:
-                prompts.append(p)
+                if linked_skill.personality:
+                    parts.append(f"类型：{linked_skill.personality.get('type', '未分类')}")
+                if linked_skill.communication_style:
+                    parts.append(
+                        f"风格：{linked_skill.communication_style.get('language_style', 'mixed')}"
+                    )
+                prompt = "；".join(parts) if parts else None
+            if prompt:
+                prompts.append(prompt)
         agent.system_prompt = "\n\n---\n\n".join(prompts) if prompts else None
 
 
@@ -157,12 +165,12 @@ def distill_skill(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """从亲友聊天记录蒸馏技能"""
+    """Distill a communication skill from imported chat records."""
     try:
         skill = distill_from_relative(db, user.id, relative_id)
         return SkillOut.model_validate(skill)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 @router.post("/merge", response_model=SkillOut)
@@ -171,9 +179,9 @@ def merge_skill_endpoint(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """合并多个技能"""
+    """Merge multiple skills into one."""
     try:
         skill = merge_skills(db, user.id, data.skill_ids, data.new_name)
         return SkillOut.model_validate(skill)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
