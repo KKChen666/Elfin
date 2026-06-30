@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Plus, Search, Users } from 'lucide-react';
+import { Plus, MagnifyingGlass, Users } from '@phosphor-icons/react';
 import { useRelativeStore } from '../stores/useRelativeStore';
 import { RELATION_CATEGORIES, getRelationCategory } from '../types';
 import AvatarCard from '../components/avatar/AvatarCard';
@@ -54,7 +54,7 @@ export default function Home() {
 
         <div className="ios-panel mb-5 p-3" data-gsap-page>
           <div className="flex items-center gap-2">
-            <Search size={18} className="ml-2 shrink-0 text-[#8e8e93]" />
+            <MagnifyingGlass size={18} className="ml-2 shrink-0 text-[#8e8e93]" />
             <input
               type="text"
               placeholder="搜索亲友"

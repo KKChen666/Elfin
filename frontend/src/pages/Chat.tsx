@@ -1,6 +1,6 @@
-﻿import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Send, Trash2 } from 'lucide-react';
+import { ArrowLeft, PaperPlaneRight, Trash } from '@phosphor-icons/react';
 import { useRelativeStore } from '../stores/useRelativeStore';
 import { ChatMessage } from '../types';
 import AvatarPreview from '../components/avatar/AvatarPreview';
@@ -142,7 +142,7 @@ export default function Chat() {
           onClick={handleClearChat}
           className="p-2 hover:bg-gray-100 rounded-lg transition-colors text-gray-400"
         >
-          <Trash2 size={18} />
+          <Trash size={18} />
         </button>
       </header>
 
@@ -267,7 +267,7 @@ export default function Chat() {
             disabled={!inputValue.trim() || isTyping}
             className="p-2 bg-[#0066CC] text-white rounded-full hover:bg-[#005BB8] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <Send size={18} />
+            <PaperPlaneRight size={18} />
           </button>
         </div>
       </div>

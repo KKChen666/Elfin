@@ -1,6 +1,6 @@
-﻿import { useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Image, Sparkles, Palette, ChevronLeft, ChevronRight, Dice5 } from 'lucide-react';
+import { ArrowLeft, Image, Sparkle, Palette, CaretLeft, CaretRight, DiceFive } from '@phosphor-icons/react';
 import { useRelativeStore } from '../stores/useRelativeStore';
 import { uploadApi } from '../api/upload';
 import { AvatarConfig, DEFAULT_AVATAR } from '../types';
@@ -142,7 +142,7 @@ export default function AvatarCustom() {
             {mode === 'upload' ? '📸 照片头像' : '✨ 捏脸工坊'}
           </h1>
           <button onClick={randomize} className="w-8 h-8 flex items-center justify-center rounded-xl active:bg-[#F5F5F7] transition-colors" title="随机生成">
-            <Dice5 size={18} className="text-[#0066CC]" />
+            <DiceFive size={18} className="text-[#0066CC]" />
           </button>
         </div>
       </header>
@@ -172,7 +172,7 @@ export default function AvatarCustom() {
               className={`flex items-center gap-1 px-4 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 ${
                 mode === 'customize' ? 'bg-white text-[#0066CC] shadow-sm' : 'text-[#8E8E93]'
               }`}>
-              <Sparkles size={12} />捏脸
+              <Sparkle size={12} />捏脸
             </button>
             <button onClick={() => setMode('upload')}
               className={`flex items-center gap-1 px-4 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 ${
@@ -200,7 +200,7 @@ export default function AvatarCustom() {
             {/* 分类标签 */}
             <div className="flex items-center gap-0.5 px-3 mb-3">
               <button onClick={() => goCategory(-1)} className="w-6 h-6 flex items-center justify-center shrink-0">
-                <ChevronLeft size={16} className="text-[#D0BBA8]" />
+                <CaretLeft size={16} className="text-[#D0BBA8]" />
               </button>
               <div className="flex gap-1.5 flex-1 overflow-x-auto scrollbar-hide px-1">
                 {CATEGORIES.map(cat => (
@@ -216,7 +216,7 @@ export default function AvatarCustom() {
                 ))}
               </div>
               <button onClick={() => goCategory(1)} className="w-6 h-6 flex items-center justify-center shrink-0">
-                <ChevronRight size={16} className="text-[#D0BBA8]" />
+                <CaretRight size={16} className="text-[#D0BBA8]" />
               </button>
             </div>
 

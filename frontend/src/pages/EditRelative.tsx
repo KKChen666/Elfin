@@ -1,6 +1,6 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft } from '@phosphor-icons/react';
 import { useRelativeStore } from '../stores/useRelativeStore';
 import { uploadApi } from '../api/upload';
 import { RELATION_CATEGORIES } from '../types';

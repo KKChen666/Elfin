@@ -1,14 +1,14 @@
 import { useRelativeStore } from '../stores/useRelativeStore';
 import { getUpcomingEvents } from '../utils/dateUtils';
 import { Link } from 'react-router-dom';
-import { Bell, CalendarDays, Gift, Heart } from 'lucide-react';
+import { Bell, CalendarBlank, Gift, Heart } from '@phosphor-icons/react';
 import { useRef } from 'react';
 import { useGsapEntrance } from '../hooks/useGsapEntrance';
 
 const EVENT_META: Record<string, { icon: typeof Gift; badgeText: string; tint: string }> = {
   birthday: { icon: Gift, badgeText: '生日', tint: 'text-[#0066cc] bg-[#e9f2ff]' },
   mothers_day: { icon: Heart, badgeText: '母亲节', tint: 'text-[#af52de] bg-[#f7edff]' },
-  fathers_day: { icon: CalendarDays, badgeText: '父亲节', tint: 'text-[#248a3d] bg-[#eef8f1]' },
+  fathers_day: { icon: CalendarBlank, badgeText: '父亲节', tint: 'text-[#248a3d] bg-[#eef8f1]' },
 };
 
 function getCountdownText(days: number): string {

@@ -1,5 +1,5 @@
-﻿import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Edit, Trash2, Sparkles, Bot, Upload, MessageCircle } from 'lucide-react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { ArrowLeft, Pencil, Trash, Sparkle, Robot, Upload, ChatCircle } from '@phosphor-icons/react';
 import { useRelativeStore } from '../stores/useRelativeStore';
 import { getRelationLabel } from '../types';
 import AvatarPreview from '../components/avatar/AvatarPreview';
@@ -36,10 +36,10 @@ export default function Detail() {
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
             title="编辑"
           >
-            <Edit size={20} />
+            <Pencil size={20} />
           </button>
           <button onClick={handleDelete} className="p-2 hover:bg-red-50 text-red-500 rounded-lg transition-colors">
-            <Trash2 size={20} />
+            <Trash size={20} />
           </button>
         </div>
       </header>
@@ -221,9 +221,9 @@ export default function Detail() {
                   relative.chatStyle ? 'bg-[#0066CC]' : 'bg-gray-400'
                 }`}>
                   {relative.chatStyle ? (
-                    <Bot size={22} className="text-white" />
+                    <Robot size={22} className="text-white" />
                   ) : (
-                    <Sparkles size={22} className="text-white" />
+                    <Sparkle size={22} className="text-white" />
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -239,7 +239,7 @@ export default function Detail() {
                 </div>
                 <div className="shrink-0">
                   {relative.chatStyle ? (
-                    <MessageCircle size={18} className="text-[#0066CC]" />
+                    <ChatCircle size={18} className="text-[#0066CC]" />
                   ) : (
                     <Upload size={18} className="text-gray-400" />
                   )}

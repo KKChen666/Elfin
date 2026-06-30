@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useRelativeStore } from '../stores/useRelativeStore';
 import { getEventsForDate } from '../utils/dateUtils';
-import { ChevronLeft, ChevronRight, Gift, Heart, CalendarDays } from 'lucide-react';
+import { CaretLeft, CaretRight, Gift, Heart, CalendarBlank } from '@phosphor-icons/react';
 import { useGsapEntrance } from '../hooks/useGsapEntrance';
 
 const MONTHS = ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'];
@@ -10,7 +10,7 @@ const MONTHS = ['一月', '二月', '三月', '四月', '五月', '六月', '七
 const EVENT_META: Record<string, { icon: typeof Gift; badge: string; badgeText: string }> = {
   birthday: { icon: Gift, badge: 'bg-[#e9f2ff] text-[#0066cc]', badgeText: '生日' },
   mothers_day: { icon: Heart, badge: 'bg-[#f7edff] text-[#af52de]', badgeText: '母亲节' },
-  fathers_day: { icon: CalendarDays, badge: 'bg-[#eef8f1] text-[#248a3d]', badgeText: '父亲节' },
+  fathers_day: { icon: CalendarBlank, badge: 'bg-[#eef8f1] text-[#248a3d]', badgeText: '父亲节' },
 };
 
 export default function Calendar() {
@@ -76,7 +76,7 @@ export default function Calendar() {
           <section className="ios-panel p-4 sm:p-5">
             <div className="mb-5 flex items-center justify-between gap-3">
               <button onClick={prevMonth} className="ios-icon-button" aria-label="上个月">
-                <ChevronLeft size={19} />
+                <CaretLeft size={19} />
               </button>
               <div className="text-center">
                 <h2 className="text-xl font-semibold tracking-[-0.02em] text-[#1d1d1f]">
@@ -85,7 +85,7 @@ export default function Calendar() {
                 <p className="mt-0.5 text-xs text-[#8e8e93]">{monthEvents.length} 个事件</p>
               </div>
               <button onClick={nextMonth} className="ios-icon-button" aria-label="下个月">
-                <ChevronRight size={19} />
+                <CaretRight size={19} />
               </button>
             </div>
 

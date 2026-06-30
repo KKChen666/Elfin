@@ -1,6 +1,6 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Upload } from 'lucide-react';
+import { ArrowLeft, Upload } from '@phosphor-icons/react';
 import { useRelativeStore } from '../stores/useRelativeStore';
 import { chatApi } from '../api/chat';
 import { ChatStyle } from '../types';

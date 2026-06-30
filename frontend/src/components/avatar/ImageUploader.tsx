@@ -1,5 +1,5 @@
-﻿import { useState, useRef, useCallback } from 'react';
-import { Upload, X, RotateCw, ZoomIn, ZoomOut, Move, Wand2 } from 'lucide-react';
+import { useState, useRef, useCallback } from 'react';
+import { Upload, X, ArrowClockwise, MagnifyingGlassPlus, MagnifyingGlassMinus, ArrowsOutCardinal, MagicWand } from '@phosphor-icons/react';
 
 interface ImageUploaderProps {
   onImageCropped: (base64: string) => void;
@@ -302,7 +302,7 @@ export default function ImageUploader({ onImageCropped, currentImage }: ImageUpl
                   : 'bg-white text-gray-500 border border-gray-200'
               }`}
             >
-              <Wand2 size={14} />
+              <MagicWand size={14} />
               Q版大头
             </button>
           </div>
@@ -310,7 +310,7 @@ export default function ImageUploader({ onImageCropped, currentImage }: ImageUpl
           {/* 调整控件 */}
           <div className="space-y-3 bg-white rounded-xl p-4 border border-gray-50">
             <div className="flex items-center gap-3">
-              <ZoomOut size={14} className="text-gray-400" />
+              <MagnifyingGlassMinus size={14} className="text-gray-400" />
               <input
                 type="range"
                 min="0.5"
@@ -321,11 +321,11 @@ export default function ImageUploader({ onImageCropped, currentImage }: ImageUpl
                 className="flex-1 h-1"
                 style={{ accentColor: '#0066CC' }}
               />
-              <ZoomIn size={14} className="text-gray-400" />
+              <MagnifyingGlassPlus size={14} className="text-gray-400" />
             </div>
 
             <div className="flex items-center gap-3">
-              <RotateCw size={14} className="text-gray-400" />
+              <ArrowClockwise size={14} className="text-gray-400" />
               <input
                 type="range"
                 min="-180"
@@ -340,7 +340,7 @@ export default function ImageUploader({ onImageCropped, currentImage }: ImageUpl
             </div>
 
             <div className="flex items-center justify-center gap-1.5 text-[11px] text-gray-400 pt-1">
-              <Move size={12} />
+              <ArrowsOutCardinal size={12} />
               <span>拖动照片调整位置</span>
             </div>
           </div>

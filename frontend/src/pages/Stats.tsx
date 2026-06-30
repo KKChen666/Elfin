@@ -1,11 +1,11 @@
 import { useRelativeStore } from '../stores/useRelativeStore';
 import { RELATION_CATEGORIES, getRelationCategory } from '../types';
-import { Users, UserCheck, Calendar, MessageSquare } from 'lucide-react';
+import { Users, UserCheck, Calendar, ChatCircle } from '@phosphor-icons/react';
 import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { useGsapEntrance } from '../hooks/useGsapEntrance';
 
-const statIcons = [Users, UserCheck, Calendar, MessageSquare];
+const statIcons = [Users, UserCheck, Calendar, ChatCircle];
 
 export default function Stats() {
   const { relatives } = useRelativeStore();
