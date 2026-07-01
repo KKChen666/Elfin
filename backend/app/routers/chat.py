@@ -8,6 +8,11 @@ from app.models.chat_message import ChatMessage
 from app.schemas.chat import ChatMessageCreate, ChatMessageOut, AvatarResponseOut, ChatStyleOut
 from app.services.avatar_response import generate_avatar_response
 from app.services.chat_analysis import parse_chat_file, identify_speakers, analyze_chat_style
+from app.services.chat_memory_service import (
+    get_memory_backend_status,
+    rebuild_memory_chunks,
+    retrieve_memory_chunks,
+)
 from app.utils.auth import get_current_user
 
 router = APIRouter(prefix="/api/relatives/{relative_id}/messages", tags=["聊天"])
@@ -81,13 +86,24 @@ def avatar_respond(
     relative = _get_relative(db, user, relative_id)
 
     # 保存用户消息
-    user_msg = ChatMessage(
-        relative_id=relative_id,
-        content=data.content,
-        sender="user",
+    last_message = (
+        db.query(ChatMessage)
+        .filter(ChatMessage.relative_id == relative_id)
+        .order_by(ChatMessage.timestamp.desc())
+        .first()
     )
-    db.add(user_msg)
-    db.commit()
+    if not (
+        last_message
+        and last_message.sender == "user"
+        and last_message.content == data.content
+    ):
+        user_msg = ChatMessage(
+            relative_id=relative_id,
+            content=data.content,
+            sender="user",
+        )
+        db.add(user_msg)
+        db.commit()
 
     # 获取最近消息作为上下文
     recent = (
@@ -98,12 +114,22 @@ def avatar_respond(
         .all()
     )
     recent_dicts = [{"content": m.content, "sender": m.sender} for m in reversed(recent)]
+    memory_chunks = retrieve_memory_chunks(db, relative_id, data.content, limit=5)
 
     # 生成回复
     reply = generate_avatar_response(
         data.content,
         relative.chat_style,
         recent_dicts,
+        memory_chunks=[
+            {
+                "trigger": chunk.trigger_text,
+                "reply": chunk.reply_text,
+                "context_before": chunk.context_before or [],
+                "tags": chunk.tags or [],
+            }
+            for chunk in memory_chunks
+        ],
     )
 
     # 保存 avatar 回复
@@ -170,6 +196,8 @@ async def upload_and_analyze(
     target = _choose_target_speaker(relative.name, speaker1, speaker2, target_sender)
 
     chat_style = analyze_chat_style(messages, target)
+    memory_count = rebuild_memory_chunks(db, relative_id, messages, target)
+    chat_style["memoryChunkCount"] = memory_count
 
     relative.chat_style = chat_style
     db.commit()
@@ -188,3 +216,13 @@ def get_chat_style(
     if not relative.chat_style:
         raise HTTPException(status_code=404, detail="尚未导入聊天风格")
     return ChatStyleOut(chat_style=relative.chat_style)
+
+
+@chat_style_router.get("/memory-backend")
+def get_memory_backend(
+    relative_id: int,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    _get_relative(db, user, relative_id)
+    return get_memory_backend_status()

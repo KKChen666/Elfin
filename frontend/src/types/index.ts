@@ -25,7 +25,7 @@ export const RELATION_CATEGORIES: RelationCategory[] = [
       { key: 'daughter', label: '女儿' },
       { key: 'spouse', label: '配偶' },
       { key: 'cousin', label: '表亲/堂亲' },
-    ]
+    ],
   },
   {
     key: 'friend',
@@ -34,7 +34,7 @@ export const RELATION_CATEGORIES: RelationCategory[] = [
       { key: 'best_friend', label: '挚友' },
       { key: 'friend', label: '朋友' },
       { key: 'neighbor', label: '邻居' },
-    ]
+    ],
   },
   {
     key: 'colleague',
@@ -43,7 +43,7 @@ export const RELATION_CATEGORIES: RelationCategory[] = [
       { key: 'boss', label: '上司' },
       { key: 'colleague', label: '同事' },
       { key: 'client', label: '客户' },
-    ]
+    ],
   },
   {
     key: 'classmate',
@@ -52,12 +52,11 @@ export const RELATION_CATEGORIES: RelationCategory[] = [
       { key: 'classmate', label: '同学' },
       { key: 'schoolmate', label: '校友' },
       { key: 'teacher', label: '老师' },
-    ]
+    ],
   },
 ];
 
 export const RELATION_LABELS: Record<string, string> = {
-  // 家人
   grandpa: '爷爷',
   grandma: '奶奶',
   grandpa_maternal: '外公',
@@ -72,19 +71,15 @@ export const RELATION_LABELS: Record<string, string> = {
   daughter: '女儿',
   spouse: '配偶',
   cousin: '表亲/堂亲',
-  // 朋友
   best_friend: '挚友',
   friend: '朋友',
   neighbor: '邻居',
-  // 同事
   boss: '上司',
   colleague: '同事',
   client: '客户',
-  // 同学
   classmate: '同学',
   schoolmate: '校友',
   teacher: '老师',
-  // 兼容旧数据
   family: '家人',
   other: '其他',
 };
@@ -95,26 +90,25 @@ export function getRelationLabel(relation: string): string {
 
 export function getRelationCategory(relation: string): string {
   for (const cat of RELATION_CATEGORIES) {
-    if (cat.items.some(item => item.key === relation)) return cat.label;
+    if (cat.items.some((item) => item.key === relation)) return cat.label;
   }
   return '自定义';
 }
 
 export interface AvatarConfig {
-  gender: number;        // 0=女孩 1=男孩
-  faceShape: number;     // 脸型 (0-4)
-  hairstyle: number;     // 发型 (0-9)
-  eyeStyle: number;      // 眼睛 (0-5)
-  mouthStyle: number;    // 嘴巴 (0-4)
-  clothing: number;      // 服饰 (0-7)
-  accessory: number;     // 配饰 (0-5)
+  gender: number;
+  faceShape: number;
+  hairstyle: number;
+  eyeStyle: number;
+  mouthStyle: number;
+  clothing: number;
+  accessory: number;
   skinColor: string;
   hairColor: string;
   clothingColor: string;
 }
 
 export interface ChatStyle {
-  // 基础特征
   highFrequencyWords: string[];
   commonEmojis: string[];
   sentencePatterns: string[];
@@ -122,50 +116,43 @@ export interface ChatStyle {
   avgMessageLength: number;
   personality: '话多型' | '惜字如金型' | '均衡型';
   styleKeywords: string[];
-  
-  // 高级特征（借鉴 OpenHuman 记忆树概念）
-  languageStyle: 'formal' | 'casual' | 'mixed';  // 语言风格
-  sentiment: 'positive' | 'neutral' | 'negative' | 'mixed';  // 情感倾向
-  topicPreferences: string[];  // 话题偏好
-  activeHours: number[];  // 活跃时间段 (0-23)
-  responseLengthPattern: 'short' | 'medium' | 'long' | 'variable';  // 回复长度模式
-  greetingPatterns: string[];  // 问候语习惯
-  farewellPatterns: string[];  // 告别语习惯
-  questionPatterns: string[];  // 提问习惯
-  agreementPatterns: string[];  // 肯定表达习惯
-  hesitationPatterns: string[];  // 犹豫表达习惯
-  laughterPatterns: string[];  // 笑声习惯
+  languageStyle: 'formal' | 'casual' | 'mixed';
+  sentiment: 'positive' | 'neutral' | 'negative' | 'mixed';
+  topicPreferences: string[];
+  activeHours: number[];
+  responseLengthPattern: 'short' | 'medium' | 'long' | 'variable';
+  greetingPatterns: string[];
+  farewellPatterns: string[];
+  questionPatterns: string[];
+  agreementPatterns: string[];
+  hesitationPatterns: string[];
+  laughterPatterns: string[];
   punctuationStyle: {
-    useExclamation: boolean;  // 是否常用感叹号
-    useQuestion: boolean;  // 是否常用问号
-    useEllipsis: boolean;  // 是否常用省略号
-    useTilde: boolean;  // 是否常用波浪号
+    useExclamation: boolean;
+    useQuestion: boolean;
+    useEllipsis: boolean;
+    useTilde: boolean;
   };
-
-  // 深度特征 — 蒸馏心智模型（借鉴 persona-skill 方法论）
-  // 真实回复模板：从聊天记录中提取的真实短句，而非通用模板
   realReplyPatterns: {
-    greeting: string[];    // 真实问候句（如 "来了来了" "在呢"）
-    farewell: string[];    // 真实告别句
-    agreement: string[];   // 真实认同句（如 "确实" "对对对就是这样"）
-    question: string[];    // 真实提问句
-    comfort: string[];     // 真实安慰句
-    surprise: string[];    // 真实惊讶句
-    general: string[];     // 真实通用回复（如 "嗯嗯" "好嘞" "行"）
-    laughter: string[];    // 真实笑的表达
+    greeting: string[];
+    farewell: string[];
+    agreement: string[];
+    question: string[];
+    comfort: string[];
+    surprise: string[];
+    general: string[];
+    laughter: string[];
   };
-  // 句式模板：提取的真实句式结构（如 "我觉得{内容}挺好的"）
   sentenceTemplates: string[];
-  // 沟通特质
   communicationTraits: {
-    questionFrequency: number;   // 提问频率 0-1
-    emojiFrequency: number;      // 表情使用频率 0-1
-    avgReplyLength: number;      // 平均回复字数
-    isInitiator: boolean;        // 是否主动发起话题
-    usesVoiceMessages: boolean;  // 是否常用语音（从文字记录推断短消息占比）
+    questionFrequency: number;
+    emojiFrequency: number;
+    avgReplyLength: number;
+    isInitiator: boolean;
+    usesVoiceMessages: boolean;
   };
-  // 表达 DNA：该人最具辨识度的表达方式
-  expressionDNA: string[];  // 如 ["喜欢用反问句", "常在句尾加"嘛"", "习惯先肯定再说但是"]
+  expressionDNA: string[];
+  memoryChunkCount?: number;
 }
 
 export interface ChatMessage {
@@ -187,23 +174,25 @@ export interface Relative {
   shoeSize?: string;
   notes?: string;
   avatar: AvatarConfig;
-  avatarImage?: string; // Base64 encoded uploaded avatar image
+  avatarImage?: string;
   chatStyle?: ChatStyle;
-  zodiac?: string; // 星座
-  chineseZodiac?: string; // 生肖
-  mbti?: string; // MBTI人格类型
-  address?: string; // 居住地址
+  zodiac?: string;
+  chineseZodiac?: string;
+  mbti?: string;
+  address?: string;
   createdAt: string;
   updatedAt: string;
 }
 
 export interface Reminder {
   id: string;
-  relativeId: string;
-  type: 'birthday' | 'mothers_day' | 'fathers_day' | 'custom';
+  title: string;
   date: string;
+  relativeId?: string;
+  type: 'birthday' | 'mothers_day' | 'fathers_day' | 'custom';
   advanceDays: number[];
   isEnabled: boolean;
+  note?: string;
   lastNotified?: string;
 }
 

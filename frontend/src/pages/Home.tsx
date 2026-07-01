@@ -5,6 +5,7 @@ import { RELATION_CATEGORIES, getRelationCategory } from '../types';
 import AvatarCard from '../components/avatar/AvatarCard';
 import { useRef, useState } from 'react';
 import { useGsapEntrance } from '../hooks/useGsapEntrance';
+import WorkflowGuide from '../components/WorkflowGuide';
 
 const FILTER_OPTIONS = [
   { key: 'all', label: '全部' },
@@ -43,7 +44,7 @@ export default function Home() {
             <p className="ios-kicker">关系广场</p>
             <h1 className="ios-title">把重要的人放在眼前。</h1>
             <p className="ios-subtitle">
-              你已经记录了 <span className="font-semibold text-[#0066cc]">{relatives.length}</span> 位亲友。
+              你已经记录了 <span className="font-semibold text-[#202123]">{relatives.length}</span> 位亲友。
             </p>
           </div>
           <Link to="/add" className="ios-button-primary shrink-0">
@@ -51,6 +52,8 @@ export default function Home() {
             添加亲友
           </Link>
         </header>
+
+        <WorkflowGuide />
 
         <div className="ios-panel mb-5 p-3" data-gsap-page>
           <div className="flex items-center gap-2">
@@ -87,9 +90,9 @@ export default function Home() {
             ))}
             <Link
               to="/add"
-              className="ios-card flex min-h-[188px] flex-col items-center justify-center gap-3 border-dashed text-[#0066cc]"
+              className="ios-card flex min-h-[188px] flex-col items-center justify-center gap-3 border-dashed text-[#202123]"
             >
-              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#e9f2ff]">
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#f7f7f8]">
                 <Plus size={24} />
               </div>
               <span className="text-sm font-medium">添加亲友</span>
@@ -97,7 +100,7 @@ export default function Home() {
           </div>
         ) : (
           <div ref={gridRef} className="ios-panel flex flex-col items-center justify-center px-6 py-16 text-center">
-            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#e9f2ff] text-[#0066cc]">
+            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#f7f7f8] text-[#202123]">
               <Users size={30} />
             </div>
             <h2 className="text-xl font-semibold tracking-[-0.01em]">这里还没有人。</h2>
@@ -113,3 +116,4 @@ export default function Home() {
     </div>
   );
 }
+

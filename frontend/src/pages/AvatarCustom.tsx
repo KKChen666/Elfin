@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Image, Sparkle, Palette, CaretLeft, CaretRight, DiceFive } from '@phosphor-icons/react';
 import { useRelativeStore } from '../stores/useRelativeStore';
@@ -6,6 +6,7 @@ import { uploadApi } from '../api/upload';
 import { AvatarConfig, DEFAULT_AVATAR } from '../types';
 import AvatarPreview from '../components/avatar/AvatarPreview';
 import ImageUploader from '../components/avatar/ImageUploader';
+import { showToast } from '../components/toastBus';
 
 const SKIN_COLORS = [
   { color: '#FFD5B8', name: '浅肤' },
@@ -29,7 +30,7 @@ const HAIR_COLORS = [
 ];
 const CLOTHING_COLORS = [
   { color: '#D44A4A', name: '红' },
-  { color: '#0066CC', name: '橙' },
+  { color: '#202123', name: '橙' },
   { color: '#4A90D9', name: '蓝' },
   { color: '#5B8C6E', name: '绿' },
   { color: '#7B68EE', name: '紫' },
@@ -55,7 +56,7 @@ type AvatarMode = 'upload' | 'customize';
 export default function AvatarCustom() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { getRelative, updateAvatar, loadRelatives } = useRelativeStore();
+  const { getRelative, updateAvatar, loadRelatives, hasLoaded, isLoading } = useRelativeStore();
   const relative = id !== 'new' ? getRelative(id || '') : null;
 
   const [mode, setMode] = useState<AvatarMode>('customize');
@@ -63,11 +64,24 @@ export default function AvatarCustom() {
   const [avatarImage, setAvatarImage] = useState<string>(relative?.avatarImage || '');
   const [avatarImageChanged, setAvatarImageChanged] = useState(false);
   const [activeCategory, setActiveCategory] = useState('gender');
-  const [bounceKey, setBounceKey] = useState(0);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (id !== 'new' && !hasLoaded) {
+      loadRelatives();
+    }
+  }, [id, hasLoaded, loadRelatives]);
+
+  useEffect(() => {
+    if (relative) {
+      setAvatar(relative.avatar || DEFAULT_AVATAR);
+      setAvatarImage(relative.avatarImage || '');
+      setAvatarImageChanged(false);
+    }
+  }, [relative]);
 
   const updateAvatarField = (field: keyof AvatarConfig, value: string | number) => {
     setAvatar(prev => ({ ...prev, [field]: value }));
-    setBounceKey(k => k + 1);
   };
 
   const randomize = useCallback(() => {
@@ -88,29 +102,35 @@ export default function AvatarCustom() {
       hairColor: HAIR_COLORS[Math.floor(Math.random() * HAIR_COLORS.length)].color,
       clothingColor: CLOTHING_COLORS[Math.floor(Math.random() * CLOTHING_COLORS.length)].color
     });
-    setBounceKey(k => k + 1);
   }, []);
 
   const handleSave = async () => {
+    if (saving) return;
+    setSaving(true);
     if (id && id !== 'new') {
-      // 先更新 avatar 配置
-      await updateAvatar(id, avatar);
-      // 如果有上传的图片，通过后端上传到 COS
-      if (mode === 'upload' && avatarImageChanged && avatarImage) {
-        try {
-          // 将 base64 转为 File 对象
+      try {
+        await updateAvatar(id, avatar);
+        if (mode === 'upload' && avatarImageChanged && avatarImage) {
           const res = await fetch(avatarImage);
           const blob = await res.blob();
           const file = new File([blob], 'avatar.png', { type: 'image/png' });
           await uploadApi.uploadAvatarImage(Number(id), file);
           await loadRelatives();
-        } catch {
-          // 上传失败不影响保存
         }
+      } catch (err: unknown) {
+        const msg =
+          (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ||
+          '头像保存失败，请检查存储配置或稍后重试';
+        showToast('error', msg);
+        return;
+      } finally {
+        setSaving(false);
       }
+      showToast('success', '头像已保存');
       navigate(`/detail/${id}`);
     } else {
       navigate('/add', { state: { avatar, avatarImage: mode === 'upload' ? avatarImage : undefined } });
+      setSaving(false);
     }
   };
 
@@ -130,6 +150,13 @@ export default function AvatarCustom() {
 
   const isGenderCat = activeCategory === 'gender';
 
+  if (id !== 'new' && !relative) {
+    if (isLoading || !hasLoaded) {
+      return <div className="p-4 text-center">正在加载亲友信息...</div>;
+    }
+    return <div className="p-4 text-center">亲友不存在</div>;
+  }
+
   return (
     <div className="flex flex-col min-h-[100dvh]" style={{ background: 'linear-gradient(180deg, #F5F5F7 0%, #F5F5F7 100%)' }}>
       {/* 顶部 */}
@@ -142,7 +169,7 @@ export default function AvatarCustom() {
             {mode === 'upload' ? '📸 照片头像' : '✨ 捏脸工坊'}
           </h1>
           <button onClick={randomize} className="w-8 h-8 flex items-center justify-center rounded-xl active:bg-[#F5F5F7] transition-colors" title="随机生成">
-            <DiceFive size={18} className="text-[#0066CC]" />
+            <DiceFive size={18} className="text-[#202123]" />
           </button>
         </div>
       </header>
@@ -153,9 +180,9 @@ export default function AvatarCustom() {
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-72 h-72 rounded-full pointer-events-none opacity-30"
             style={{ background: 'radial-gradient(circle, rgba(0,102,204,0.15) 0%, transparent 70%)' }} />
 
-          <div key={bounceKey} className="relative" style={{ animation: 'previewPop 0.3s cubic-bezier(0.34,1.56,0.64,1)' }}>
+          <div className="relative">
             <div className="rounded-full p-[3px]"
-              style={{ background: 'linear-gradient(135deg, #FFD1A9, #0066CC, #FFD1A9)', boxShadow: '0 8px 28px rgba(0,102,204,0.22)' }}>
+              style={{ background: 'linear-gradient(135deg, #FFD1A9, #202123, #FFD1A9)', boxShadow: '0 8px 28px rgba(0,102,204,0.22)' }}>
               <div className="rounded-full overflow-hidden bg-[#F5F5F7]">
                 {mode === 'upload' && avatarImage ? (
                   <img src={avatarImage} alt="头像" className="w-36 h-36 object-cover" />
@@ -169,14 +196,14 @@ export default function AvatarCustom() {
           {/* 模式切换 */}
           <div className="flex gap-1 mt-4 p-0.5 rounded-full" style={{ background: 'rgba(245,230,216,0.6)' }}>
             <button onClick={() => setMode('customize')}
-              className={`flex items-center gap-1 px-4 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 ${
-                mode === 'customize' ? 'bg-white text-[#0066CC] shadow-sm' : 'text-[#8E8E93]'
+              className={`flex items-center gap-1 px-4 py-1.5 rounded-full text-xs font-semibold ${
+                mode === 'customize' ? 'bg-white text-[#202123] shadow-sm' : 'text-[#8E8E93]'
               }`}>
               <Sparkle size={12} />捏脸
             </button>
             <button onClick={() => setMode('upload')}
-              className={`flex items-center gap-1 px-4 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 ${
-                mode === 'upload' ? 'bg-white text-[#0066CC] shadow-sm' : 'text-[#8E8E93]'
+              className={`flex items-center gap-1 px-4 py-1.5 rounded-full text-xs font-semibold ${
+                mode === 'upload' ? 'bg-white text-[#202123] shadow-sm' : 'text-[#8E8E93]'
               }`}>
               <Image size={12} />上传
             </button>
@@ -205,9 +232,9 @@ export default function AvatarCustom() {
               <div className="flex gap-1.5 flex-1 overflow-x-auto scrollbar-hide px-1">
                 {CATEGORIES.map(cat => (
                   <button key={cat.key} onClick={() => setActiveCategory(cat.key)}
-                    className={`flex items-center gap-0.5 px-2.5 py-1.5 rounded-full text-[11px] shrink-0 transition-all duration-200 font-medium ${
+                    className={`flex items-center gap-0.5 px-2.5 py-1.5 rounded-full text-[11px] shrink-0 font-medium ${
                       activeCategory === cat.key
-                        ? 'bg-[#0066CC] text-white shadow-sm'
+                        ? 'bg-[#202123] text-white shadow-sm'
                         : 'bg-white text-[#6E6E73] border border-[#F0E4D8] active:scale-95'
                     }`}>
                     <span>{cat.icon}</span>
@@ -229,8 +256,8 @@ export default function AvatarCustom() {
                   <div className="flex gap-2 flex-1 justify-center">
                     {colorOptions.map(({ color }) => (
                       <button key={color} onClick={() => updateAvatarField(colorKey, color)}
-                        className={`w-6 h-6 rounded-full shrink-0 transition-all duration-150 ${
-                          avatar[colorKey] === color ? 'ring-2 ring-[#0066CC] ring-offset-1.5 scale-110' : 'active:scale-90'
+                        className={`w-6 h-6 rounded-full shrink-0 ${
+                          avatar[colorKey] === color ? 'ring-2 ring-[#202123] ring-offset-1.5' : ''
                         }`}
                         style={{
                           backgroundColor: color,
@@ -262,17 +289,17 @@ export default function AvatarCustom() {
                         if (g === 0 && avatar.clothing < 4) updateAvatarField('clothing', 4);
                         if (g === 1 && avatar.clothing >= 4) updateAvatarField('clothing', 0);
                       }}
-                        className="relative rounded-2xl overflow-hidden active:scale-[0.96] transition-all duration-150 py-4"
+                        className="relative rounded-2xl overflow-hidden py-4"
                         style={{
-                          background: isSelected ? 'linear-gradient(135deg, #E9F2FF, #E9F2FF)' : 'white',
+                          background: isSelected ? 'linear-gradient(135deg, #f7f7f8, #f7f7f8)' : 'white',
                           boxShadow: isSelected
-                            ? '0 0 0 2.5px #0066CC, 0 4px 14px rgba(0,102,204,0.18)'
+                            ? '0 0 0 2.5px #202123, 0 4px 14px rgba(0,102,204,0.18)'
                             : '0 1px 4px rgba(0,102,204,0.08)'
                         }}>
                         <div className="flex justify-center">
                           <AvatarPreview avatar={previewAvatar} size={100} />
                         </div>
-                        <div className={`text-center mt-2 text-sm font-semibold ${isSelected ? 'text-[#0066CC]' : 'text-[#6E6E73]'}`}>
+                        <div className={`text-center mt-2 text-sm font-semibold ${isSelected ? 'text-[#202123]' : 'text-[#6E6E73]'}`}>
                           {GENDER_LABELS[g]}
                         </div>
                       </button>
@@ -301,19 +328,19 @@ export default function AvatarCustom() {
                     const isSelected = avatar[activeCategory as keyof AvatarConfig] === i;
                     return (
                       <button key={i} onClick={() => updateAvatarField(activeCategory as keyof AvatarConfig, i)}
-                        className="relative rounded-2xl overflow-hidden active:scale-[0.96] transition-all duration-150"
+                        className="relative rounded-2xl overflow-hidden"
                         style={{
                           aspectRatio: '1',
-                          background: isSelected ? 'linear-gradient(135deg, #E9F2FF, #E9F2FF)' : 'white',
+                          background: isSelected ? 'linear-gradient(135deg, #f7f7f8, #f7f7f8)' : 'white',
                           boxShadow: isSelected
-                            ? '0 0 0 2.5px #0066CC, 0 4px 14px rgba(0,102,204,0.18)'
+                            ? '0 0 0 2.5px #202123, 0 4px 14px rgba(0,102,204,0.18)'
                             : '0 1px 4px rgba(0,102,204,0.08)'
                         }}>
                         <div className="flex items-center justify-center w-full h-full">
                           <AvatarPreview avatar={previewAvatar} size={72} />
                         </div>
                         {isSelected && (
-                          <div className="absolute top-1 right-1 w-4 h-4 bg-[#0066CC] rounded-full flex items-center justify-center shadow-sm">
+                          <div className="absolute top-1 right-1 w-4 h-4 bg-[#202123] rounded-full flex items-center justify-center shadow-sm">
                             <svg width="8" height="8" viewBox="0 0 10 10" fill="none">
                               <path d="M2 5L4.5 7.5L8 3" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                             </svg>
@@ -332,19 +359,13 @@ export default function AvatarCustom() {
       {/* 底部保存 */}
       <div className="sticky bottom-0 px-4 py-3 bg-gradient-to-t from-[#F5F5F7] via-[#F5F5F7] to-transparent">
         <button onClick={handleSave}
-          className="w-full py-3 bg-gradient-to-r from-[#0066CC] to-[#0071E3] text-white rounded-2xl font-bold text-sm active:scale-[0.98] transition-transform"
+          disabled={saving}
+          className="w-full py-3 bg-gradient-to-r from-[#202123] to-[#111827] text-white rounded-2xl font-bold text-sm disabled:cursor-not-allowed disabled:opacity-50"
           style={{ boxShadow: '0 4px 16px rgba(0,102,204,0.3)' }}>
-          保存头像
+          {saving ? '正在保存...' : '保存头像'}
         </button>
       </div>
-
-      <style>{`
-        @keyframes previewPop {
-          0% { transform: scale(0.85); opacity: 0.6; }
-          70% { transform: scale(1.04); }
-          100% { transform: scale(1); opacity: 1; }
-        }
-      `}</style>
     </div>
   );
 }
+

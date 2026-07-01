@@ -1,9 +1,16 @@
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.models.relative import Relative
+from app.models.relative import Relative, RelativeRelationship
 from app.models.user import User
-from app.schemas.relative import RelativeCreate, RelativeUpdate, RelativeOut
+from app.schemas.relative import (
+    RelativeCreate,
+    RelativeRelationshipCreate,
+    RelativeRelationshipOut,
+    RelativeRelationshipUpdate,
+    RelativeUpdate,
+    RelativeOut,
+)
 
 
 def get_all_relatives(db: Session, user: User) -> list[RelativeOut]:
@@ -89,6 +96,128 @@ def delete_relative(db: Session, user: User, relative_id: int) -> None:
         )
     db.delete(relative)
     db.commit()
+
+
+def get_relationships(db: Session, user: User) -> list[RelativeRelationshipOut]:
+    relationships = (
+        db.query(RelativeRelationship)
+        .filter(RelativeRelationship.user_id == user.id)
+        .order_by(RelativeRelationship.updated_at.desc())
+        .all()
+    )
+    return [RelativeRelationshipOut.model_validate(item) for item in relationships]
+
+
+def upsert_relationship(
+    db: Session,
+    user: User,
+    data: RelativeRelationshipCreate,
+) -> RelativeRelationshipOut:
+    a_id, b_id = _normalize_relative_pair(data.relative_a_id, data.relative_b_id)
+    _ensure_relatives_belong_to_user(db, user, [a_id, b_id])
+
+    relationship = (
+        db.query(RelativeRelationship)
+        .filter(
+            RelativeRelationship.user_id == user.id,
+            RelativeRelationship.relative_a_id == a_id,
+            RelativeRelationship.relative_b_id == b_id,
+        )
+        .first()
+    )
+    relation_label = data.relation_label
+    reverse_relation_label = data.reverse_relation_label
+    if (data.relative_a_id, data.relative_b_id) != (a_id, b_id):
+        relation_label = data.reverse_relation_label or data.relation_label
+        reverse_relation_label = data.relation_label
+
+    if relationship:
+        relationship.relation_label = relation_label
+        relationship.reverse_relation_label = reverse_relation_label
+        relationship.note = data.note
+        relationship.strength = data.strength
+    else:
+        relationship = RelativeRelationship(
+            user_id=user.id,
+            relative_a_id=a_id,
+            relative_b_id=b_id,
+            relation_label=relation_label,
+            reverse_relation_label=reverse_relation_label,
+            note=data.note,
+            strength=data.strength,
+        )
+        db.add(relationship)
+
+    db.commit()
+    db.refresh(relationship)
+    return RelativeRelationshipOut.model_validate(relationship)
+
+
+def update_relationship(
+    db: Session,
+    user: User,
+    relationship_id: int,
+    data: RelativeRelationshipUpdate,
+) -> RelativeRelationshipOut:
+    relationship = _get_relationship(db, user, relationship_id)
+    update_data = data.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(relationship, key, value)
+    db.commit()
+    db.refresh(relationship)
+    return RelativeRelationshipOut.model_validate(relationship)
+
+
+def delete_relationship(db: Session, user: User, relationship_id: int) -> None:
+    relationship = _get_relationship(db, user, relationship_id)
+    db.delete(relationship)
+    db.commit()
+
+
+def _get_relationship(
+    db: Session,
+    user: User,
+    relationship_id: int,
+) -> RelativeRelationship:
+    relationship = (
+        db.query(RelativeRelationship)
+        .filter(
+            RelativeRelationship.id == relationship_id,
+            RelativeRelationship.user_id == user.id,
+        )
+        .first()
+    )
+    if not relationship:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="关系不存在"
+        )
+    return relationship
+
+
+def _normalize_relative_pair(a_id: int, b_id: int) -> tuple[int, int]:
+    if a_id == b_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="不能给同一个亲友建立关系",
+        )
+    return (a_id, b_id) if a_id < b_id else (b_id, a_id)
+
+
+def _ensure_relatives_belong_to_user(
+    db: Session,
+    user: User,
+    relative_ids: list[int],
+) -> None:
+    count = (
+        db.query(Relative)
+        .filter(Relative.user_id == user.id, Relative.id.in_(relative_ids))
+        .count()
+    )
+    if count != len(set(relative_ids)):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="部分亲友不存在",
+        )
 
 
 def get_stats(db: Session, user: User) -> dict:

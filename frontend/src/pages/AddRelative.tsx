@@ -8,6 +8,7 @@ import AvatarPreview from '../components/avatar/AvatarPreview';
 import ImageUploader from '../components/avatar/ImageUploader';
 import { DEFAULT_AVATAR } from '../types';
 import { getZodiac, getChineseZodiac } from '../utils/dateUtils';
+import { showToast } from '../components/toastBus';
 
 const MBTI_TYPES = [
   'INTJ', 'INTP', 'ENTJ', 'ENTP',
@@ -36,6 +37,7 @@ export default function AddRelative() {
   };
   const [avatarImage, setAvatarImage] = useState<string>(state?.avatarImage || '');
   const [customAvatar, setCustomAvatar] = useState<AvatarConfig | null>(state?.avatar || null);
+  const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState({
     name: '',
     birthday: '',
@@ -55,29 +57,44 @@ export default function AddRelative() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.name || !form.birthday) return;
+    if (!form.name || !form.birthday || submitting) return;
     const relation = isCustom ? customRelation.trim() : form.relation;
     if (!relation) return;
-    const newId = await addRelative({
-      ...form,
-      relation,
-      zodiac,
-      chineseZodiac,
-      ...(customAvatar ? { avatar: customAvatar } : {})
-    });
-    // 如果有上传的头像图片，通过后端上传到 COS
-    if (avatarImage && newId) {
-      try {
-        const res = await fetch(avatarImage);
-        const blob = await res.blob();
-        const file = new File([blob], 'avatar.png', { type: 'image/png' });
-        await uploadApi.uploadAvatarImage(Number(newId), file);
-        await loadRelatives();
-      } catch {
-        // 上传失败不影响创建
+    setSubmitting(true);
+    try {
+      const newId = await addRelative({
+        ...form,
+        relation,
+        zodiac,
+        chineseZodiac,
+        ...(customAvatar ? { avatar: customAvatar } : {})
+      });
+      if (avatarImage && newId) {
+        try {
+          const res = await fetch(avatarImage);
+          const blob = await res.blob();
+          const file = new File([blob], 'avatar.png', { type: 'image/png' });
+          await uploadApi.uploadAvatarImage(Number(newId), file);
+          await loadRelatives();
+        } catch (err: unknown) {
+          const msg =
+            (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ||
+            '头像上传失败，可稍后在详情页重新上传';
+          showToast('error', msg);
+          navigate(`/detail/${newId}`);
+          return;
+        }
       }
+      showToast('success', '亲友已添加');
+      navigate(`/detail/${newId}`);
+    } catch (err: unknown) {
+      const msg =
+        (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ||
+        '添加失败，请稍后重试';
+      showToast('error', msg);
+    } finally {
+      setSubmitting(false);
     }
-    navigate('/');
   };
 
   return (
@@ -95,7 +112,7 @@ export default function AddRelative() {
           <div className="flex flex-col items-center gap-4">
             <div className="relative">
               {avatarImage ? (
-                <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-[#0066CC]">
+                <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-[#202123]">
                   <img src={avatarImage} alt="头像" className="w-full h-full object-cover" />
                 </div>
               ) : customAvatar ? (
@@ -114,10 +131,10 @@ export default function AddRelative() {
               />
               <button
                 onClick={() => navigate('/avatar/new')}
-                className="flex flex-col items-center gap-1 px-4 py-2 border border-gray-200 rounded-lg hover:border-[#0066CC] transition-colors"
+                className="flex flex-col items-center gap-1 px-4 py-2 border border-gray-200 rounded-lg hover:border-[#202123] transition-colors"
               >
                 <AvatarPreview avatar={DEFAULT_AVATAR} size={40} />
-                <span className="text-xs text-[#0066CC]">捏脸定制</span>
+                <span className="text-xs text-[#202123]">捏脸定制</span>
               </button>
             </div>
           </div>
@@ -132,7 +149,7 @@ export default function AddRelative() {
               value={form.name}
               onChange={e => setForm({ ...form, name: e.target.value })}
               placeholder="请输入姓名"
-              className="w-full border-b border-gray-100 py-2 outline-none focus:border-[#0066CC] transition-colors"
+              className="w-full border-b border-gray-100 py-2 outline-none focus:border-[#202123] transition-colors"
               required
             />
           </div>
@@ -143,7 +160,7 @@ export default function AddRelative() {
               type="date"
               value={form.birthday}
               onChange={e => setForm({ ...form, birthday: e.target.value })}
-              className="w-full border-b border-gray-100 py-2 outline-none focus:border-[#0066CC] transition-colors"
+              className="w-full border-b border-gray-100 py-2 outline-none focus:border-[#202123] transition-colors"
               required
             />
             <label className="flex items-center gap-2 mt-2">
@@ -158,10 +175,10 @@ export default function AddRelative() {
             {form.birthday && (
               <div className="flex gap-3 mt-2">
                 {zodiac && (
-                  <span className="text-xs text-[#0066CC] bg-[#e9f2ff] px-2 py-0.5 rounded">{zodiac}</span>
+                  <span className="text-xs text-[#202123] bg-[#f7f7f8] px-2 py-0.5 rounded">{zodiac}</span>
                 )}
                 {chineseZodiac && (
-                  <span className="text-xs text-[#0066CC] bg-[#e9f2ff] px-2 py-0.5 rounded">{chineseZodiac}</span>
+                  <span className="text-xs text-[#202123] bg-[#f7f7f8] px-2 py-0.5 rounded">{chineseZodiac}</span>
                 )}
               </div>
             )}
@@ -180,7 +197,7 @@ export default function AddRelative() {
                       onClick={() => { setForm({ ...form, relation: item.key }); setIsCustom(false); }}
                       className={`px-3 py-1 rounded-full text-sm transition-colors ${
                         !isCustom && form.relation === item.key
-                          ? 'bg-[#0066CC] text-white'
+                          ? 'bg-[#202123] text-white'
                           : 'bg-gray-50 text-gray-500 hover:bg-gray-100'
                       }`}
                     >
@@ -200,7 +217,7 @@ export default function AddRelative() {
                   onFocus={() => { if (customRelation.trim()) setIsCustom(true); }}
                   placeholder="输入自定义关系，如：干妈"
                   className={`flex-1 border rounded-lg px-3 py-1.5 text-sm outline-none transition-colors ${
-                    isCustom ? 'border-[#0066CC]' : 'border-gray-200 focus:border-[#0066CC]'
+                    isCustom ? 'border-[#202123]' : 'border-gray-200 focus:border-[#202123]'
                   }`}
                 />
               </div>
@@ -214,7 +231,7 @@ export default function AddRelative() {
               value={form.hobbies}
               onChange={e => setForm({ ...form, hobbies: e.target.value })}
               placeholder="如：喝茶、看电影、养花"
-              className="w-full border-b border-gray-100 py-2 outline-none focus:border-[#0066CC] transition-colors"
+              className="w-full border-b border-gray-100 py-2 outline-none focus:border-[#202123] transition-colors"
             />
           </div>
 
@@ -226,7 +243,7 @@ export default function AddRelative() {
                 value={form.clothingSize}
                 onChange={e => setForm({ ...form, clothingSize: e.target.value })}
                 placeholder="如：M、L、XL"
-                className="w-full border-b border-gray-100 py-2 outline-none focus:border-[#0066CC] transition-colors"
+                className="w-full border-b border-gray-100 py-2 outline-none focus:border-[#202123] transition-colors"
               />
             </div>
             <div>
@@ -236,7 +253,7 @@ export default function AddRelative() {
                 value={form.shoeSize}
                 onChange={e => setForm({ ...form, shoeSize: e.target.value })}
                 placeholder="如：38、42"
-                className="w-full border-b border-gray-100 py-2 outline-none focus:border-[#0066CC] transition-colors"
+                className="w-full border-b border-gray-100 py-2 outline-none focus:border-[#202123] transition-colors"
               />
             </div>
           </div>
@@ -251,7 +268,7 @@ export default function AddRelative() {
                   onClick={() => setForm({ ...form, mbti: type })}
                   className={`px-2.5 py-1 rounded-lg text-sm transition-colors ${
                     form.mbti === type
-                      ? 'bg-[#0066CC] text-white'
+                      ? 'bg-[#202123] text-white'
                       : 'bg-gray-50 text-gray-500 hover:bg-gray-100'
                   }`}
                 >
@@ -268,7 +285,7 @@ export default function AddRelative() {
               value={form.address}
               onChange={e => setForm({ ...form, address: e.target.value })}
               placeholder="请输入居住地址"
-              className="w-full border-b border-gray-100 py-2 outline-none focus:border-[#0066CC] transition-colors"
+              className="w-full border-b border-gray-100 py-2 outline-none focus:border-[#202123] transition-colors"
             />
           </div>
 
@@ -279,18 +296,20 @@ export default function AddRelative() {
               onChange={e => setForm({ ...form, notes: e.target.value })}
               placeholder="其他需要记住的信息"
               rows={3}
-              className="w-full border-b border-gray-100 py-2 outline-none focus:border-[#0066CC] resize-none transition-colors"
+              className="w-full border-b border-gray-100 py-2 outline-none focus:border-[#202123] resize-none transition-colors"
             />
           </div>
 
           <button
             type="submit"
-            className="w-full py-3 bg-[#0066CC] text-white rounded-xl font-medium hover:bg-[#005BB8] transition-colors sm:max-w-xs"
+            disabled={submitting}
+            className="w-full py-3 bg-[#202123] text-white rounded-xl font-medium hover:bg-[#111827] transition-colors disabled:cursor-not-allowed disabled:opacity-50 sm:max-w-xs"
           >
-            保存
+            {submitting ? '正在保存...' : '保存'}
           </button>
         </form>
       </div>
     </div>
   );
 }
+

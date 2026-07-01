@@ -22,6 +22,8 @@ class ConversationOut(BaseModel):
     last_message: dict | None = None
     is_archived: bool = False
     archived_at: datetime | None = None
+    is_deleted: bool = False
+    deleted_at: datetime | None = None
     created_at: datetime
     updated_at: datetime
 

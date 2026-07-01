@@ -1,223 +1,180 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Upload } from '@phosphor-icons/react';
-import { useRelativeStore } from '../stores/useRelativeStore';
-import { chatApi } from '../api/chat';
+import { ArrowLeft, Database, Upload } from '@phosphor-icons/react';
+import { chatApi, MemoryBackendStatus } from '../api/chat';
+import { showToast } from '../components/toastBus';
 import { ChatStyle } from '../types';
+import { useRelativeStore } from '../stores/useRelativeStore';
+
+function labelLanguage(value: string) {
+  if (value === 'formal') return '正式';
+  if (value === 'casual') return '随意';
+  return '混合';
+}
+
+function labelSentiment(value: string) {
+  if (value === 'positive') return '积极';
+  if (value === 'negative') return '消极';
+  if (value === 'mixed') return '情感丰富';
+  return '中性';
+}
 
 export default function ChatImport() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { getRelative, updateChatStyle } = useRelativeStore();
+  const { getRelative, updateChatStyle, loadRelatives, hasLoaded, isLoading } = useRelativeStore();
   const relative = getRelative(id || '');
-
   const [analyzing, setAnalyzing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [result, setResult] = useState<ChatStyle | null>(null);
+  const [backendStatus, setBackendStatus] = useState<MemoryBackendStatus | null>(null);
   const [error, setError] = useState('');
 
-  if (!relative) {
-    return <div className="p-4 text-center">亲友不存在</div>;
-  }
+  useEffect(() => {
+    if (!hasLoaded) loadRelatives();
+  }, [hasLoaded, loadRelatives]);
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
     if (!file || !id) return;
 
     setAnalyzing(true);
     setProgress(10);
     setError('');
+    setBackendStatus(null);
+    const progressTimer = window.setInterval(() => {
+      setProgress((current) => Math.min(current + 10, 90));
+    }, 500);
 
     try {
-      // 模拟进度
-      const progressTimer = setInterval(() => {
-        setProgress((p) => Math.min(p + 10, 90));
-      }, 500);
-
       const res = await chatApi.uploadChatFile(Number(id), file);
-
-      clearInterval(progressTimer);
-      setProgress(100);
-
       const chatStyle = res.data.chat_style as unknown as ChatStyle;
       setResult(chatStyle);
+      setProgress(100);
+      const backend = await chatApi.getMemoryBackend(Number(id));
+      setBackendStatus(backend.data);
     } catch (err: unknown) {
       const msg =
         (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ||
         '分析失败，请检查文件格式';
       setError(msg);
     } finally {
+      window.clearInterval(progressTimer);
       setAnalyzing(false);
     }
   };
 
-  const handleSave = () => {
-    if (result && id) {
-      updateChatStyle(id, result);
+  const handleSave = async () => {
+    if (!result || !id) return;
+    try {
+      await updateChatStyle(id, result);
+      showToast('success', '聊天风格已保存');
       navigate(`/detail/${id}`);
+    } catch {
+      showToast('error', '保存失败');
     }
   };
 
-  return (
-    <div className="p-4 md:p-6 lg:p-8">
-      <header className="flex items-center gap-3 mb-6">
-        <button
-          onClick={() => navigate(-1)}
-          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-        >
-          <ArrowLeft size={20} />
-        </button>
-        <h1 className="text-lg md:text-xl font-bold">导入聊天记录</h1>
-      </header>
+  if (!relative) {
+    if (isLoading || !hasLoaded) {
+      return <div className="p-4 text-center">正在加载亲友信息...</div>;
+    }
+    return <div className="p-4 text-center">亲友不存在</div>;
+  }
 
-      <div className="max-w-xl mx-auto lg:mx-0">
-        {error && (
-          <div className="mb-4 p-3 bg-red-50 text-red-600 text-sm rounded-xl">{error}</div>
-        )}
+  return (
+    <div className="ios-page h-full overflow-y-auto">
+      <div className="ios-container max-w-3xl">
+        <header className="mb-6 flex items-center gap-3">
+          <button onClick={() => navigate(-1)} className="ios-icon-button" aria-label="返回">
+            <ArrowLeft size={20} />
+          </button>
+          <div>
+            <p className="ios-kicker">聊天导入</p>
+            <h1 className="ios-title text-2xl">为 {relative.name} 建立表达记忆</h1>
+          </div>
+        </header>
+
+        {error && <div className="mb-4 rounded-xl bg-red-50 p-3 text-sm text-red-600">{error}</div>}
 
         {!result && !analyzing && (
-          <div className="text-center py-8">
-            <div className="border-2 border-dashed border-gray-200 rounded-xl p-8 mb-4">
-              <Upload size={40} className="mx-auto text-gray-300 mb-4" />
-              <p className="font-medium text-sm mb-2">拖拽或点击上传聊天记录</p>
-              <p className="text-xs text-gray-400">
-                支持 .txt / .csv 格式，文件大小 ≤ 10MB
-              </p>
-              <input
-                type="file"
-                accept=".txt,.csv"
-                onChange={handleFileUpload}
-                className="mt-4"
-              />
-            </div>
+          <div className="space-y-4">
+            <label className="block cursor-pointer rounded-[28px] border-2 border-dashed border-[#d9d9e3] bg-white p-8 text-center hover:bg-[#f7f7f8]">
+              <Upload size={42} className="mx-auto mb-4 text-[#8a8f98]" />
+              <p className="font-medium text-[#202123]">拖拽或点击上传聊天记录</p>
+              <p className="mt-2 text-sm text-[#6b7280]">支持 .txt / .csv，文件大小不超过 10MB</p>
+              <input type="file" accept=".txt,.csv" onChange={handleFileUpload} className="sr-only" />
+            </label>
 
-            <div className="bg-blue-50 rounded-xl p-4 text-left">
-              <h3 className="font-medium text-sm text-blue-700 mb-1">后端分析</h3>
-              <p className="text-xs text-blue-600">
-                聊天记录将上传至服务器进行 NLP 分析，分析完成后原始文件不会保留。
-              </p>
+            <div className="ios-panel p-4 text-sm leading-6 text-[#6b7280]">
+              后端会解析聊天记录、提取说话习惯，并生成可检索的记忆片段。原始文件不会作为文件长期保存。
             </div>
           </div>
         )}
 
         {analyzing && (
-          <div className="text-center py-12">
-            <div className="animate-spin w-10 h-10 border-[3px] border-[#0066CC] border-t-transparent rounded-full mx-auto mb-4" />
-            <p className="font-medium text-sm mb-2">正在分析聊天记录...</p>
-            <div className="w-48 h-1.5 bg-gray-100 rounded-full mx-auto">
-              <div
-                className="h-full bg-[#0066CC] rounded-full transition-all"
-                style={{ width: `${progress}%` }}
-              />
+          <div className="ios-panel py-14 text-center">
+            <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-[3px] border-[#202123] border-t-transparent" />
+            <p className="mb-3 text-sm font-medium">正在分析聊天记录...</p>
+            <div className="mx-auto h-1.5 w-56 rounded-full bg-gray-100">
+              <div className="h-full rounded-full bg-[#202123] transition-all" style={{ width: `${progress}%` }} />
             </div>
-            <p className="text-xs text-gray-400 mt-2">{progress}%</p>
+            <p className="mt-2 text-xs text-[#8a8f98]">{progress}%</p>
           </div>
         )}
 
         {result && (
           <div className="space-y-3">
-            <h2 className="font-semibold text-base">分析结果预览</h2>
+            <h2 className="text-lg font-semibold">分析结果预览</h2>
 
-            <div className="bg-white rounded-xl p-4 border border-gray-50">
-              <h3 className="font-medium text-sm mb-2">性格特点</h3>
+            <section className="ios-panel p-4">
+              <h3 className="mb-3 text-sm font-semibold">表达画像</h3>
               <div className="flex flex-wrap gap-2">
-                <span className="px-3 py-1 bg-[#e9f2ff] rounded-full text-sm text-[#0066CC]">
-                  {result.personality}
-                </span>
-                <span className="px-3 py-1 bg-blue-50 rounded-full text-sm text-blue-600">
-                  {result.languageStyle === 'formal'
-                    ? '正式'
-                    : result.languageStyle === 'casual'
-                      ? '随意'
-                      : '混合'}
-                </span>
-                <span className="px-3 py-1 bg-green-50 rounded-full text-sm text-green-600">
-                  {result.sentiment === 'positive'
-                    ? '积极'
-                    : result.sentiment === 'negative'
-                      ? '消极'
-                      : result.sentiment === 'mixed'
-                        ? '情感丰富'
-                        : '中性'}
-                </span>
+                <span className="rounded-full bg-[#f7f7f8] px-3 py-1 text-sm text-[#202123]">{result.personality}</span>
+                <span className="rounded-full bg-[#f7f7f8] px-3 py-1 text-sm text-[#202123]">{labelLanguage(result.languageStyle)}</span>
+                <span className="rounded-full bg-[#f7f7f8] px-3 py-1 text-sm text-[#202123]">{labelSentiment(result.sentiment)}</span>
               </div>
-            </div>
+            </section>
 
-            <div className="bg-white rounded-xl p-4 border border-gray-50">
-              <h3 className="font-medium text-sm mb-2">高频词</h3>
-              <div className="flex flex-wrap gap-1.5">
-                {result.highFrequencyWords.slice(0, 10).map((word, i) => (
-                  <span
-                    key={i}
-                    className="px-2 py-0.5 bg-gray-50 rounded text-sm text-gray-600"
-                  >
-                    {word}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            <div className="bg-white rounded-xl p-4 border border-gray-50">
-              <h3 className="font-medium text-sm mb-2">常用表情</h3>
-              <div className="text-xl">{result.commonEmojis.join(' ')}</div>
-            </div>
-
-            <div className="bg-white rounded-xl p-4 border border-gray-50">
-              <h3 className="font-medium text-sm mb-2">语气词</h3>
-              <div className="flex flex-wrap gap-1.5">
-                {result.toneWords.map((word, i) => (
-                  <span
-                    key={i}
-                    className="px-2 py-0.5 bg-[#e9f2ff] rounded text-sm text-[#0066CC]"
-                  >
-                    {word}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            {result.expressionDNA && result.expressionDNA.length > 0 && (
-              <div className="bg-white rounded-xl p-4 border border-[#dbeaff]">
-                <h3 className="font-medium text-sm mb-2 text-[#0066CC]">表达 DNA</h3>
-                <p className="text-xs text-gray-400 mb-2">最具辨识度的表达方式</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {result.expressionDNA.map((trait, i) => (
-                    <span
-                      key={i}
-                      className="px-2.5 py-1 bg-[#e9f2ff] rounded-full text-sm text-[#0066CC]"
-                    >
-                      {trait}
-                    </span>
-                  ))}
+            <section className="ios-panel p-4">
+              <h3 className="mb-3 text-sm font-semibold">记忆库状态</h3>
+              <div className="flex items-center gap-3 text-sm text-[#6b7280]">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#f7f7f8] text-[#202123]">
+                  <Database size={20} />
+                </div>
+                <div>
+                  <div>可检索记忆片段：{result.memoryChunkCount ?? 0}</div>
+                  <div>
+                    后端：{backendStatus?.backend?.toUpperCase() || 'SQL'}
+                    {backendStatus && !backendStatus.available ? `，不可用原因：${backendStatus.reason || '未知'}` : ''}
+                  </div>
                 </div>
               </div>
-            )}
+            </section>
 
-            {result.activeHours && result.activeHours.length > 0 && (
-              <div className="bg-white rounded-xl p-4 border border-gray-50">
-                <h3 className="font-medium text-sm mb-2">活跃时间</h3>
-                <p className="text-sm text-gray-700">
-                  {[...result.activeHours]
-                    .sort((a, b) => a - b)
-                    .map((h) => `${h}点`)
-                    .join('、')}
-                </p>
+            <section className="ios-panel p-4">
+              <h3 className="mb-3 text-sm font-semibold">高频词</h3>
+              <div className="flex flex-wrap gap-1.5">
+                {result.highFrequencyWords.slice(0, 12).map((word) => (
+                  <span key={word} className="rounded bg-gray-50 px-2 py-0.5 text-sm text-gray-600">{word}</span>
+                ))}
               </div>
+            </section>
+
+            {result.expressionDNA?.length > 0 && (
+              <section className="ios-panel p-4">
+                <h3 className="mb-3 text-sm font-semibold">表达 DNA</h3>
+                <div className="flex flex-wrap gap-1.5">
+                  {result.expressionDNA.map((trait) => (
+                    <span key={trait} className="rounded-full bg-[#f7f7f8] px-2.5 py-1 text-sm text-[#202123]">{trait}</span>
+                  ))}
+                </div>
+              </section>
             )}
 
             <div className="flex gap-3 pt-2">
-              <button
-                onClick={() => setResult(null)}
-                className="flex-1 py-2.5 bg-gray-50 text-gray-500 rounded-xl text-sm font-medium hover:bg-gray-100 transition-colors"
-              >
-                重新导入
-              </button>
-              <button
-                onClick={handleSave}
-                className="flex-1 py-2.5 bg-[#0066CC] text-white rounded-xl text-sm font-medium hover:bg-[#005BB8] transition-colors"
-              >
-                保存结果
-              </button>
+              <button onClick={() => setResult(null)} className="ios-button-secondary flex-1">重新导入</button>
+              <button onClick={handleSave} className="ios-button-primary flex-1">保存结果</button>
             </div>
           </div>
         )}

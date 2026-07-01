@@ -5,22 +5,22 @@
 :root {
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC",
     "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
-  color: #1d1d1f;
-  background: #f5f5f7;
+  color: #202123;
+  background: #f7f7f8;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 
-  --ios-blue: #0066cc;
-  --ios-blue-focus: #0071e3;
-  --ios-ink: #1d1d1f;
-  --ios-muted: #7a7a7a;
+  --ios-blue: #202123;
+  --ios-blue-focus: #111827;
+  --ios-ink: #202123;
+  --ios-muted: #6b7280;
   --ios-canvas: #ffffff;
-  --ios-parchment: #f5f5f7;
-  --ios-pearl: #fafafc;
-  --ios-hairline: rgba(0, 0, 0, 0.08);
-  --ios-glass: rgba(255, 255, 255, 0.78);
+  --ios-parchment: #f7f7f8;
+  --ios-pearl: #ffffff;
+  --ios-hairline: #e5e7eb;
+  --ios-glass: rgba(255, 255, 255, 0.94);
 }
 
 * {
@@ -37,9 +37,7 @@ body {
   margin: 0;
   min-width: 320px;
   overflow: hidden;
-  background:
-    radial-gradient(circle at 12% 4%, rgba(0, 102, 204, 0.08), transparent 26rem),
-    linear-gradient(180deg, #fbfbfd 0%, #f5f5f7 48%, #efeff4 100%);
+  background: #f7f7f8;
 }
 
 button,
@@ -88,9 +86,7 @@ button {
   .ios-page {
     min-height: 100%;
     color: var(--ios-ink);
-    background:
-      radial-gradient(circle at top right, rgba(0, 102, 204, 0.07), transparent 22rem),
-      linear-gradient(180deg, #fbfbfd 0%, #f5f5f7 100%);
+    background: #f7f7f8;
   }
 
   .ios-container {
@@ -132,26 +128,26 @@ button {
   }
 
   .ios-panel {
-    background: rgba(255, 255, 255, 0.86);
+    background: #ffffff;
     border: 1px solid var(--ios-hairline);
-    border-radius: 24px;
-    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.72) inset;
-    backdrop-filter: saturate(180%) blur(20px);
+    border-radius: 22px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    backdrop-filter: none;
   }
 
   .ios-card {
-    background: rgba(255, 255, 255, 0.92);
+    background: #ffffff;
     border: 1px solid var(--ios-hairline);
-    border-radius: 22px;
-    transition: transform 160ms ease, background-color 160ms ease, border-color 160ms ease;
+    border-radius: 20px;
+    transition: background-color 90ms ease, border-color 90ms ease;
   }
 
   .ios-card:hover {
-    border-color: rgba(0, 102, 204, 0.16);
+    border-color: #d1d5db;
   }
 
   .ios-card:active {
-    transform: scale(0.985);
+    transform: none;
   }
 
   .ios-button-primary {
@@ -167,7 +163,7 @@ button {
     font-size: 0.9375rem;
     font-weight: 500;
     line-height: 1;
-    transition: transform 140ms ease, background-color 140ms ease, opacity 140ms ease;
+    transition: background-color 90ms ease, opacity 90ms ease;
   }
 
   .ios-button-primary:hover {
@@ -175,7 +171,7 @@ button {
   }
 
   .ios-button-primary:active {
-    transform: scale(0.95);
+    transform: none;
   }
 
   .ios-button-primary:disabled {
@@ -192,15 +188,15 @@ button {
     padding: 0.68rem 1.05rem;
     border: 1px solid var(--ios-hairline);
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.72);
-    color: var(--ios-blue);
+    background: #ffffff;
+    color: var(--ios-ink);
     font-size: 0.9375rem;
     font-weight: 500;
-    transition: transform 140ms ease, background-color 140ms ease;
+    transition: background-color 90ms ease;
   }
 
   .ios-button-secondary:active {
-    transform: scale(0.95);
+    transform: none;
   }
 
   .ios-icon-button {
@@ -211,26 +207,26 @@ button {
     justify-content: center;
     border: 1px solid var(--ios-hairline);
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.72);
+    background: #ffffff;
     color: var(--ios-ink);
-    transition: transform 140ms ease, background-color 140ms ease, color 140ms ease;
+    transition: background-color 90ms ease, color 90ms ease;
   }
 
   .ios-icon-button:active {
-    transform: scale(0.94);
+    transform: none;
   }
 
   .ios-input {
     width: 100%;
     min-height: 44px;
-    border: 1px solid transparent;
-    border-radius: 999px;
-    background: rgba(118, 118, 128, 0.12);
+    border: 1px solid #d9d9e3;
+    border-radius: 18px;
+    background: #ffffff;
     color: var(--ios-ink);
     padding: 0.75rem 1rem;
     outline: none;
     font-size: 0.9375rem;
-    transition: border-color 140ms ease, background-color 140ms ease, box-shadow 140ms ease;
+    transition: border-color 90ms ease, background-color 90ms ease, box-shadow 90ms ease;
   }
 
   .ios-input::placeholder {
@@ -238,9 +234,9 @@ button {
   }
 
   .ios-input:focus {
-    border-color: rgba(0, 102, 204, 0.45);
-    background: rgba(255, 255, 255, 0.94);
-    box-shadow: 0 0 0 4px rgba(0, 102, 204, 0.12);
+    border-color: rgba(32, 33, 35, 0.38);
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(32, 33, 35, 0.08);
   }
 
   textarea.ios-input {
@@ -278,9 +274,9 @@ button {
 
   .ios-frosted {
     background: var(--ios-glass);
-    border: 1px solid rgba(255, 255, 255, 0.5);
-    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.65) inset;
-    backdrop-filter: saturate(180%) blur(22px);
+    border: 1px solid var(--ios-hairline);
+    box-shadow: none;
+    backdrop-filter: none;
   }
 }
 
@@ -297,4 +293,15 @@ button {
 
 .animate-fadeIn {
   animation: fadeIn 0.24s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.001ms !important;
+  }
 }

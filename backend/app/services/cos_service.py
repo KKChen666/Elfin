@@ -7,6 +7,14 @@ from app.config import settings
 
 
 def get_cos_client() -> CosS3Client:
+    if not (
+        settings.COS_SECRET_ID
+        and settings.COS_SECRET_KEY
+        and settings.COS_BUCKET
+        and settings.COS_REGION
+    ):
+        raise ValueError("COS storage is not configured")
+
     config = CosConfig(
         Region=settings.COS_REGION,
         SecretId=settings.COS_SECRET_ID,

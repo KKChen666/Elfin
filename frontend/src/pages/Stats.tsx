@@ -1,8 +1,7 @@
 import { useRelativeStore } from '../stores/useRelativeStore';
 import { RELATION_CATEGORIES, getRelationCategory } from '../types';
 import { Users, UserCheck, Calendar, ChatCircle } from '@phosphor-icons/react';
-import { useEffect, useRef } from 'react';
-import gsap from 'gsap';
+import { useRef } from 'react';
 import { useGsapEntrance } from '../hooks/useGsapEntrance';
 
 const statIcons = [Users, UserCheck, Calendar, ChatCircle];
@@ -39,25 +38,6 @@ export default function Stats() {
   useGsapEntrance(pageRef, [], { selector: '[data-gsap-page]', y: 18, stagger: 0.06 });
   useGsapEntrance(cardsRef, [totalRelatives], { y: 14, stagger: 0.05 });
 
-  useEffect(() => {
-    const root = panelRef.current;
-    if (!root) return;
-
-    const bars = Array.from(root.querySelectorAll<HTMLElement>('[data-stat-bar]'));
-    const ctx = gsap.context(() => {
-      bars.forEach((bar, index) => {
-        const width = bar.style.width || '0%';
-        gsap.fromTo(
-          bar,
-          { width: '0%' },
-          { width, duration: 0.58, delay: index * 0.045, ease: 'power2.out' },
-        );
-      });
-    }, root);
-
-    return () => ctx.revert();
-  }, [totalRelatives, relatives.length]);
-
   return (
     <div className="ios-page h-full overflow-y-auto">
       <div ref={pageRef} className="ios-container">
@@ -74,7 +54,7 @@ export default function Stats() {
             const Icon = statIcons[index];
             return (
               <div key={item.label} className="ios-card p-4">
-                <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-[#e9f2ff] text-[#0066cc]">
+                <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-[#f7f7f8] text-[#202123]">
                   <Icon size={19} />
                 </div>
                 <div className="text-3xl font-semibold tracking-[-0.03em] text-[#1d1d1f]">{item.value}</div>
@@ -93,7 +73,7 @@ export default function Stats() {
                 <div key={stat.label} className="grid grid-cols-[4.5rem_1fr_2rem] items-center gap-3">
                   <div className="text-sm text-[#6e6e73]">{stat.label}</div>
                   <div className="h-2 overflow-hidden rounded-full bg-black/5">
-                    <div data-stat-bar className="h-full rounded-full bg-[#0066cc]" style={{ width: `${width}%` }} />
+                    <div data-stat-bar className="h-full rounded-full bg-[#202123]" style={{ width: `${width}%` }} />
                   </div>
                   <div className="text-right text-sm font-semibold text-[#1d1d1f]">{stat.count}</div>
                 </div>
@@ -105,3 +85,4 @@ export default function Stats() {
     </div>
   );
 }
+

@@ -1,7 +1,7 @@
 export const theme = {
   colors: {
-    primary: '#0066CC',
-    primaryFocus: '#0071E3',
+    primary: '#202123',
+    primaryFocus: '#111827',
     primaryOnDark: '#2997FF',
     ink: '#1D1D1F',
     text: '#1D1D1F',
@@ -17,7 +17,7 @@ export const theme = {
     success: '#34C759',
     warning: '#FF9F0A',
     error: '#FF3B30',
-    info: '#0066CC',
+    info: '#202123',
     card: 'rgba(255,255,255,0.92)',
   },
 
@@ -41,3 +41,4 @@ export const theme = {
     mono: '"SF Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, monospace',
   },
 };
+

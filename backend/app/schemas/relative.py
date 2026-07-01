@@ -1,4 +1,6 @@
-from datetime import datetime, date
+from __future__ import annotations
+
+from datetime import datetime, date as Date
 from pydantic import BaseModel, Field
 
 
@@ -17,7 +19,7 @@ class AvatarConfig(BaseModel):
 
 class RelativeCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=100)
-    birthday: date
+    birthday: Date
     is_lunar: bool = False
     relation: str = Field(..., max_length=50)
     phone: str | None = None
@@ -34,7 +36,7 @@ class RelativeCreate(BaseModel):
 
 class RelativeUpdate(BaseModel):
     name: str | None = None
-    birthday: date | None = None
+    birthday: Date | None = None
     is_lunar: bool | None = None
     relation: str | None = None
     phone: str | None = None
@@ -54,7 +56,7 @@ class RelativeUpdate(BaseModel):
 class RelativeOut(BaseModel):
     id: int
     name: str
-    birthday: date
+    birthday: Date
     is_lunar: bool
     relation: str
     phone: str | None = None
@@ -73,3 +75,63 @@ class RelativeOut(BaseModel):
     updated_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+class RelativeRelationshipCreate(BaseModel):
+    relative_a_id: int
+    relative_b_id: int
+    relation_label: str = Field(..., min_length=1, max_length=50)
+    reverse_relation_label: str | None = Field(default=None, max_length=50)
+    note: str | None = None
+    strength: int = Field(default=3, ge=1, le=5)
+
+
+class RelativeRelationshipUpdate(BaseModel):
+    relation_label: str | None = Field(default=None, min_length=1, max_length=50)
+    reverse_relation_label: str | None = Field(default=None, max_length=50)
+    note: str | None = None
+    strength: int | None = Field(default=None, ge=1, le=5)
+
+
+class RelativeRelationshipOut(BaseModel):
+    id: int
+    relative_a_id: int
+    relative_b_id: int
+    relation_label: str
+    reverse_relation_label: str | None = None
+    note: str | None = None
+    strength: int
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class ReminderEventCreate(BaseModel):
+    title: str = Field(..., min_length=1, max_length=120)
+    date: Date
+    relative_id: int | None = None
+    advance_days: list[int] = Field(default_factory=lambda: [1, 3, 7])
+    note: str | None = None
+    is_enabled: bool = True
+
+
+class ReminderEventUpdate(BaseModel):
+    title: str | None = Field(default=None, min_length=1, max_length=120)
+    date: Date | None = None
+    relative_id: int | None = None
+    advance_days: list[int] | None = None
+    note: str | None = None
+    is_enabled: bool | None = None
+
+
+class ReminderEventOut(BaseModel):
+    id: int
+    title: str
+    date: Date
+    relative_id: int | None = None
+    advance_days: list[int]
+    note: str | None = None
+    is_enabled: bool
+    created_at: datetime
+    updated_at: datetime

@@ -7,6 +7,7 @@ import { RELATION_CATEGORIES } from '../types';
 import AvatarPreview from '../components/avatar/AvatarPreview';
 import ImageUploader from '../components/avatar/ImageUploader';
 import { getZodiac, getChineseZodiac } from '../utils/dateUtils';
+import { showToast } from '../components/toastBus';
 
 const MBTI_TYPES = [
   'INTJ', 'INTP', 'ENTJ', 'ENTP',
@@ -18,7 +19,7 @@ const MBTI_TYPES = [
 export default function EditRelative() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { getRelative, updateRelative, loadRelatives } = useRelativeStore();
+  const { getRelative, updateRelative, loadRelatives, hasLoaded, isLoading } = useRelativeStore();
   const relative = getRelative(id || '');
 
   const [customRelation, setCustomRelation] = useState('');
@@ -31,6 +32,7 @@ export default function EditRelative() {
   };
   const [avatarImage, setAvatarImage] = useState<string>('');
   const [avatarImageChanged, setAvatarImageChanged] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState({
     name: '',
     birthday: '',
@@ -47,6 +49,12 @@ export default function EditRelative() {
 
   const zodiac = form.birthday ? getZodiac(form.birthday) : '';
   const chineseZodiac = form.birthday ? getChineseZodiac(form.birthday) : '';
+
+  useEffect(() => {
+    if (!hasLoaded) {
+      loadRelatives();
+    }
+  }, [hasLoaded, loadRelatives]);
 
   useEffect(() => {
     if (relative) {
@@ -74,33 +82,42 @@ export default function EditRelative() {
   }, [relative]);
 
   if (!relative) {
+    if (isLoading || !hasLoaded) {
+      return <div className="p-4 text-center">正在加载亲友信息...</div>;
+    }
     return <div className="p-4 text-center">亲友不存在</div>;
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.name || !form.birthday) return;
+    if (!form.name || !form.birthday || submitting) return;
     const relation = isCustom ? customRelation.trim() : form.relation;
     if (!relation) return;
-    await updateRelative(id || '', {
-      ...form,
-      relation,
-      zodiac,
-      chineseZodiac,
-    });
-    // 如果有上传的头像图片，通过后端上传到 COS
-    if (avatarImageChanged && avatarImage && id) {
-      try {
+    setSubmitting(true);
+    try {
+      await updateRelative(id || '', {
+        ...form,
+        relation,
+        zodiac,
+        chineseZodiac,
+      });
+      if (avatarImageChanged && avatarImage && id) {
         const res = await fetch(avatarImage);
         const blob = await res.blob();
         const file = new File([blob], 'avatar.png', { type: 'image/png' });
         await uploadApi.uploadAvatarImage(Number(id), file);
         await loadRelatives();
-      } catch {
-        // 上传失败不影响保存
       }
+      showToast('success', '亲友信息已保存');
+      navigate(`/detail/${id}`);
+    } catch (err: unknown) {
+      const msg =
+        (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ||
+        '保存失败，请稍后重试';
+      showToast('error', msg);
+    } finally {
+      setSubmitting(false);
     }
-    navigate(`/detail/${id}`);
   };
 
   return (
@@ -118,7 +135,7 @@ export default function EditRelative() {
           <div className="flex flex-col items-center gap-4">
             <div className="relative">
               {avatarImage ? (
-                <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-[#0066CC]">
+                <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-[#202123]">
                   <img src={avatarImage} alt="头像" className="w-full h-full object-cover" />
                 </div>
               ) : (
@@ -135,10 +152,10 @@ export default function EditRelative() {
               />
               <button
                 onClick={() => navigate(`/avatar/${id}`)}
-                className="flex flex-col items-center gap-1 px-4 py-2 border border-gray-200 rounded-lg hover:border-[#0066CC] transition-colors"
+                className="flex flex-col items-center gap-1 px-4 py-2 border border-gray-200 rounded-lg hover:border-[#202123] transition-colors"
               >
                 <AvatarPreview avatar={relative.avatar} size={40} />
-                <span className="text-xs text-[#0066CC]">捏脸定制</span>
+                <span className="text-xs text-[#202123]">捏脸定制</span>
               </button>
             </div>
           </div>
@@ -153,7 +170,7 @@ export default function EditRelative() {
               value={form.name}
               onChange={e => setForm({ ...form, name: e.target.value })}
               placeholder="请输入姓名"
-              className="w-full border-b border-gray-100 py-2 outline-none focus:border-[#0066CC] transition-colors"
+              className="w-full border-b border-gray-100 py-2 outline-none focus:border-[#202123] transition-colors"
               required
             />
           </div>
@@ -164,7 +181,7 @@ export default function EditRelative() {
               type="date"
               value={form.birthday}
               onChange={e => setForm({ ...form, birthday: e.target.value })}
-              className="w-full border-b border-gray-100 py-2 outline-none focus:border-[#0066CC] transition-colors"
+              className="w-full border-b border-gray-100 py-2 outline-none focus:border-[#202123] transition-colors"
               required
             />
             <label className="flex items-center gap-2 mt-2">
@@ -179,10 +196,10 @@ export default function EditRelative() {
             {form.birthday && (
               <div className="flex gap-3 mt-2">
                 {zodiac && (
-                  <span className="text-xs text-[#0066CC] bg-[#e9f2ff] px-2 py-0.5 rounded">{zodiac}</span>
+                  <span className="text-xs text-[#202123] bg-[#f7f7f8] px-2 py-0.5 rounded">{zodiac}</span>
                 )}
                 {chineseZodiac && (
-                  <span className="text-xs text-[#0066CC] bg-[#e9f2ff] px-2 py-0.5 rounded">{chineseZodiac}</span>
+                  <span className="text-xs text-[#202123] bg-[#f7f7f8] px-2 py-0.5 rounded">{chineseZodiac}</span>
                 )}
               </div>
             )}
@@ -201,7 +218,7 @@ export default function EditRelative() {
                       onClick={() => { setForm({ ...form, relation: item.key }); setIsCustom(false); }}
                       className={`px-3 py-1 rounded-full text-sm transition-colors ${
                         !isCustom && form.relation === item.key
-                          ? 'bg-[#0066CC] text-white'
+                          ? 'bg-[#202123] text-white'
                           : 'bg-gray-50 text-gray-500 hover:bg-gray-100'
                       }`}
                     >
@@ -221,7 +238,7 @@ export default function EditRelative() {
                   onFocus={() => { if (customRelation.trim()) setIsCustom(true); }}
                   placeholder="输入自定义关系，如：干妈"
                   className={`flex-1 border rounded-lg px-3 py-1.5 text-sm outline-none transition-colors ${
-                    isCustom ? 'border-[#0066CC]' : 'border-gray-200 focus:border-[#0066CC]'
+                    isCustom ? 'border-[#202123]' : 'border-gray-200 focus:border-[#202123]'
                   }`}
                 />
               </div>
@@ -235,7 +252,7 @@ export default function EditRelative() {
               value={form.hobbies}
               onChange={e => setForm({ ...form, hobbies: e.target.value })}
               placeholder="如：喝茶、看电影、养花"
-              className="w-full border-b border-gray-100 py-2 outline-none focus:border-[#0066CC] transition-colors"
+              className="w-full border-b border-gray-100 py-2 outline-none focus:border-[#202123] transition-colors"
             />
           </div>
 
@@ -247,7 +264,7 @@ export default function EditRelative() {
                 value={form.clothingSize}
                 onChange={e => setForm({ ...form, clothingSize: e.target.value })}
                 placeholder="如：M、L、XL"
-                className="w-full border-b border-gray-100 py-2 outline-none focus:border-[#0066CC] transition-colors"
+                className="w-full border-b border-gray-100 py-2 outline-none focus:border-[#202123] transition-colors"
               />
             </div>
             <div>
@@ -257,7 +274,7 @@ export default function EditRelative() {
                 value={form.shoeSize}
                 onChange={e => setForm({ ...form, shoeSize: e.target.value })}
                 placeholder="如：38、42"
-                className="w-full border-b border-gray-100 py-2 outline-none focus:border-[#0066CC] transition-colors"
+                className="w-full border-b border-gray-100 py-2 outline-none focus:border-[#202123] transition-colors"
               />
             </div>
           </div>
@@ -272,7 +289,7 @@ export default function EditRelative() {
                   onClick={() => setForm({ ...form, mbti: type })}
                   className={`px-2.5 py-1 rounded-lg text-sm transition-colors ${
                     form.mbti === type
-                      ? 'bg-[#0066CC] text-white'
+                      ? 'bg-[#202123] text-white'
                       : 'bg-gray-50 text-gray-500 hover:bg-gray-100'
                   }`}
                 >
@@ -289,7 +306,7 @@ export default function EditRelative() {
               value={form.address}
               onChange={e => setForm({ ...form, address: e.target.value })}
               placeholder="请输入居住地址"
-              className="w-full border-b border-gray-100 py-2 outline-none focus:border-[#0066CC] transition-colors"
+              className="w-full border-b border-gray-100 py-2 outline-none focus:border-[#202123] transition-colors"
             />
           </div>
 
@@ -300,18 +317,20 @@ export default function EditRelative() {
               onChange={e => setForm({ ...form, notes: e.target.value })}
               placeholder="其他需要记住的信息"
               rows={3}
-              className="w-full border-b border-gray-100 py-2 outline-none focus:border-[#0066CC] resize-none transition-colors"
+              className="w-full border-b border-gray-100 py-2 outline-none focus:border-[#202123] resize-none transition-colors"
             />
           </div>
 
           <button
             type="submit"
-            className="w-full py-3 bg-[#0066CC] text-white rounded-xl font-medium hover:bg-[#005BB8] transition-colors sm:max-w-xs"
+            disabled={submitting}
+            className="w-full py-3 bg-[#202123] text-white rounded-xl font-medium hover:bg-[#111827] transition-colors disabled:cursor-not-allowed disabled:opacity-50 sm:max-w-xs"
           >
-            保存修改
+            {submitting ? '正在保存...' : '保存修改'}
           </button>
         </form>
       </div>
     </div>
   );
 }
+

@@ -76,7 +76,7 @@ export default function Login() {
 
           <p className="mt-5 text-center text-sm text-[#7a7a7a]">
             还没有账号？{' '}
-            <Link to="/register" className="font-medium text-[#0066cc]">
+            <Link to="/register" className="font-medium text-[#202123]">
               注册
             </Link>
           </p>
@@ -85,3 +85,4 @@ export default function Login() {
     </div>
   );
 }
+

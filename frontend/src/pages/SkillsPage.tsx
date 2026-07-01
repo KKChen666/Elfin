@@ -10,11 +10,12 @@ import {
   Trash,
   X,
 } from '@phosphor-icons/react';
-import gsap from 'gsap';
 import { skillsApi, Skill } from '../api/skills';
 import { relativesApi, BackendRelative } from '../api/relatives';
 import { showToast } from '../components/toastBus';
 import { useGsapEntrance } from '../hooks/useGsapEntrance';
+import { ConfirmDialog } from '../components/AppDialog';
+import WorkflowGuide from '../components/WorkflowGuide';
 
 type PanelMode = 'creator' | 'create' | 'distill' | 'merge' | null;
 
@@ -54,6 +55,8 @@ export default function SkillsPage() {
   const [expandedSkillId, setExpandedSkillId] = useState<number | null>(null);
   const [distilling, setDistilling] = useState(false);
   const [creatingSkill, setCreatingSkill] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<Skill | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -62,23 +65,6 @@ export default function SkillsPage() {
     loadSkills();
     loadRelatives();
   }, []);
-
-  useEffect(() => {
-    if (!listRef.current?.children.length) return;
-    gsap.fromTo(
-      listRef.current.children,
-      { y: 14, opacity: 0, scale: 0.985 },
-      {
-        y: 0,
-        opacity: 1,
-        scale: 1,
-        duration: 0.32,
-        stagger: 0.04,
-        ease: 'power2.out',
-        clearProps: 'transform',
-      },
-    );
-  }, [skills.length]);
 
   useGsapEntrance(panelRef, [panelMode], { y: 12, scale: 0.98, stagger: 0.035 });
 
@@ -159,7 +145,11 @@ export default function SkillsPage() {
       });
       setCreatorForm(emptyCreatorForm);
       setExpandedSkillId(res.data.id);
-      showToast('success', 'Skill 已生成');
+      if (res.data.expression_patterns?.generation_mode === 'fallback') {
+        showToast('info', 'Skill created from fallback template; configure an API Key for model-based generation.');
+      } else {
+        showToast('success', 'Skill 已生成');
+      }
       loadSkills();
     } catch (err: unknown) {
       const msg =
@@ -203,13 +193,21 @@ export default function SkillsPage() {
   };
 
   const handleDelete = async (skill: Skill) => {
-    if (!confirm(`确定删除「${skill.name}」吗？`)) return;
+    setDeleteTarget(skill);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget || isDeleting) return;
+    setIsDeleting(true);
     try {
-      await skillsApi.delete(skill.id);
+      await skillsApi.delete(deleteTarget.id);
+      setDeleteTarget(null);
       showToast('success', '已删除');
       loadSkills();
     } catch {
       showToast('error', '删除失败');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -249,6 +247,8 @@ export default function SkillsPage() {
             </button>
           </div>
         </header>
+
+        <WorkflowGuide />
 
         {panelMode && (
           <section ref={panelRef} className="ios-panel mb-6 p-5">
@@ -445,7 +445,7 @@ export default function SkillsPage() {
                       <p className="text-[15px] font-semibold text-[#1d1d1f]">{relative.name}</p>
                       <p className="mt-0.5 text-xs text-[#7a7a7a]">{relative.relation}</p>
                     </div>
-                    <Sparkle size={20} className="text-[#0066cc]" />
+                    <Sparkle size={20} className="text-[#202123]" />
                   </button>
                 ))}
                 {importableRelatives.length === 0 && (
@@ -514,7 +514,7 @@ export default function SkillsPage() {
                       <h3 className="truncate text-[17px] font-semibold text-[#1d1d1f]">
                         {skill.name}
                       </h3>
-                      <span className="rounded-full bg-[#e9f2ff] px-2.5 py-1 text-xs font-medium text-[#0066cc]">
+                      <span className="rounded-full bg-[#f7f7f8] px-2.5 py-1 text-xs font-medium text-[#202123]">
                         {sourceLabels[skill.source_type] || skill.source_type}
                       </span>
                     </div>
@@ -597,6 +597,19 @@ export default function SkillsPage() {
           )}
         </div>
       </div>
+      <ConfirmDialog
+        open={Boolean(deleteTarget)}
+        title="删除这个技能？"
+        detail={deleteTarget?.name}
+        description="删除后，后续 Agent 将不能再关联这个技能；已生成的内容不会自动恢复。"
+        confirmLabel="确认删除"
+        danger
+        loading={isDeleting}
+        icon={<Trash size={20} weight="bold" />}
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={confirmDelete}
+      />
     </div>
   );
 }
+

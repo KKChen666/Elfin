@@ -15,7 +15,7 @@ from app.schemas.conversation import (
     MessageCreate,
     MessageOut,
 )
-from app.services.llm_service import chat_completion_stream
+from app.services.llm_service import chat_completion, chat_completion_stream
 from app.utils.auth import get_current_user
 from app.utils.secrets import decrypt_secret, encrypt_secret, is_encrypted_secret
 
@@ -49,6 +49,8 @@ def _build_conversation_out(conv: Conversation, db: Session) -> ConversationOut:
         last_message=last_message,
         is_archived=conv.is_archived,
         archived_at=conv.archived_at,
+        is_deleted=conv.is_deleted,
+        deleted_at=conv.deleted_at,
         created_at=conv.created_at,
         updated_at=conv.updated_at,
     )
@@ -57,12 +59,19 @@ def _build_conversation_out(conv: Conversation, db: Session) -> ConversationOut:
 @router.get("", response_model=list[ConversationOut])
 def list_conversations(
     archived: bool = Query(default=False),
+    deleted: bool = Query(default=False),
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    query = db.query(Conversation).filter(
+        Conversation.user_id == user.id,
+        Conversation.is_deleted == deleted,
+    )
+    if not deleted:
+        query = query.filter(Conversation.is_archived == archived)
+
     convs = (
-        db.query(Conversation)
-        .filter(Conversation.user_id == user.id, Conversation.is_archived == archived)
+        query
         .order_by(Conversation.updated_at.desc())
         .all()
     )
@@ -125,7 +134,9 @@ def get_conversation(
     db: Session = Depends(get_db),
 ):
     conv = db.query(Conversation).filter(
-        Conversation.id == conv_id, Conversation.user_id == user.id
+        Conversation.id == conv_id,
+        Conversation.user_id == user.id,
+        Conversation.is_deleted == False,  # noqa: E712
     ).first()
     if not conv:
         raise HTTPException(status_code=404, detail="对话不存在")
@@ -140,7 +151,9 @@ def update_conversation(
     db: Session = Depends(get_db),
 ):
     conv = db.query(Conversation).filter(
-        Conversation.id == conv_id, Conversation.user_id == user.id
+        Conversation.id == conv_id,
+        Conversation.user_id == user.id,
+        Conversation.is_deleted == False,  # noqa: E712
     ).first()
     if not conv:
         raise HTTPException(status_code=404, detail="对话不存在")
@@ -166,12 +179,41 @@ def delete_conversation(
     db: Session = Depends(get_db),
 ):
     conv = db.query(Conversation).filter(
-        Conversation.id == conv_id, Conversation.user_id == user.id
+        Conversation.id == conv_id,
+        Conversation.user_id == user.id,
+        Conversation.is_deleted == False,  # noqa: E712
     ).first()
     if not conv:
         raise HTTPException(status_code=404, detail="对话不存在")
-    db.delete(conv)
+    conv.is_deleted = True
+    conv.deleted_at = datetime.utcnow()
+    conv.is_archived = True
+    conv.archived_at = conv.archived_at or conv.deleted_at
+    conv.updated_at = datetime.utcnow()
     db.commit()
+
+
+@router.post("/{conv_id}/restore", response_model=ConversationOut)
+def restore_deleted_conversation(
+    conv_id: int,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    conv = db.query(Conversation).filter(
+        Conversation.id == conv_id,
+        Conversation.user_id == user.id,
+        Conversation.is_deleted == True,  # noqa: E712
+    ).first()
+    if not conv:
+        raise HTTPException(status_code=404, detail="对话不存在")
+    conv.is_deleted = False
+    conv.deleted_at = None
+    conv.is_archived = False
+    conv.archived_at = None
+    conv.updated_at = datetime.utcnow()
+    db.commit()
+    db.refresh(conv)
+    return _build_conversation_out(conv, db)
 
 
 @router.get("/{conv_id}/messages", response_model=list[MessageOut])
@@ -181,7 +223,9 @@ def get_messages(
     db: Session = Depends(get_db),
 ):
     conv = db.query(Conversation).filter(
-        Conversation.id == conv_id, Conversation.user_id == user.id
+        Conversation.id == conv_id,
+        Conversation.user_id == user.id,
+        Conversation.is_deleted == False,  # noqa: E712
     ).first()
     if not conv:
         raise HTTPException(status_code=404, detail="对话不存在")
@@ -223,7 +267,9 @@ def send_message(
 ):
     """用户发送消息"""
     conv = db.query(Conversation).filter(
-        Conversation.id == conv_id, Conversation.user_id == user.id
+        Conversation.id == conv_id,
+        Conversation.user_id == user.id,
+        Conversation.is_deleted == False,  # noqa: E712
     ).first()
     if not conv:
         raise HTTPException(status_code=404, detail="对话不存在")
@@ -259,7 +305,9 @@ async def trigger_agent_reply(
 ):
     """触发 Agent 回复（流式）"""
     conv = db.query(Conversation).filter(
-        Conversation.id == conv_id, Conversation.user_id == user.id
+        Conversation.id == conv_id,
+        Conversation.user_id == user.id,
+        Conversation.is_deleted == False,  # noqa: E712
     ).first()
     if not conv:
         raise HTTPException(status_code=404, detail="对话不存在")
@@ -269,30 +317,6 @@ async def trigger_agent_reply(
     if not participants:
         raise HTTPException(status_code=400, detail="对话没有参与者")
 
-    # 如果指定了 agent_id，只让该 agent 回复
-    if agent_id:
-        target_participant = next(
-            (p for p in participants if p.agent_id == agent_id), None
-        )
-        if not target_participant:
-            raise HTTPException(status_code=400, detail="该 Agent 不在此对话中")
-        target_agents = [target_participant.agent]
-    else:
-        # 群聊：选择性回复 - 根据最后一条消息决定哪个 agent 回复
-        if conv.type == "group":
-            target_agents = _select_responding_agents(conv, participants, db)
-        else:
-            target_agents = [participants[0].agent]
-
-    # 预加载消息历史（在 session 关闭前）
-    agents_data = []
-    for agent in target_agents:
-        messages = _build_messages_for_agent(conv, agent, db)
-        agents_data.append({
-            "agent_id": agent.id,
-            "agent_name": agent.name,
-            "messages": messages,
-        })
     api_key = decrypt_secret(user.llm_api_key)
     if user.llm_api_key and api_key and not is_encrypted_secret(user.llm_api_key):
         user.llm_api_key = encrypt_secret(api_key)
@@ -305,6 +329,38 @@ async def trigger_agent_reply(
         "timeout": user.llm_timeout,
     }
 
+    # 如果指定了 agent_id，只让该 agent 回复
+    if agent_id:
+        target_participant = next(
+            (p for p in participants if p.agent_id == agent_id), None
+        )
+        if not target_participant:
+            raise HTTPException(status_code=400, detail="该 Agent 不在此对话中")
+        target_agents = [target_participant.agent]
+    else:
+        # 群聊：选择性回复 - 根据最后一条消息决定哪个 agent 回复
+        if conv.type == "group":
+            target_agents = await _select_responding_agents(
+                conv,
+                participants,
+                db,
+                api_key=llm_config["api_key"],
+                api_base=llm_config["api_base"],
+                model=llm_config["model"] or "gpt-3.5-turbo",
+                timeout=llm_config["timeout"],
+            )
+        else:
+            target_agents = [participants[0].agent]
+
+    # 预加载消息历史（在 session 关闭前）
+    agents_data = []
+    for agent in target_agents:
+        messages = _build_messages_for_agent(conv, agent, db)
+        agents_data.append({
+            "agent_id": agent.id,
+            "agent_name": agent.name,
+            "messages": messages,
+        })
     async def generate():
         # 在生成器内部创建新的 DB session
         from app.database import SessionLocal
@@ -348,16 +404,23 @@ async def trigger_agent_reply(
         finally:
             gen_db.close()
 
-    return StreamingResponse(generate(), media_type="text/event-stream")
+    return StreamingResponse(
+        generate(),
+        media_type="text/event-stream",
+        headers={"X-Elfin-Mock-Llm": "true" if not api_key else "false"},
+    )
 
 
-def _select_responding_agents(
+async def _select_responding_agents(
     conv: Conversation,
     participants: list,
     db: Session,
+    api_key: str | None = None,
+    api_base: str | None = None,
+    model: str = "gpt-3.5-turbo",
+    timeout: int | None = None,
 ) -> list[Agent]:
     """群聊中选择性回复：根据话题相关性选择 agent"""
-    # 获取最后一条用户消息
     last_user_msg = (
         db.query(Message)
         .filter(Message.conversation_id == conv.id, Message.sender_type == "user")
@@ -367,9 +430,124 @@ def _select_responding_agents(
     if not last_user_msg:
         return [participants[0].agent]
 
-    # 简单策略：所有 agent 都回复（后续可以加入 LLM 判断相关性）
-    # TODO: 用 LLM 判断哪些 agent 应该回复
-    return [p.agent for p in participants[:2]]  # 最多2个 agent 回复
+    agents = [p.agent for p in participants if p.agent and p.agent.is_active]
+    if not agents:
+        return [participants[0].agent]
+
+    heuristic_agents = _select_agents_by_heuristic(last_user_msg.content, agents)
+    if not api_key:
+        return heuristic_agents
+
+    try:
+        agent_lines = []
+        for agent in agents:
+            skill_names = []
+            for agent_skill in agent.agent_skills or []:
+                if agent_skill.skill:
+                    skill_names.append(agent_skill.skill.name)
+            agent_lines.append(
+                f"- id={agent.id}; name={agent.name}; description={agent.description or '无'}; "
+                f"skills={','.join(skill_names[:5]) or '无'}"
+            )
+
+        response = await chat_completion(
+            [
+                {
+                    "role": "system",
+                    "content": (
+                        "你是群聊路由器。根据用户最后一条消息，选择最应该回复的 1-2 个 Agent。"
+                        "只输出 JSON，例如 {\"agent_ids\":[1,2]}，不要解释。"
+                    ),
+                },
+                {
+                    "role": "user",
+                    "content": (
+                        f"用户消息：{last_user_msg.content}\n\n"
+                        f"可选 Agent：\n{chr(10).join(agent_lines)}"
+                    ),
+                },
+            ],
+            api_key=api_key,
+            api_base=api_base,
+            model=model,
+            timeout=timeout,
+            temperature=0.1,
+            max_tokens=120,
+        )
+        selected_ids = _parse_selected_agent_ids(str(response))
+        selected = [agent for agent in agents if agent.id in selected_ids][:2]
+        return selected or heuristic_agents
+    except Exception:
+        return heuristic_agents
+
+
+def _select_agents_by_heuristic(message: str, agents: list[Agent]) -> list[Agent]:
+    normalized = message.lower()
+    mentioned = [
+        agent for agent in agents
+        if agent.name and (agent.name.lower() in normalized or f"@{agent.name.lower()}" in normalized)
+    ]
+    if mentioned:
+        return mentioned[:2]
+
+    scored: list[tuple[int, Agent]] = []
+    for agent in agents:
+        keywords = set()
+        for source in (agent.name, agent.description, agent.system_prompt):
+            if source:
+                keywords.update(token.lower() for token in _split_keywords(source))
+        for agent_skill in agent.agent_skills or []:
+            if agent_skill.skill:
+                keywords.update(token.lower() for token in _split_keywords(agent_skill.skill.name))
+                if agent_skill.skill.description:
+                    keywords.update(token.lower() for token in _split_keywords(agent_skill.skill.description))
+        score = sum(1 for keyword in keywords if len(keyword) >= 2 and keyword in normalized)
+        if score > 0:
+            scored.append((score, agent))
+
+    if scored:
+        scored.sort(key=lambda item: item[0], reverse=True)
+        return [agent for _, agent in scored[:2]]
+
+    return agents[:2]
+
+
+def _split_keywords(value: str) -> list[str]:
+    tokens = []
+    current = []
+    for char in value:
+        if char.isalnum() or "\u4e00" <= char <= "\u9fff":
+            current.append(char)
+        elif current:
+            tokens.append("".join(current))
+            current = []
+    if current:
+        tokens.append("".join(current))
+    chunks = []
+    for token in tokens:
+        chunks.append(token)
+        if len(token) > 4 and any("\u4e00" <= char <= "\u9fff" for char in token):
+            chunks.extend(token[index:index + 2] for index in range(len(token) - 1))
+    return chunks
+
+
+def _parse_selected_agent_ids(value: str) -> list[int]:
+    try:
+        parsed = json.loads(value)
+        ids = parsed.get("agent_ids", parsed if isinstance(parsed, list) else [])
+        return [int(item) for item in ids if str(item).isdigit()]
+    except Exception:
+        digits = []
+        current = []
+        for char in value:
+            if char.isdigit():
+                current.append(char)
+            elif current:
+                digits.append(int("".join(current)))
+                current = []
+        if current:
+            digits.append(int("".join(current)))
+        return digits
 
 
 def _build_messages_for_agent(conv: Conversation, agent: Agent, db: Session) -> list[dict]:
@@ -407,3 +585,4 @@ def _build_messages_for_agent(conv: Conversation, agent: Agent, db: Session) -> 
             messages.append({"role": "user", "content": f"[{name}]: {msg.content}"})
 
     return messages
+

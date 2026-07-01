@@ -78,6 +78,7 @@ async def create_skill_from_materials(
         },
         knowledge_domains=skill_payload["knowledge_domains"],
         expression_patterns={
+            "generation_mode": skill_payload.get("generation_mode", "unknown"),
             "guardrails": skill_payload["guardrails"],
             "examples": skill_payload["examples"],
             "debug_cases": skill_payload["debug_cases"],
@@ -222,9 +223,13 @@ async def _generate_skill_payload(
             timeout=(llm_config or {}).get("timeout"),
         )
         parsed = _parse_json(str(content))
-        return _normalize_payload(parsed, name, goal, description, materials, debug_cases)
+        payload = _normalize_payload(parsed, name, goal, description, materials, debug_cases)
+        payload["generation_mode"] = "llm"
+        return payload
     except Exception:
-        return _fallback_payload(name, goal, description, materials, debug_cases)
+        payload = _fallback_payload(name, goal, description, materials, debug_cases)
+        payload["generation_mode"] = "fallback"
+        return payload
 
 
 def _build_context(

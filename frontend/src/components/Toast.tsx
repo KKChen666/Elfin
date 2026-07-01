@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { X, CheckCircle, WarningCircle, Info } from '@phosphor-icons/react';
 import { registerToastHandler, ToastType } from './toastBus';
-import gsap from 'gsap';
 
 interface ToastItem {
   id: number;
@@ -28,17 +27,6 @@ export default function Toast() {
     return () => { registerToastHandler(null); };
   }, [addToast]);
 
-  useEffect(() => {
-    const latest = toastRef.current?.lastElementChild;
-    if (!latest) return;
-
-    gsap.fromTo(
-      latest,
-      { x: 18, y: -8, opacity: 0, scale: 0.96, filter: 'blur(6px)' },
-      { x: 0, y: 0, opacity: 1, scale: 1, filter: 'blur(0px)', duration: 0.28, ease: 'power2.out', clearProps: 'transform,filter' },
-    );
-  }, [toasts.length]);
-
   if (toasts.length === 0) return null;
 
   return (
@@ -52,7 +40,7 @@ export default function Toast() {
         >
           {toast.type === 'success' && <CheckCircle size={18} weight="fill" className="text-[#34c759]" />}
           {toast.type === 'error' && <WarningCircle size={18} weight="fill" className="text-[#ff3b30]" />}
-          {toast.type === 'info' && <Info size={18} weight="fill" className="text-[#0066cc]" />}
+          {toast.type === 'info' && <Info size={18} weight="fill" className="text-[#202123]" />}
           <span>{toast.message}</span>
           <button
             onClick={() => setToasts(prev => prev.filter(t => t.id !== toast.id))}
@@ -66,3 +54,4 @@ export default function Toast() {
     </div>
   );
 }
+

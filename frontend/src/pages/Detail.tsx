@@ -1,26 +1,69 @@
 import { useParams, useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 import { ArrowLeft, Pencil, Trash, Sparkle, Robot, Upload, ChatCircle } from '@phosphor-icons/react';
 import { useRelativeStore } from '../stores/useRelativeStore';
 import { getRelationLabel } from '../types';
 import AvatarPreview from '../components/avatar/AvatarPreview';
 import { getDaysUntilBirthday, formatDate } from '../utils/dateUtils';
+import { skillsApi } from '../api/skills';
+import { showToast } from '../components/toastBus';
+import { ConfirmDialog } from '../components/AppDialog';
 
 export default function Detail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { getRelative, deleteRelative } = useRelativeStore();
+  const { getRelative, deleteRelative, loadRelatives, hasLoaded, isLoading } = useRelativeStore();
   const relative = getRelative(id || '');
+  const [distilling, setDistilling] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  useEffect(() => {
+    if (!hasLoaded) {
+      loadRelatives();
+    }
+  }, [hasLoaded, loadRelatives]);
 
   if (!relative) {
+    if (isLoading || !hasLoaded) {
+      return <div className="p-4 text-center">正在加载亲友信息...</div>;
+    }
     return <div className="p-4 text-center">亲友不存在</div>;
   }
 
   const daysUntilBirthday = getDaysUntilBirthday(relative.birthday, relative.isLunar);
 
   const handleDelete = async () => {
-    if (confirm('确定要删除这位亲友吗？')) {
+    setShowDeleteDialog(true);
+  };
+
+  const confirmDelete = async () => {
+    if (isDeleting) return;
+    setIsDeleting(true);
+    try {
       await deleteRelative(id || '');
-      navigate('/');
+      navigate('/relatives');
+    } catch {
+      showToast('error', '删除失败');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleDistillSkill = async () => {
+    if (!id || distilling) return;
+    setDistilling(true);
+    try {
+      await skillsApi.distill(Number(id));
+      showToast('success', '已生成沟通技能');
+      navigate('/skills');
+    } catch (err: unknown) {
+      const msg =
+        (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ||
+        '技能生成失败';
+      showToast('error', msg);
+    } finally {
+      setDistilling(false);
     }
   };
 
@@ -51,7 +94,7 @@ export default function Detail() {
             <img
               src={relative.avatarImage}
               alt={relative.name}
-              className="w-24 h-24 md:w-28 md:h-28 rounded-full object-cover mx-auto border-2 border-[#0066CC]"
+              className="w-24 h-24 md:w-28 md:h-28 rounded-full object-cover mx-auto border-2 border-[#202123]"
             />
           ) : (
             <div className="flex justify-center">
@@ -63,10 +106,10 @@ export default function Detail() {
           {(relative.zodiac || relative.chineseZodiac) && (
             <div className="flex justify-center gap-2 mt-2">
               {relative.zodiac && (
-                <span className="text-xs text-[#0066CC] bg-[#e9f2ff] px-2 py-0.5 rounded">{relative.zodiac}</span>
+                <span className="text-xs text-[#202123] bg-[#f7f7f8] px-2 py-0.5 rounded">{relative.zodiac}</span>
               )}
               {relative.chineseZodiac && (
-                <span className="text-xs text-[#0066CC] bg-[#e9f2ff] px-2 py-0.5 rounded">{relative.chineseZodiac}</span>
+                <span className="text-xs text-[#202123] bg-[#f7f7f8] px-2 py-0.5 rounded">{relative.chineseZodiac}</span>
               )}
             </div>
           )}
@@ -78,12 +121,12 @@ export default function Detail() {
             <div className="bg-white rounded-xl p-4 text-center border border-gray-50">
               {daysUntilBirthday === 0 ? (
                 <>
-                  <div className="text-2xl md:text-3xl font-bold text-[#0066CC]">今天</div>
-                  <div className="text-xs text-[#0066CC] mt-1 font-medium">生日快乐！</div>
+                  <div className="text-2xl md:text-3xl font-bold text-[#202123]">今天</div>
+                  <div className="text-xs text-[#202123] mt-1 font-medium">生日快乐！</div>
                 </>
               ) : daysUntilBirthday !== null ? (
                 <>
-                  <div className="text-2xl md:text-3xl font-bold text-[#0066CC]">{daysUntilBirthday}</div>
+                  <div className="text-2xl md:text-3xl font-bold text-[#202123]">{daysUntilBirthday}</div>
                   <div className="text-xs text-gray-400 mt-1">天后生日</div>
                 </>
               ) : (
@@ -122,7 +165,7 @@ export default function Detail() {
 
             {relative.hobbies && (
               <div className="bg-white rounded-xl p-3.5 flex items-center gap-3 border border-gray-50">
-                <div className="w-9 h-9 rounded-lg bg-[#e9f2ff] flex items-center justify-center text-sm shrink-0">❤️</div>
+                <div className="w-9 h-9 rounded-lg bg-[#f7f7f8] flex items-center justify-center text-sm shrink-0">❤️</div>
                 <div>
                   <div className="text-xs text-gray-400">喜好</div>
                   <div className="text-sm font-medium">{relative.hobbies}</div>
@@ -195,7 +238,7 @@ export default function Detail() {
                       <span className="text-xs text-gray-400">表达特点：</span>
                       <div className="flex flex-wrap gap-1 mt-1">
                         {relative.chatStyle.expressionDNA.slice(0, 3).map((dna, i) => (
-                          <span key={i} className="px-2 py-0.5 bg-[#e9f2ff] rounded text-xs text-[#0066CC]">{dna}</span>
+                          <span key={i} className="px-2 py-0.5 bg-[#f7f7f8] rounded text-xs text-[#202123]">{dna}</span>
                         ))}
                       </div>
                     </div>
@@ -218,7 +261,7 @@ export default function Detail() {
             >
               <div className="flex items-center gap-3">
                 <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${
-                  relative.chatStyle ? 'bg-[#0066CC]' : 'bg-gray-400'
+                  relative.chatStyle ? 'bg-[#202123]' : 'bg-gray-400'
                 }`}>
                   {relative.chatStyle ? (
                     <Robot size={22} className="text-white" />
@@ -239,7 +282,7 @@ export default function Detail() {
                 </div>
                 <div className="shrink-0">
                   {relative.chatStyle ? (
-                    <ChatCircle size={18} className="text-[#0066CC]" />
+                    <ChatCircle size={18} className="text-[#202123]" />
                   ) : (
                     <Upload size={18} className="text-gray-400" />
                   )}
@@ -248,11 +291,11 @@ export default function Detail() {
               {!relative.chatStyle && (
                 <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-200">
                   <div className="flex-1 text-xs text-gray-400">上传微信/QQ聊天记录 → 自动提取风格 → 生成分身</div>
-                  <span className="text-xs text-[#0066CC] font-medium">开始 →</span>
+                  <span className="text-xs text-[#202123] font-medium">开始 →</span>
                 </div>
               )}
               {relative.chatStyle && (
-                <div className="flex items-center gap-2 mt-3 pt-3 border-t border-[#c7ddff]">
+                <div className="flex items-center gap-2 mt-3 pt-3 border-t border-[#e5e7eb]">
                   <div className="flex flex-wrap gap-1">
                     <span className="px-2 py-0.5 bg-white/80 rounded text-xs text-gray-600">{relative.chatStyle.personality}</span>
                     <span className="px-2 py-0.5 bg-white/80 rounded text-xs text-gray-600">
@@ -262,13 +305,50 @@ export default function Detail() {
                       {relative.chatStyle.commonEmojis.slice(0, 2).join('')}
                     </span>
                   </div>
-                  <span className="text-xs text-[#0066CC] font-medium ml-auto">聊天 →</span>
+                  <span className="text-xs text-[#202123] font-medium ml-auto">聊天 →</span>
                 </div>
               )}
             </div>
+
+            {relative.chatStyle && (
+              <div className="rounded-xl border border-[#e5e7eb] bg-white p-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#f7f7f8] text-[#202123]">
+                    <Sparkle size={22} weight="fill" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="text-sm font-semibold text-gray-800">生成可复用技能</h3>
+                    <p className="mt-0.5 text-xs text-gray-500">
+                      把这份聊天风格整理成 Skill，之后可以在 Agent 中关联使用。
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleDistillSkill}
+                    disabled={distilling}
+                    className="rounded-full bg-[#202123] px-3 py-2 text-xs font-medium text-white transition disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {distilling ? '生成中...' : '生成 Skill'}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
+      <ConfirmDialog
+        open={showDeleteDialog}
+        title="删除这位亲友？"
+        detail={relative.name}
+        description="删除后，这位亲友的资料、生日提醒和本地聊天风格记录都会从当前列表移除。"
+        confirmLabel="确认删除"
+        danger
+        loading={isDeleting}
+        icon={<Trash size={20} weight="bold" />}
+        onCancel={() => setShowDeleteDialog(false)}
+        onConfirm={confirmDelete}
+      />
     </div>
   );
 }
+

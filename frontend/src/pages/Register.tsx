@@ -102,7 +102,7 @@ export default function Register() {
 
           <p className="mt-5 text-center text-sm text-[#7a7a7a]">
             已有账号？{' '}
-            <Link to="/login" className="font-medium text-[#0066cc]">
+            <Link to="/login" className="font-medium text-[#202123]">
               登录
             </Link>
           </p>
@@ -111,3 +111,4 @@ export default function Register() {
     </div>
   );
 }
+

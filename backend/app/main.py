@@ -7,7 +7,7 @@ from app.database import engine, Base
 # 导入所有模型以确保关系正确解析
 from app.models import user, relative, chat_message
 from app.models import skill, agent, conversation
-from app.routers import auth, relatives, upload
+from app.routers import auth, relatives, reminders, upload
 from app.routers.chat import router as chat_router, chat_style_router
 from app.routers import skills as skills_router
 from app.routers import agents as agents_router
@@ -22,6 +22,10 @@ if settings.AUTO_CREATE_TABLES:
             conn.execute(text("ALTER TABLE conversations ADD COLUMN is_archived BOOL NOT NULL DEFAULT 0"))
         if "archived_at" not in columns:
             conn.execute(text("ALTER TABLE conversations ADD COLUMN archived_at DATETIME NULL"))
+        if "is_deleted" not in columns:
+            conn.execute(text("ALTER TABLE conversations ADD COLUMN is_deleted BOOL NOT NULL DEFAULT 0"))
+        if "deleted_at" not in columns:
+            conn.execute(text("ALTER TABLE conversations ADD COLUMN deleted_at DATETIME NULL"))
         user_column_info = inspect(conn).get_columns("users")
         user_columns = {column["name"] for column in user_column_info}
         if "llm_api_key" not in user_columns:
@@ -39,6 +43,29 @@ if settings.AUTO_CREATE_TABLES:
         if "llm_timeout" not in user_columns:
             conn.execute(text("ALTER TABLE users ADD COLUMN llm_timeout INT NULL"))
 
+        def ensure_column(table_name: str, column_name: str, ddl: str) -> None:
+            if not inspect(conn).has_table(table_name):
+                return
+            table_columns = {
+                column["name"] for column in inspect(conn).get_columns(table_name)
+            }
+            if column_name not in table_columns:
+                conn.execute(
+                    text(f"ALTER TABLE `{table_name}` ADD COLUMN `{column_name}` {ddl}")
+                )
+
+        ensure_column("relatives", "mbti", "VARCHAR(10) NULL")
+        ensure_column("relatives", "address", "TEXT NULL")
+        ensure_column("relatives", "zodiac", "VARCHAR(20) NULL")
+        ensure_column("relatives", "chinese_zodiac", "VARCHAR(20) NULL")
+        ensure_column("relatives", "avatar_image_url", "VARCHAR(500) NULL")
+        ensure_column("relatives", "chat_style", "JSON NULL")
+        ensure_column("skills", "system_prompt", "TEXT NULL")
+        ensure_column("skills", "is_active", "BOOL NOT NULL DEFAULT 1")
+        ensure_column("agents", "is_active", "BOOL NOT NULL DEFAULT 1")
+        ensure_column("agent_skills", "weight", "FLOAT NOT NULL DEFAULT 1.0")
+        ensure_column("messages", "metadata", "JSON NULL")
+
 app = FastAPI(title="亲友管理 API", version="1.0.0")
 
 # CORS 配置
@@ -48,11 +75,13 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["X-Elfin-Mock-Llm"],
 )
 
 # 注册路由
 app.include_router(auth.router)
 app.include_router(relatives.router)
+app.include_router(reminders.router)
 app.include_router(upload.router)
 app.include_router(chat_router)
 app.include_router(chat_style_router)

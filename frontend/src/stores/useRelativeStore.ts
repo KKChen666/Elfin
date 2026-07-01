@@ -64,6 +64,8 @@ function chatMsgFromBackend(m: ChatMessageOut): ChatMessage {
 interface RelativeStore {
   relatives: Relative[];
   chatMessages: Record<string, ChatMessage[]>;
+  isLoading: boolean;
+  hasLoaded: boolean;
   loadRelatives: () => Promise<void>;
   addRelative: (
     data: Omit<Relative, 'id' | 'createdAt' | 'updatedAt' | 'avatar'> & {
@@ -84,14 +86,19 @@ interface RelativeStore {
 export const useRelativeStore = create<RelativeStore>((set, get) => ({
   relatives: [],
   chatMessages: {},
+  isLoading: false,
+  hasLoaded: false,
 
   loadRelatives: async () => {
+    set({ isLoading: true });
     try {
       const res = await relativesApi.getAll();
       const relatives = res.data.map(fromBackend);
-      set({ relatives });
+      set({ relatives, hasLoaded: true });
     } catch {
-      // 静默失败，用户未登录时会 401
+      set({ relatives: [], hasLoaded: true });
+    } finally {
+      set({ isLoading: false });
     }
   },
 

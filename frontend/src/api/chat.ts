@@ -16,6 +16,12 @@ export interface ChatStyleResponse {
   chat_style: Record<string, unknown>;
 }
 
+export interface MemoryBackendStatus {
+  backend: string;
+  available: boolean;
+  reason?: string;
+}
+
 export const chatApi = {
   getMessages(relativeId: number) {
     return client.get<ChatMessageOut[]>(`/relatives/${relativeId}/messages`);
@@ -51,5 +57,9 @@ export const chatApi = {
 
   getChatStyle(relativeId: number) {
     return client.get<ChatStyleResponse>(`/relatives/${relativeId}/chat-style`);
+  },
+
+  getMemoryBackend(relativeId: number) {
+    return client.get<MemoryBackendStatus>(`/relatives/${relativeId}/chat-style/memory-backend`);
   },
 };

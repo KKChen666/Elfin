@@ -45,3 +45,58 @@ class Relative(Base):
     chat_messages = relationship(
         "ChatMessage", back_populates="relative", cascade="all, delete-orphan"
     )
+
+
+class RelativeRelationship(Base):
+    __tablename__ = "relative_relationships"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    relative_a_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("relatives.id", ondelete="CASCADE"), nullable=False
+    )
+    relative_b_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("relatives.id", ondelete="CASCADE"), nullable=False
+    )
+    relation_label: Mapped[str] = mapped_column(String(50), nullable=False)
+    reverse_relation_label: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    note: Mapped[str | None] = mapped_column(Text, nullable=True)
+    strength: Mapped[int] = mapped_column(Integer, default=3, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.utcnow, nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
+    )
+
+    user = relationship("User")
+    relative_a = relationship("Relative", foreign_keys=[relative_a_id])
+    relative_b = relationship("Relative", foreign_keys=[relative_b_id])
+
+
+class ReminderEvent(Base):
+    __tablename__ = "reminder_events"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    relative_id: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey("relatives.id", ondelete="SET NULL"), nullable=True
+    )
+    title: Mapped[str] = mapped_column(String(120), nullable=False)
+    event_date: Mapped[date] = mapped_column(Date, nullable=False)
+    advance_days: Mapped[list] = mapped_column(JSON, nullable=False, default=list)
+    note: Mapped[str | None] = mapped_column(Text, nullable=True)
+    is_enabled: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.utcnow, nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
+    )
+
+    user = relationship("User")
+    relative = relationship("Relative")

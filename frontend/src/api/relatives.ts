@@ -45,6 +45,27 @@ export interface BackendRelative {
   updated_at: string;
 }
 
+export interface RelativeRelationship {
+  id: number;
+  relative_a_id: number;
+  relative_b_id: number;
+  relation_label: string;
+  reverse_relation_label: string | null;
+  note: string | null;
+  strength: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface RelativeRelationshipInput {
+  relative_a_id: number;
+  relative_b_id: number;
+  relation_label: string;
+  reverse_relation_label?: string | null;
+  note?: string | null;
+  strength?: number;
+}
+
 export const relativesApi = {
   getAll() {
     return client.get<BackendRelative[]>('/relatives');
@@ -68,5 +89,21 @@ export const relativesApi = {
 
   getStats() {
     return client.get('/relatives/stats/summary');
+  },
+
+  getRelationships() {
+    return client.get<RelativeRelationship[]>('/relatives/relationships/network');
+  },
+
+  saveRelationship(data: RelativeRelationshipInput) {
+    return client.post<RelativeRelationship>('/relatives/relationships/network', data);
+  },
+
+  updateRelationship(id: number, data: Partial<RelativeRelationshipInput>) {
+    return client.put<RelativeRelationship>(`/relatives/relationships/network/${id}`, data);
+  },
+
+  deleteRelationship(id: number) {
+    return client.delete(`/relatives/relationships/network/${id}`);
   },
 };

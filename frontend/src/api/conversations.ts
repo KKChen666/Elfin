@@ -8,6 +8,8 @@ export interface Conversation {
   last_message: { id: number; content: string; sender_type: string; created_at: string } | null;
   is_archived: boolean;
   archived_at: string | null;
+  is_deleted: boolean;
+  deleted_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -24,8 +26,8 @@ export interface Message {
 }
 
 export const conversationsApi = {
-  getAll(archived = false) {
-    return client.get<Conversation[]>('/conversations', { params: { archived } });
+  getAll(archived = false, deleted = false) {
+    return client.get<Conversation[]>('/conversations', { params: { archived, deleted } });
   },
   getOne(id: number) {
     return client.get<Conversation>(`/conversations/${id}`);
@@ -49,16 +51,20 @@ export const conversationsApi = {
   restore(id: number) {
     return client.patch<Conversation>(`/conversations/${id}`, { is_archived: false });
   },
+  restoreDeleted(id: number) {
+    return client.post<Conversation>(`/conversations/${id}/restore`);
+  },
   getMessages(convId: number) {
     return client.get<Message[]>(`/conversations/${convId}/messages`);
   },
   sendMessage(convId: number, content: string) {
     return client.post<Message>(`/conversations/${convId}/messages`, { content });
   },
-  triggerAgentReply(convId: number, agentId?: number) {
+  triggerAgentReply(convId: number, agentId?: number, signal?: AbortSignal) {
     const params = agentId ? `?agent_id=${agentId}` : '';
     return fetch(`/api/conversations/${convId}/messages/agent${params}`, {
       method: 'POST',
+      signal,
       headers: {
         Authorization: `Bearer ${localStorage.getItem('token')}`,
       },

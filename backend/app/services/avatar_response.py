@@ -205,6 +205,7 @@ def generate_avatar_response(
     user_message: str,
     chat_style: dict | None = None,
     recent_messages: list[dict] | None = None,
+    memory_chunks: list[dict] | None = None,
 ) -> str:
     """
     生成 AI 分身回复（主入口）
@@ -215,6 +216,16 @@ def generate_avatar_response(
     """
     category = detect_category(user_message)
     variant = get_style_variant(chat_style)
+
+    # Tier 0: 相似历史片段。真实相似语境比抽象风格更可靠。
+    if memory_chunks:
+        for chunk in memory_chunks[:3]:
+            reply = (chunk.get("reply") or "").strip()
+            if not reply:
+                continue
+            if _is_usable_memory_reply(reply, user_message, chat_style):
+                reply = apply_punctuation(reply, chat_style)
+                return calibrate_by_traits(reply, chat_style)
 
     # Tier 1: 真实回复模式（70% 概率）
     if chat_style and random.random() < 0.7:
@@ -278,3 +289,16 @@ def generate_avatar_response(
     reply = random.choice(base.get(variant, base["casual"]))
     reply = apply_punctuation(reply, chat_style)
     return calibrate_by_traits(reply, chat_style)
+
+
+def _is_usable_memory_reply(reply: str, user_message: str, chat_style: dict | None) -> bool:
+    if len(reply) > 120:
+        return False
+    if user_message.strip() == reply:
+        return False
+    personality = (chat_style or {}).get("personality")
+    if personality == "惜字如金型":
+        return len(reply) <= 24
+    if personality == "话多型":
+        return len(reply) >= 2
+    return 1 <= len(reply) <= 60

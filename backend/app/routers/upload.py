@@ -35,7 +35,12 @@ async def upload_avatar_image(
     if len(content) > 5 * 1024 * 1024:  # 5MB 限制
         raise HTTPException(status_code=400, detail="图片大小不能超过 5MB")
 
-    url = upload_avatar(content, file.filename or "avatar.png")
+    try:
+        url = upload_avatar(content, file.filename or "avatar.png")
+    except ValueError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail="Avatar upload failed") from exc
     relative.avatar_image_url = url
     db.commit()
     db.refresh(relative)

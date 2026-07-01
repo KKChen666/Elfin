@@ -45,5 +45,13 @@ class Settings:
     LLM_MODEL: str = os.getenv("LLM_MODEL", "gpt-3.5-turbo")
     LLM_TIMEOUT: int = int(os.getenv("LLM_TIMEOUT", "60"))
 
+    # Memory vector index. Use "sql" for the built-in JSON-vector fallback,
+    # or "zvec" to enable Alibaba Zvec as a local vector search index.
+    MEMORY_VECTOR_BACKEND: str = os.getenv("MEMORY_VECTOR_BACKEND", "sql").lower()
+    ZVEC_MEMORY_PATH: str = os.getenv(
+        "ZVEC_MEMORY_PATH",
+        os.path.join(os.getcwd(), "storage", "zvec_memory"),
+    )
+
 
 settings = Settings()

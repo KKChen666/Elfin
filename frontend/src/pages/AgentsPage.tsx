@@ -3,15 +3,20 @@ import { useNavigate } from 'react-router-dom';
 import { Plus, Robot, Trash, ChatCircleDots, X } from '@phosphor-icons/react';
 import { agentsApi, Agent } from '../api/agents';
 import { skillsApi, Skill } from '../api/skills';
+import { conversationsApi } from '../api/conversations';
 import { showToast } from '../components/toastBus';
-import gsap from 'gsap';
 import { useGsapEntrance } from '../hooks/useGsapEntrance';
+import { ConfirmDialog } from '../components/AppDialog';
+import WorkflowGuide from '../components/WorkflowGuide';
 
 export default function AgentsPage() {
   const navigate = useNavigate();
   const [agents, setAgents] = useState<Agent[]>([]);
   const [skills, setSkills] = useState<Skill[]>([]);
   const [showCreate, setShowCreate] = useState(false);
+  const [startingAgentId, setStartingAgentId] = useState<number | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Agent | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [newAgent, setNewAgent] = useState({
     name: '',
     description: '',
@@ -24,16 +29,6 @@ export default function AgentsPage() {
     loadAgents();
     loadSkills();
   }, []);
-
-  useEffect(() => {
-    if (listRef.current?.children) {
-      gsap.fromTo(
-        listRef.current.children,
-        { y: 14, opacity: 0, scale: 0.985 },
-        { y: 0, opacity: 1, scale: 1, duration: 0.32, stagger: 0.04, ease: 'power2.out', clearProps: 'transform' },
-      );
-    }
-  }, [agents]);
 
   useGsapEntrance(panelRef, [showCreate], { y: 12, scale: 0.98, stagger: 0.035 });
 
@@ -73,13 +68,35 @@ export default function AgentsPage() {
   };
 
   const handleDelete = async (agent: Agent) => {
-    if (!confirm(`确定删除「${agent.name}」吗？`)) return;
+    setDeleteTarget(agent);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget || isDeleting) return;
+    setIsDeleting(true);
     try {
-      await agentsApi.delete(agent.id);
+      await agentsApi.delete(deleteTarget.id);
+      setDeleteTarget(null);
       showToast('success', '已删除');
       loadAgents();
     } catch {
       showToast('error', '删除失败');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleStartChat = async (agent: Agent) => {
+    if (startingAgentId) return;
+    setStartingAgentId(agent.id);
+    try {
+      const res = await conversationsApi.create([agent.id]);
+      navigate(`/chat/${res.data.id}`);
+      window.dispatchEvent(new Event('elfin:conversations-changed'));
+    } catch {
+      showToast('error', '开启对话失败');
+    } finally {
+      setStartingAgentId(null);
     }
   };
 
@@ -97,6 +114,8 @@ export default function AgentsPage() {
             创建 Agent
           </button>
         </header>
+
+        <WorkflowGuide />
 
         {showCreate && (
           <section ref={panelRef} className="ios-panel mb-6 p-5">
@@ -173,7 +192,7 @@ export default function AgentsPage() {
             <article key={agent.id} className="ios-card p-5">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex min-w-0 items-start gap-4">
-                  <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#e9f2ff] text-[#0066cc]">
+                  <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#f7f7f8] text-[#202123]">
                     {agent.avatar_url ? (
                       <img src={agent.avatar_url} alt="" className="h-full w-full object-cover" />
                     ) : (
@@ -188,7 +207,7 @@ export default function AgentsPage() {
                     {agent.skills && agent.skills.length > 0 && (
                       <div className="mt-3 flex flex-wrap gap-1.5">
                         {agent.skills.map((skill) => (
-                          <span key={skill.id} className="rounded-full bg-[#e9f2ff] px-2.5 py-1 text-xs font-medium text-[#0066cc]">
+                          <span key={skill.id} className="rounded-full bg-[#f7f7f8] px-2.5 py-1 text-xs font-medium text-[#202123]">
                             {skill.name}
                           </span>
                         ))}
@@ -198,10 +217,11 @@ export default function AgentsPage() {
                 </div>
                 <div className="flex shrink-0 gap-1">
                   <button
-                    onClick={() => navigate(`/chat/new?agent=${agent.id}`)}
+                    onClick={() => handleStartChat(agent)}
+                    disabled={startingAgentId === agent.id}
                     className="ios-icon-button"
-                    title="开始对话"
-                    aria-label="开始对话"
+                    title={startingAgentId === agent.id ? '正在开启' : '开始对话'}
+                    aria-label={startingAgentId === agent.id ? '正在开启' : '开始对话'}
                   >
                     <ChatCircleDots size={18} />
                   </button>
@@ -230,6 +250,19 @@ export default function AgentsPage() {
           )}
         </div>
       </div>
+      <ConfirmDialog
+        open={Boolean(deleteTarget)}
+        title="删除这个 Agent？"
+        detail={deleteTarget?.name}
+        description="删除后，这个 Agent 不会再出现在对话创建和 Agent 列表里。"
+        confirmLabel="确认删除"
+        danger
+        loading={isDeleting}
+        icon={<Trash size={20} weight="bold" />}
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={confirmDelete}
+      />
     </div>
   );
 }
+

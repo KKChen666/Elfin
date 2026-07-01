@@ -18,6 +18,7 @@ import ClaudeLayout from './components/ClaudeLayout';
 import ChatPage from './pages/ChatPage';
 import AgentsPage from './pages/AgentsPage';
 import SkillsPage from './pages/SkillsPage';
+import NetworkPage from './pages/NetworkPage';
 import Toast from './components/Toast';
 
 function RequireAuth({ children }: { children: ReactNode }) {
@@ -26,7 +27,7 @@ function RequireAuth({ children }: { children: ReactNode }) {
   if (isLoading) {
     return (
       <div className="ios-page flex min-h-screen items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-[3px] border-[#0066cc] border-t-transparent" />
+        <div className="h-8 w-8 animate-spin rounded-full border-[3px] border-[#202123] border-t-transparent" />
       </div>
     );
   }
@@ -85,6 +86,7 @@ export default function App() {
 
           {/* 亲友管理 */}
           <Route path="/relatives" element={<Home />} />
+          <Route path="/network" element={<NetworkPage />} />
           <Route path="/add" element={<AddRelative />} />
           <Route path="/edit/:id" element={<EditRelative />} />
           <Route path="/detail/:id" element={<Detail />} />
@@ -101,3 +103,4 @@ export default function App() {
     </Router>
   );
 }
+
