@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { ArrowLeft, Pencil, Trash, Sparkle, Robot, Upload, ChatCircle } from '@phosphor-icons/react';
+import { ArrowLeft, Pencil, Trash, Sparkle, Robot, Upload, ChatCircle, ShareNetwork, Bell } from '@phosphor-icons/react';
 import { useRelativeStore } from '../stores/useRelativeStore';
 import { getRelationLabel } from '../types';
 import AvatarPreview from '../components/avatar/AvatarPreview';
@@ -32,6 +32,15 @@ export default function Detail() {
   }
 
   const daysUntilBirthday = getDaysUntilBirthday(relative.birthday, relative.isLunar);
+  const profileItems = [
+    relative.birthday,
+    relative.phone,
+    relative.hobbies,
+    relative.mbti,
+    relative.address,
+    relative.notes,
+  ].filter(Boolean).length;
+  const profilePercent = Math.round((profileItems / 6) * 100);
 
   const handleDelete = async () => {
     setShowDeleteDialog(true);
@@ -117,6 +126,61 @@ export default function Detail() {
 
         {/* 右侧：详细信息 */}
         <div className="flex-1">
+          <section className="mb-5 rounded-2xl border border-[#e5e7eb] bg-white p-4">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div>
+                <p className="text-xs font-medium text-[#6b7280]">资料完整度</p>
+                <h2 className="mt-1 text-lg font-semibold text-[#202123]">{profilePercent}% 已补充</h2>
+                <p className="mt-1 text-sm leading-6 text-[#6b7280]">
+                  资料、关系、聊天记忆和 Skill 会一起决定这个人的后续可用性。
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <button onClick={() => navigate(`/edit/${id}`)} className="ios-button-secondary">
+                  <Pencil size={17} />
+                  补资料
+                </button>
+                <button onClick={() => navigate(`/import/${id}`)} className="ios-button-primary">
+                  <Upload size={17} />
+                  {relative.chatStyle ? '更新聊天记忆' : '导入聊天'}
+                </button>
+              </div>
+            </div>
+            <div className="mt-4 h-2 overflow-hidden rounded-full bg-[#f7f7f8]">
+              <div className="h-full rounded-full bg-[#202123]" style={{ width: `${profilePercent}%` }} />
+            </div>
+          </section>
+
+          <section className="mb-5 grid gap-3 md:grid-cols-3">
+            <button onClick={() => navigate('/network')} className="ios-card flex items-center gap-3 p-4 text-left">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#f7f7f8] text-[#202123]">
+                <ShareNetwork size={20} />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-[#202123]">关系网</p>
+                <p className="mt-0.5 text-xs text-[#6b7280]">记录 TA 和其他人的关系</p>
+              </div>
+            </button>
+            <button onClick={() => navigate('/reminders')} className="ios-card flex items-center gap-3 p-4 text-left">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#f7f7f8] text-[#202123]">
+                <Bell size={20} />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-[#202123]">提醒</p>
+                <p className="mt-0.5 text-xs text-[#6b7280]">生日、节日和自定义事项</p>
+              </div>
+            </button>
+            <button onClick={() => relative.chatStyle ? handleDistillSkill() : navigate(`/import/${id}`)} className="ios-card flex items-center gap-3 p-4 text-left">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#f7f7f8] text-[#202123]">
+                <Sparkle size={20} weight="fill" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-[#202123]">Skill</p>
+                <p className="mt-0.5 text-xs text-[#6b7280]">{relative.chatStyle ? '生成可复用能力' : '先导入聊天记录'}</p>
+              </div>
+            </button>
+          </section>
+
           <div className="grid grid-cols-2 gap-3 mb-5">
             <div className="bg-white rounded-xl p-4 text-center border border-gray-50">
               {daysUntilBirthday === 0 ? (

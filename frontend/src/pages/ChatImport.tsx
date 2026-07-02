@@ -109,6 +109,18 @@ export default function ChatImport() {
             <div className="ios-panel p-4 text-sm leading-6 text-[#6b7280]">
               后端会解析聊天记录、提取说话习惯，并生成可检索的记忆片段。原始文件不会作为文件长期保存。
             </div>
+
+            <div className="ios-panel p-4">
+              <h2 className="text-sm font-semibold text-[#202123]">建议格式</h2>
+              <p className="mt-2 text-sm leading-6 text-[#6b7280]">
+                每一行尽量包含“说话人 + 内容”，例如“妈妈：今天吃饭了吗”。如果是导出的 QQ/微信文本，先删除无关系统消息会更稳。
+              </p>
+              <div className="mt-3 rounded-2xl bg-[#f7f7f8] p-3 text-xs leading-6 text-[#4b5563]">
+                妈妈：路上注意安全<br />
+                我：好，到了跟你说<br />
+                妈妈：别忘了吃饭
+              </div>
+            </div>
           </div>
         )}
 
@@ -175,6 +187,10 @@ export default function ChatImport() {
             <div className="flex gap-3 pt-2">
               <button onClick={() => setResult(null)} className="ios-button-secondary flex-1">重新导入</button>
               <button onClick={handleSave} className="ios-button-primary flex-1">保存结果</button>
+            </div>
+
+            <div className="ios-panel p-4 text-sm leading-6 text-[#6b7280]">
+              保存后，这份风格会挂到亲友资料上。回到详情页后，可以继续生成可复用 Skill，再绑定到 Agent 里对话。
             </div>
           </div>
         )}

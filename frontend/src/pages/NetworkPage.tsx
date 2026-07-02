@@ -6,6 +6,7 @@ import { RelativeRelationship, relativesApi } from '../api/relatives';
 import { ConfirmDialog } from '../components/AppDialog';
 import { showToast } from '../components/toastBus';
 import { useRelativeStore } from '../stores/useRelativeStore';
+import NextStepPanel from '../components/NextStepPanel';
 
 type Perspective = 'self' | string;
 
@@ -181,6 +182,18 @@ export default function NetworkPage() {
             </select>
           </div>
         </section>
+
+        {relatives.length < 2 && (
+          <NextStepPanel
+            eyebrow="关系网还缺节点"
+            title="至少添加两位亲友，才能建立他们之间的关系"
+            description="关系网的价值来自“亲友之间”的连接。先补充两位人物，再回来记录称呼、亲密度和备注。"
+            actions={[
+              { label: '添加亲友', to: '/add', primary: true },
+              { label: '查看亲友列表', to: '/relatives' },
+            ]}
+          />
+        )}
 
         <div className="grid gap-5 xl:grid-cols-[1fr_360px]">
           <section className="ios-panel min-h-[460px] overflow-hidden p-4">

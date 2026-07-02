@@ -14,6 +14,8 @@ import { agentsApi, Agent } from '../api/agents';
 import { conversationsApi, Conversation, Message } from '../api/conversations';
 import { showToast } from '../components/toastBus';
 import WorkflowGuide from '../components/WorkflowGuide';
+import ModelKeyNotice from '../components/ModelKeyNotice';
+import NextStepPanel from '../components/NextStepPanel';
 
 function getConversationTitle(conversation: Conversation | null) {
   if (!conversation) return '对话';
@@ -274,7 +276,21 @@ export default function ChatPage() {
             </p>
           </div>
 
+          <ModelKeyNotice compact />
+
           {agents.length === 0 && <WorkflowGuide />}
+
+          {agents.length === 0 && (
+            <NextStepPanel
+              eyebrow="先创建对话对象"
+              title="还没有可选择的 Agent"
+              description="Agent 是最终和你对话的角色。建议先从亲友资料或聊天记录沉淀 Skill，再创建 Agent 绑定这些能力。"
+              actions={[
+                { label: '创建 Agent', to: '/agents', primary: true },
+                { label: '去添加亲友', to: '/add' },
+              ]}
+            />
+          )}
 
           <div className="mb-4 rounded-[28px] border border-[#d9d9e3] bg-white p-2 shadow-[0_2px_12px_rgba(0,0,0,0.05)]">
             <input
@@ -362,6 +378,17 @@ export default function ChatPage() {
               </div>
               <h2 className="text-2xl font-semibold text-[#202123]">这一页还很安静</h2>
               <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-[#6b7280]">发送第一条消息，Agent 会在同一个对话流里自然接上。</p>
+              <div className="mx-auto mt-5 flex max-w-xl flex-wrap justify-center gap-2">
+                {['帮我整理这个人的表达特点', '根据最近的关系状态给我一个提醒', '用更自然的方式回复这句话'].map((suggestion) => (
+                  <button
+                    key={suggestion}
+                    onClick={() => setInputValue(suggestion)}
+                    className="ios-chip !bg-white"
+                  >
+                    {suggestion}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
 
@@ -410,14 +437,18 @@ export default function ChatPage() {
       </div>
 
       <div className="bg-white px-4 pb-4 pt-2 safe-bottom">
-        <div className="mx-auto flex max-w-3xl items-center gap-2 rounded-[28px] border border-[#d9d9e3] bg-white p-2 shadow-[0_2px_18px_rgba(0,0,0,0.08)]">
-          <input
-            type="text"
+        <div className="mx-auto flex max-w-3xl items-end gap-2 rounded-[28px] border border-[#d9d9e3] bg-white p-2 shadow-[0_2px_18px_rgba(0,0,0,0.08)]">
+          <textarea
             value={inputValue}
             onChange={(event) => setInputValue(event.target.value)}
-            onKeyDown={(event) => event.key === 'Enter' && !event.shiftKey && handleSendMessage()}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                handleSendMessage();
+              }
+            }}
             placeholder="输入消息..."
-            className="h-10 min-w-0 flex-1 rounded-full border-0 bg-transparent px-4 text-[15px] text-[#202123] outline-none placeholder:text-[#8a8f98]"
+            className="max-h-36 min-h-10 min-w-0 flex-1 resize-none rounded-[22px] border-0 bg-transparent px-4 py-2.5 text-[15px] leading-6 text-[#202123] outline-none placeholder:text-[#8a8f98]"
             disabled={isStreaming}
           />
           {isStreaming ? (

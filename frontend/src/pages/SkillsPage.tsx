@@ -16,6 +16,8 @@ import { showToast } from '../components/toastBus';
 import { useGsapEntrance } from '../hooks/useGsapEntrance';
 import { ConfirmDialog } from '../components/AppDialog';
 import WorkflowGuide from '../components/WorkflowGuide';
+import ModelKeyNotice from '../components/ModelKeyNotice';
+import NextStepPanel from '../components/NextStepPanel';
 
 type PanelMode = 'creator' | 'create' | 'distill' | 'merge' | null;
 
@@ -249,6 +251,22 @@ export default function SkillsPage() {
         </header>
 
         <WorkflowGuide />
+        <ModelKeyNotice
+          title="配置模型后，Skill Creator 才会真正理解素材"
+          description="未配置 API Key 时，系统会尽量用模板生成可用结构；配置后可以基于聊天记录、文件和失败案例生成更贴近目标的 Skill。"
+        />
+
+        {skills.length > 0 && (
+          <NextStepPanel
+            eyebrow="让 Skill 用起来"
+            title="把技能绑定到 Agent"
+            description="Skill 是能力包，Agent 才是对话入口。创建或编辑 Agent 时选择这些 Skill，就能在聊天中复用。"
+            actions={[
+              { label: '管理 Agent', to: '/agents', primary: true },
+              { label: '开始对话', to: '/chat' },
+            ]}
+          />
+        )}
 
         {panelMode && (
           <section ref={panelRef} className="ios-panel mb-6 p-5">

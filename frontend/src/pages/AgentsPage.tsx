@@ -8,6 +8,7 @@ import { showToast } from '../components/toastBus';
 import { useGsapEntrance } from '../hooks/useGsapEntrance';
 import { ConfirmDialog } from '../components/AppDialog';
 import WorkflowGuide from '../components/WorkflowGuide';
+import NextStepPanel from '../components/NextStepPanel';
 
 export default function AgentsPage() {
   const navigate = useNavigate();
@@ -116,6 +117,18 @@ export default function AgentsPage() {
         </header>
 
         <WorkflowGuide />
+
+        {agents.length > 0 && skills.length === 0 && (
+          <NextStepPanel
+            eyebrow="增强 Agent"
+            title="先生成一个 Skill，再把它绑定到 Agent"
+            description="没有 Skill 的 Agent 也能对话，但缺少来自亲友资料、聊天记录或规则文件的稳定能力。"
+            actions={[
+              { label: '去生成 Skill', to: '/skills', primary: true },
+              { label: '查看亲友', to: '/relatives' },
+            ]}
+          />
+        )}
 
         {showCreate && (
           <section ref={panelRef} className="ios-panel mb-6 p-5">
@@ -242,10 +255,17 @@ export default function AgentsPage() {
             <div className="ios-panel px-6 py-16 text-center">
               <Robot size={48} className="mx-auto mb-4 text-[#8e8e93]" />
               <h2 className="text-xl font-semibold">还没有 Agent</h2>
-              <p className="mt-2 text-sm text-[#7a7a7a]">创建第一个 Agent，给关系记录配置一个专属声音。</p>
-              <button onClick={() => setShowCreate(true)} className="ios-button-primary mt-6">
-                创建第一个 Agent
-              </button>
+              <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[#7a7a7a]">
+                Agent 是最终对话对象。你可以先从聊天记录生成 Skill，也可以先创建一个空 Agent，稍后再绑定技能。
+              </p>
+              <div className="mt-6 flex flex-wrap justify-center gap-2">
+                <button onClick={() => setShowCreate(true)} className="ios-button-primary">
+                  创建第一个 Agent
+                </button>
+                <button onClick={() => navigate('/skills')} className="ios-button-secondary">
+                  先生成 Skill
+                </button>
+              </div>
             </div>
           )}
         </div>

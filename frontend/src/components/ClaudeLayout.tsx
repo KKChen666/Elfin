@@ -91,6 +91,11 @@ export default function ClaudeLayout() {
     return () => window.removeEventListener('elfin:conversations-changed', loadConversations);
   }, [loadConversations]);
 
+  useEffect(() => {
+    window.addEventListener('elfin:open-model-settings', openSettings);
+    return () => window.removeEventListener('elfin:open-model-settings', openSettings);
+  });
+
   const handleRenameConversation = (conv: Conversation) => {
     setRenameTarget(conv);
   };

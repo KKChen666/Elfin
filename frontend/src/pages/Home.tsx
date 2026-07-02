@@ -6,6 +6,7 @@ import AvatarCard from '../components/avatar/AvatarCard';
 import { useRef, useState } from 'react';
 import { useGsapEntrance } from '../hooks/useGsapEntrance';
 import WorkflowGuide from '../components/WorkflowGuide';
+import NextStepPanel from '../components/NextStepPanel';
 
 const FILTER_OPTIONS = [
   { key: 'all', label: '全部' },
@@ -54,6 +55,18 @@ export default function Home() {
         </header>
 
         <WorkflowGuide />
+
+        {relatives.length > 0 && (
+          <NextStepPanel
+            eyebrow="把资料变成能力"
+            title="选一位亲友导入聊天记录"
+            description="亲友资料已经开始沉淀了。下一步可以进入某位亲友详情页，导入聊天记录，提取表达风格和可检索记忆。"
+            actions={[
+              { label: '查看亲友', to: '/relatives', primary: true },
+              { label: '管理关系网', to: '/network' },
+            ]}
+          />
+        )}
 
         <div className="ios-panel mb-5 p-3" data-gsap-page>
           <div className="flex items-center gap-2">
